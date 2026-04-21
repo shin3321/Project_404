@@ -476,3 +476,9 @@ Plugins/*/Intermediate/
 # [Large Files - LFS 권장]
 # 만약 100MB가 넘는 에셋이 있다면 Git LFS를 써야 하지만, 
 # 일반적인 바이너리는 일단 제외하는 것이 원칙입니다.
+
+#Asset
+Content/**/Characters/
+Content/**/Input/
+Content/**/LevelPrototyping/
+Content/**/ThirdPerson/
