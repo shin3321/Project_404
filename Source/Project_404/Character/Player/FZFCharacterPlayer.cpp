@@ -8,6 +8,10 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 
+#include "GAS/FZFAbilitySystemComponent.h"
+#include "GAS/Attributes/FZFPlayerSet.h"
+#include "FZFPlayerState.h"
+
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
 	// 기본 설정
@@ -60,5 +64,39 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	if (JumpActionRef.Succeeded())
 	{
 		// 점프 액션
+	}
+}
+
+
+void AFZFCharacterPlayer::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	/**
+	 * [서버 측 GAS 초기화]
+	 * PossessedBy는 서버에서 컨트롤러가 캐릭터를 점유했을 때 호출됩니다.
+	 * 이 시점에는 PlayerState가 유효함이 보장되므로, 서버 측 ASC에
+	 * Owner(PlayerState)와 Avatar(Character) 정보를 등록합니다.
+	 */
+	InitAbilitySystem();
+}
+
+void AFZFCharacterPlayer::InitAbilitySystem()
+{
+	Super::InitAbilitySystem();
+
+	if (AFZFPlayerState* PS = GetPlayerState<AFZFPlayerState>())
+	{
+		/** * [GAS 핵심 설정]
+		 * 데이터 보존을 위해 PlayerState에 생성된 AbilitySystemComponent(ASC)를
+		 * 현재 Character(Avatar)의 ASC 변수에 할당하여 참조합니다.
+		 * 이를 통해 캐릭터가 죽고 리스폰되어도 동일한 PlayerState의 ASC를 유지
+		 */
+		ASC = Cast<UFZFAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+
+		// ASC의 원본은 PlayerState이므로 InOwner를 PlayerState로 설정
+		// 시각적으로 표현하는 AvatarActor는 Player
+		ASC->InitAbilityActorInfo(PS, this);
+		AttributeSet = PS->GetPlayerSet();
 	}
 }

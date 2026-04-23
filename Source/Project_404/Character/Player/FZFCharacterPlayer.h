@@ -13,6 +13,10 @@ public:
 	AFZFCharacterPlayer();
 
 protected:
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void InitAbilitySystem() override;
+
+protected:
 	// 카메라 컴포넌트 구성
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	TObjectPtr<class UCameraComponent> Camera;
