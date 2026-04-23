@@ -1,7 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Character/Player/FZFPlayerState.h"
+﻿#include "Character/Player/FZFPlayerState.h"
 #include "GAS/FZFAbilitySystemComponent.h"
 #include "GAS/Attributes/FZFPlayerSet.h"
 

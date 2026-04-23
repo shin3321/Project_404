@@ -1,4 +1,4 @@
-#include "Character/FZFCharacterBase.h"
+ï»¿#include "Character/FZFCharacterBase.h"
 #include "GAS/FZFAbilitySystemComponent.h"
 
 AFZFCharacterBase::AFZFCharacterBase()
@@ -13,7 +13,7 @@ UAbilitySystemComponent* AFZFCharacterBase::GetAbilitySystemComponent() const
 
 void AFZFCharacterBase::InitAbilitySystem()
 {
-    // ÀÌ ÇÔ¼ö ³»ºÎ¿¡¼­ InitAbilityActorInfo¸¦ ½ÇÇàÇÏµµ·Ï ·ÎÁ÷ ±¸Çö
-    // Beginplay()¿¡¼­ ÇÔ¼ö È£Ãâ
+    // ì´ í•¨ìˆ˜ ë‚´ë¶€ì—ì„œ InitAbilityActorInfoë¥¼ ì‹¤í–‰í•˜ë„ë¡ ë¡œì§ êµ¬í˜„
+    // Beginplay()ì—ì„œ í•¨ìˆ˜ í˜¸ì¶œ
 }
 
