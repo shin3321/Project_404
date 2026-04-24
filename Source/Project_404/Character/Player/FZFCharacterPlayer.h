@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "Character/FZFCharacterBase.h"
@@ -13,7 +13,11 @@ public:
 	AFZFCharacterPlayer();
 
 protected:
-	// Ä«¸Ş¶ó ÄÄÆ÷³ÍÆ® ±¸¼º
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void InitAbilitySystem() override;
+
+protected:
+	// ì¹´ë©”ë¼ ì»´í¬ë„ŒíŠ¸ êµ¬ì„±
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	TObjectPtr<class UCameraComponent> Camera;
 
