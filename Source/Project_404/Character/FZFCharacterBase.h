@@ -23,10 +23,10 @@ public:
 
 protected:
 	// 읽기 가능, 수정 불가
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
 	// ASC = AbilitySystemComponent
 	TObjectPtr<class UFZFAbilitySystemComponent> ASC;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
 	TObjectPtr<class UFZFAttributeSet> AttributeSet;
 };

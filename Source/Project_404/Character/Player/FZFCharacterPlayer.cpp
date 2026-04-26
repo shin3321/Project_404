@@ -48,16 +48,32 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	// 마우스 입력(컨트롤러 회전)에 따라 카메라가 상하좌우로 움직이도록 설정
 	Camera->bUsePawnControlRotation = true;
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT(""));
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultMappingContextRef(TEXT("/Game/Project404/Input/IMC_Default.IMC_Default"));
+	if (DefaultMappingContextRef.Succeeded())
+	{
+		// 기본 IMC 할당
+		DefaultMappingContext = DefaultMappingContextRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Game/Project404/Input/Actions/IA_Move.IA_Move"));
 	if (MoveActionRef.Succeeded())
 	{
 		// 1인칭용 MoveAction 변수에 할당
+		MoveAction = MoveActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(TEXT(""));
+	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(TEXT("/Game/Project404/Input/Actions/IA_Look.IA_Look"));
 	if (LookActionRef.Succeeded())
 	{
 		// 1인칭용 LookAction 변수에 할당
+		LookAction = LookActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionRef(TEXT("/Game/Project404/Input/Actions/IA_Interact.IA_Interact"));
+	if (InteractActionRef.Succeeded())
+	{
+		// 상호작용 변수에 할당
+		InteractAction = InteractActionRef.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/ArenaBattle/Input/Actions/IA_Jump.IA_Jump"));
@@ -65,6 +81,10 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	{
 		// 점프 액션
 	}
+
+	// GAS
+	// 의도적으로 nullptr로 밀어줌 -> PlayerState의 ASC값을 대입할거라서 혼선방지용
+	ASC = nullptr;
 }
 
 
@@ -99,4 +119,44 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 		ASC->InitAbilityActorInfo(PS, this);
 		AttributeSet = PS->GetPlayerSet();
 	}
+}
+
+void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	// 바인딩 - 향상된 입력 시스템 컴포넌트를 활용해서 설정.
+	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	if (EnhancedInputComponent)
+	{
+		// 입력 바인딩 -> 이벤트와 함수를 연결
+
+		// Move
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFZFCharacterPlayer::Move);
+
+		// Look
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFZFCharacterPlayer::Look);
+
+		// Jump
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+	
+		// Interaction
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AFZFCharacterPlayer::Interact);
+	}
+}
+
+void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
+{
+
+}
+
+void AFZFCharacterPlayer::Look(const FInputActionValue& Value)
+{
+
+}
+
+void AFZFCharacterPlayer::Interact(const FInputActionValue& Value)
+{
+
 }
