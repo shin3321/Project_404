@@ -7,6 +7,7 @@
 
 // 전방선언.
 class UInputAction;
+class UInputMappingContext;
 
 UCLASS()
 class PROJECT_404_API AFZFCharacterPlayer : public AFZFCharacterBase
@@ -17,11 +18,15 @@ public:
 	AFZFCharacterPlayer();
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void InitAbilitySystem() override;
 
 	// 입력 장치와 캐릭터 기능을 연결하기 위한 설정 함수
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// 입력 매핑 컨텍스트(IMC)를 활성화하여 캐릭터의 조작 체계를 설정
+	void ApplyMappingContext(UInputMappingContext* InMappingContext);
 
 protected:
 	// 이동 함수
@@ -44,7 +49,7 @@ protected:
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
-	TObjectPtr<class UInputMappingContext> DefaultMappingContext;
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
 	TObjectPtr<UInputAction> JumpAction;

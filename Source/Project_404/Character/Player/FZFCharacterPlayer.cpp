@@ -88,6 +88,13 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 }
 
 
+void AFZFCharacterPlayer::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ApplyMappingContext(DefaultMappingContext);
+}
+
 void AFZFCharacterPlayer::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -118,6 +125,11 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 		// 시각적으로 표현하는 AvatarActor는 Player
 		ASC->InitAbilityActorInfo(PS, this);
 		AttributeSet = PS->GetPlayerSet();
+		for (const auto& StartupAbility : StartupAbilities)
+		{
+			FGameplayAbilitySpec StartSpec(StartupAbility);
+			ASC->GiveAbility(StartSpec);
+		}
 	}
 }
 
@@ -146,9 +158,46 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	}
 }
 
+void AFZFCharacterPlayer::ApplyMappingContext(UInputMappingContext* InMappingContext)
+{
+	// 인자 유효성 검사
+	if (!InMappingContext)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ApplyMappingContext : MappingContext is null!"));
+		return;
+	}
+
+	// 컨트롤러 및 서브시스템 가져오기
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			if (InputSystem)
+			{
+				// 기존 매핑 제거
+				InputSystem->ClearAllMappings();
+
+				// 새로운 입력 매핑 컨텍스트를 우선순위 0으로 추가 적용
+				InputSystem->AddMappingContext(InMappingContext, 0);
+				UE_LOG(LogTemp, Log, TEXT("ApplyMappingContext : %s 적용 완료"), *InMappingContext->GetName());
+			}
+		}
+	}
+
+}
+
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 {
+	FVector2D MovementVector = Value.Get<FVector2D>();
 
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+	AddMovementInput(ForwardDirection, MovementVector.X);
+	AddMovementInput(RightDirection, MovementVector.Y);
 }
 
 void AFZFCharacterPlayer::Look(const FInputActionValue& Value)

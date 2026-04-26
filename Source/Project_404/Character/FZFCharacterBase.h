@@ -27,6 +27,12 @@ protected:
 	// ASC = AbilitySystemComponent
 	TObjectPtr<class UFZFAbilitySystemComponent> ASC;
 
+	// 캐릭터의 스텟을 AttributeSet으로 처리
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
 	TObjectPtr<class UFZFAttributeSet> AttributeSet;
+
+	// 초기에 캐릭터가 가질 GameAbility를 지정
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
+	TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
+
 };
