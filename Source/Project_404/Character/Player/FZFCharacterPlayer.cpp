@@ -65,6 +65,10 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	{
 		// 점프 액션
 	}
+
+	// 네브워크 설정
+	bReplicates = true;
+
 }
 
 
@@ -99,4 +103,16 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 		ASC->InitAbilityActorInfo(PS, this);
 		AttributeSet = PS->GetPlayerSet();
 	}
+}
+
+void AFZFCharacterPlayer::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	/**
+	 * [클라이언트 측 GAS 초기화]
+	 * 서버에서 넘어온 PlayerState가 이제 유효하므로
+	 * 클라이언트 환경에서도 ASC와 AvatarActor를 연결
+	 */
+
+	InitAbilitySystem();
 }

@@ -1,0 +1,1 @@
+UnrealEditor.exe %cd%\Project_404.uproject -NetTrace=1 -tracehost=localhost -Trace=Net

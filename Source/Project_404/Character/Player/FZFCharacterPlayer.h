@@ -16,6 +16,9 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void InitAbilitySystem() override;
 
+	// 네트워크 상태 동기화 함수
+	virtual void OnRep_PlayerState() override;
+
 protected:
 	// 카메라 컴포넌트 구성
 	UPROPERTY(VisibleAnywhere, Category = Camera)
