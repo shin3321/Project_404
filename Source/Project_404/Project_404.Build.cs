@@ -10,7 +10,7 @@ public class Project_404 : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] { "Project_404" });
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
