@@ -21,9 +21,12 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     EEquipmentType EquipmentType;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    float AttackPower = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<UAnimMontage> AttackMontage = nullptr;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    float Range = 0.f;
+    float AttackPower = 0.0f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    float Range = 0.0f;
 };

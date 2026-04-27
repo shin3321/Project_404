@@ -9,7 +9,7 @@ enum class EItemType : uint8
     Equipment      UMETA(DisplayName = "Equipment"),
     Consumable     UMETA(DisplayName = "Consumable"),
     CraftMaterial  UMETA(DisplayName = "Craft Material"),
-    Crystal         UMETA(DisplayName = "Ore")
+    Crystal         UMETA(DisplayName = "Crystal")
 };
 
 UENUM()

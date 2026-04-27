@@ -24,6 +24,15 @@ public:
     FText ItemName;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+    TObjectPtr<class UStaticMesh> Mesh = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World")
+    FVector MeshScale = FVector(1.0f, 1.0f, 1.0f);
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World")
+    bool bAutoFitMeshToTrigger = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
     FText Description;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
