@@ -14,6 +14,7 @@
 
 #include "Inventory/FZFInventoryComponent.h"
 #include "GameplayTag/FZFGameplayTags.h"
+#include "Item/FZFItemBase.h"
 
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
@@ -33,7 +34,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
 
 	// 메시 에셋 지정
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMesh(TEXT(""));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMesh(TEXT("/Game/Project404/Character/Player/SkeletalMesh/SK_SciFITrooper-01.SK_SciFITrooper-01"));
 
 	// 로드 성공했으면 설정
 	if (CharacterMesh.Succeeded())
@@ -107,6 +108,10 @@ void AFZFCharacterPlayer::BeginPlay()
 
 	// IMC 플레이어에 적용시키기(IMC_Default)
 	ApplyMappingContext(DefaultMappingContext);
+
+	// 0.1초마다 아이템 감지 함수를 실행
+	FTimerHandle DetectionTimerHandle;
+	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
 }
 
 void AFZFCharacterPlayer::PossessedBy(AController* NewController)
@@ -240,4 +245,49 @@ void AFZFCharacterPlayer::OnRep_PlayerState()
 	 */
 
 	InitAbilitySystem();
+}
+
+void AFZFCharacterPlayer::DetectInteractable()
+{
+	if (!Camera)
+	{
+		return;
+	}
+
+	FVector Start = Camera->GetComponentLocation();
+	FVector End = Start + (Camera->GetForwardVector() * 500.f);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+
+	AActor* NewTarget = nullptr;
+
+	if (bHit && Hit.GetActor())
+	{
+		// 특정 클래스인지 먼저 확인
+		if (Hit.GetActor()->IsA(AFZFItemBase::StaticClass()))
+		{
+			NewTarget = Hit.GetActor();
+		}
+	}
+
+	// 상태가 변했을 때만 UI 업데이트
+	if (NewTarget != CurrentTargetItem.Get())
+	{
+		CurrentTargetItem = Cast<AFZFItemBase>(NewTarget); // 여기서 한 번만 캐스팅
+
+		if (CurrentTargetItem.IsValid())
+		{
+			// TODO : UI 표시 로직 실행
+			UE_LOG(LogTemp, Log, TEXT("Target Changed: %s"), *CurrentTargetItem->GetName());
+		}
+		else
+		{
+			// TODO : UI 숨기기 로직 실행
+			UE_LOG(LogTemp, Log, TEXT("Target Lost"));
+		}
+	}
 }

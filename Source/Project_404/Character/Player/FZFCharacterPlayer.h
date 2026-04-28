@@ -8,7 +8,6 @@
 // 전방선언.
 class UInputAction;
 class UInputMappingContext;
-
 class UFZFInventoryComponent;
 
 
@@ -23,7 +22,9 @@ public:
 public:
 	// 인벤토리 컴포넌트에 접근할 수 있도록 Getter 추가 (GA에서 사용)
 	UFZFInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
-
+	
+	// 카메라에 안전하게 접근할 수 있도록 Getter 추가 (GA에서 사용)
+	FORCEINLINE class UCameraComponent* GetCamera() const { return Camera; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -73,9 +74,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
 	TObjectPtr<UInputAction> InteractAction;
 
+// Interact Section
+protected:
+	// 상호작용하면 UI로 표시하기 위한 함수
+	void DetectInteractable();
+
+protected:
+	// 현재 카메라 조준점에 들어와 있는 아이템 (UI 표시용)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
+	TWeakObjectPtr<class AFZFItemBase> CurrentTargetItem;
+
 // Inventory Section
 protected:
 	// 플레이어 인벤토리 데이터 관리 컴포넌트 추가
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
 	TObjectPtr<UFZFInventoryComponent> InventoryComponent;
+
 };
