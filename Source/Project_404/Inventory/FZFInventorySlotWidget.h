@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "FZFItemData.h"
+#include "Item/FZFItemData.h"
 #include "FZFInventorySlotWidget.generated.h"
 
 class UImage;
@@ -15,7 +15,7 @@ class PROJECT_404_API UFZFInventorySlotWidget : public UUserWidget
 public:
     // 슬롯 데이터 세팅 함수
     UFUNCTION(BlueprintCallable)
-    void SetSlotData(const FFZFItemData& InItemData);
+    void SetSlotData(UFZFItemData* InItemData);
 
 protected:
     // 아이템 아이콘 이미지

@@ -12,8 +12,14 @@ UFZFInventoryComponent::UFZFInventoryComponent()
 
 
 // 아이템 데이터를 인벤토리에 추가하는 함수
-bool UFZFInventoryComponent::AddItem(const FFZFItemData& InItemData)
+bool UFZFInventoryComponent::AddItem(UFZFItemData* InItemData)
 {
+    // 아이템 데이터가 없으면 추가 실패
+    if (!InItemData)
+    {
+        return false;
+    }
+
     // 인벤토리가 가득 찼으면 추가 실패
     if (InventoryItems.Num() >= MaxItemCount)
     {
@@ -23,8 +29,6 @@ bool UFZFInventoryComponent::AddItem(const FFZFItemData& InItemData)
     // 인벤토리 배열에 아이템 데이터 추가
     InventoryItems.Add(InItemData);
 
-    //sine 획득한 아이템 데이터 저장
-    
     // 인벤토리 위젯이 있으면 UI 갱신
     if (InventoryWidget)
     {

@@ -7,7 +7,7 @@
 
 
 // 인벤토리 UI를 현재 아이템 목록으로 새로고침하는 함수
-void UFZFInventoryWidget::RefreshInventory(const TArray<FFZFItemData>& Items)
+void UFZFInventoryWidget::RefreshInventory(const TArray<TObjectPtr<UFZFItemData>>& Items)
 {
     // WrapBox 또는 슬롯 위젯 클래스가 없으면 종료
     if (!InventoryWrapBox || !InventorySlotWidgetClass)
@@ -19,7 +19,7 @@ void UFZFInventoryWidget::RefreshInventory(const TArray<FFZFItemData>& Items)
     InventoryWrapBox->ClearChildren();
 
     // 인벤토리 아이템 배열을 순회하며 슬롯 위젯 생성
-    for (const FFZFItemData& Item : Items)
+    for (UFZFItemData* Item : Items)
     {
         // 슬롯 위젯 생성
         UFZFInventorySlotWidget* SlotWidget = CreateWidget<UFZFInventorySlotWidget>(GetWorld(), InventorySlotWidgetClass);

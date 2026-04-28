@@ -7,6 +7,8 @@
 #include "Components/InputComponent.h"
 #include "DrawDebugHelpers.h"
 
+#include "Item/FZFItemBase.h"
+
 #include "FZFItemDataComponent.h"
 
 void ATestCameraPawn::Tick(float DeltaTime)
@@ -34,12 +36,10 @@ void ATestCameraPawn::Tick(float DeltaTime)
 
     if (bHit && Hit.GetActor())
     {
-        AActor* HitActor = Hit.GetActor();
-        UFZFItemDataComponent* ItemDataComp = HitActor->FindComponentByClass<UFZFItemDataComponent>();
-
-        if (ItemDataComp)
+        AFZFItemBase* ItemActor = Cast<AFZFItemBase>(Hit.GetActor());;
+        if (ItemActor)
         {
-            CurrentTargetItem = HitActor;
+            CurrentTargetItem = ItemActor;
         }
     }
 }
@@ -126,31 +126,30 @@ void ATestCameraPawn::LookUp(float Value)
 
 void ATestCameraPawn::TraceItem()
 {
-    // 현재 바라보는 아이템이나 인벤토리 컴포넌트가 없으면 종료
-    if (!CurrentTargetItem || !InventoryComponent)
+    UE_LOG(LogTemp, Warning, TEXT("TraceItem Called"));
+
+    if (!CurrentTargetItem)
     {
+        UE_LOG(LogTemp, Warning, TEXT("No CurrentTargetItem"));
         return;
     }
 
-    // 현재 타겟 액터에서 아이템 데이터 컴포넌트 찾기
-    UFZFItemDataComponent* ItemDataComp = CurrentTargetItem->FindComponentByClass<UFZFItemDataComponent>();
-    if (!ItemDataComp)
+    if (!InventoryComponent)
     {
+        UE_LOG(LogTemp, Warning, TEXT("No InventoryComponent"));
         return;
     }
 
-    //획득 아이템 데이터 확인용 로그
-    if (ItemDataComp)
+    UFZFItemData* ItemData = CurrentTargetItem->GetItemData();
+
+    if (!ItemData)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Pickup ID: %d"), ItemDataComp->ItemData.ID);
-        UE_LOG(LogTemp, Warning, TEXT("Pickup Icon: %s"),
-            ItemDataComp->ItemData.Icon ? *ItemDataComp->ItemData.Icon->GetName() : TEXT("None"));
+        UE_LOG(LogTemp, Warning, TEXT("No ItemData"));
+        return;
     }
 
-    // 아이템 데이터를 인벤토리에 추가
-    const bool bAdded = InventoryComponent->AddItem(ItemDataComp->ItemData);
+    const bool bAdded = InventoryComponent->AddItem(ItemData);
 
-    // 추가 성공 시 월드 아이템 제거 후 현재 타겟 초기화
     if (bAdded)
     {
         CurrentTargetItem->Destroy();

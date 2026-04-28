@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "FZFItemData.h"
+#include "Item/FZFItemData.h"
 #include "FZFInventoryComponent.generated.h"
 
 class UFZFInventoryWidget;
@@ -36,7 +36,7 @@ public:
 
     // 현재 인벤토리에 저장된 아이템 데이터 배열
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
-    TArray<FFZFItemData> InventoryItems;
+    TArray<TObjectPtr<UFZFItemData>> InventoryItems;
 
     // 인벤토리에 저장 가능한 최대 아이템 개수
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
@@ -45,5 +45,5 @@ public:
 public:
     // 아이템 데이터를 인벤토리에 추가하는 함수
     UFUNCTION(BlueprintCallable, Category = "Inventory")
-    bool AddItem(const FFZFItemData& InItemData);
+    bool AddItem(UFZFItemData* InItemData);
 };

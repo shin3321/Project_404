@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-
 #include "FZFInventoryComponent.h"
+#include "Item/FZFItemBase.h"
 
 #include "TestCameraPawn.generated.h"
 
@@ -53,7 +53,7 @@ protected:
 
     // 현재 카메라로 바라보고 있는 아이템 액터
     UPROPERTY()
-    AActor* CurrentTargetItem = nullptr;
+    TObjectPtr<AFZFItemBase> CurrentTargetItem;
 
     //플레이어 인벤토리 데이터 관리 컴포넌트
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
