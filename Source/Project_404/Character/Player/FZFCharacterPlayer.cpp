@@ -12,6 +12,9 @@
 #include "GAS/Attributes/FZFPlayerSet.h"
 #include "FZFPlayerState.h"
 
+#include "Inventory/FZFInventoryComponent.h"
+#include "GameplayTag/FZFGameplayTags.h"
+
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
 	// 기본 설정
@@ -96,6 +99,13 @@ void AFZFCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// 인벤토리 위젯 올리기
+	if (InventoryComponent)
+	{
+		InventoryComponent->ShowInventory();
+	}
+
+	// IMC 플레이어에 적용시키기(IMC_Default)
 	ApplyMappingContext(DefaultMappingContext);
 }
 
@@ -158,7 +168,7 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	
 		// Interaction
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AFZFCharacterPlayer::Interact);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
 	}
 }
 
@@ -209,8 +219,15 @@ void AFZFCharacterPlayer::Look(const FInputActionValue& Value)
 
 }
 
-void AFZFCharacterPlayer::Interact(const FInputActionValue& Value)
+void AFZFCharacterPlayer::Interact()
 {
+	// ASC가 유효한지 확인
+	if (ASC)
+	{
+		// "Ability.Action.Interact" 태그를 가진 Gameplay Ability를 실행
+		// Native Tag를 직접 전달
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Interact)); 
+	}
 }
 
 void AFZFCharacterPlayer::OnRep_PlayerState()

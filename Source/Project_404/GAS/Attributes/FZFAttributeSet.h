@@ -56,5 +56,4 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData MaxMovementSpeed;
 
-	
 };

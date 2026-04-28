@@ -9,6 +9,9 @@
 class UInputAction;
 class UInputMappingContext;
 
+class UFZFInventoryComponent;
+
+
 UCLASS()
 class PROJECT_404_API AFZFCharacterPlayer : public AFZFCharacterBase
 {
@@ -16,6 +19,11 @@ class PROJECT_404_API AFZFCharacterPlayer : public AFZFCharacterBase
 	
 public:
 	AFZFCharacterPlayer();
+
+public:
+	// 인벤토리 컴포넌트에 접근할 수 있도록 Getter 추가 (GA에서 사용)
+	UFZFInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -27,7 +35,6 @@ protected:
 
 	// 입력 매핑 컨텍스트(IMC)를 활성화하여 캐릭터의 조작 체계를 설정
 	void ApplyMappingContext(UInputMappingContext* InMappingContext);
-
 protected:
 	// 이동 함수
 	void Move(const FInputActionValue& Value);
@@ -36,7 +43,7 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	// 상호작용 함수
-	void Interact(const FInputActionValue& Value);
+	void Interact();
 
 // Camera Section
 	// 네트워크 상태 동기화 함수
@@ -65,4 +72,10 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
 	TObjectPtr<UInputAction> InteractAction;
+
+// Inventory Section
+protected:
+	// 플레이어 인벤토리 데이터 관리 컴포넌트 추가
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+	TObjectPtr<UFZFInventoryComponent> InventoryComponent;
 };
