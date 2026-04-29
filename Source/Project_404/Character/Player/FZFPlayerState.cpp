@@ -23,6 +23,11 @@ AFZFPlayerState::AFZFPlayerState(const FObjectInitializer& ObjectInitializer)
 	//AttributeSet = CreateDefaultSubobject<UFZFAttributeSet>(TEXT("AttributeSet"));
 }
 
+void AFZFPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
+
 UAbilitySystemComponent* AFZFPlayerState::GetAbilitySystemComponent() const
 {
 	return ASC;
