@@ -479,7 +479,6 @@ Plugins/*/Intermediate/
 
 #Asset
 Content/**/Characters/
-Content/**/Input/
 Content/**/LevelPrototyping/
 Content/**/ThirdPerson/
 Content/**/Sci-FI_Troopers_Collection/
