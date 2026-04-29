@@ -221,7 +221,17 @@ void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 
 void AFZFCharacterPlayer::Look(const FInputActionValue& Value)
 {
+	// 입력 값으로부터 Vector2D 데이터 추출
+	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
+	if (Controller != nullptr)
+	{
+		// 좌우 회전 (Yaw): 마우스 X축 이동량
+		AddControllerYawInput(LookAxisVector.X);
+
+		// 상하 회전 (Pitch): 마우스 Y축 이동량
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
 }
 
 void AFZFCharacterPlayer::Interact()
