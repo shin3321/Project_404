@@ -80,6 +80,7 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 				// 아이템 데이터 획득 및 인벤토리 추가
 				if (Inventory->AddItem(ItemActor->GetItemData()))
 				{
+					
 					// 성공 시 액터 파괴
 					ItemActor->Destroy();
 				}

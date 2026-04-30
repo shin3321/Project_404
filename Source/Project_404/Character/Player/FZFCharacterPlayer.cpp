@@ -90,9 +90,11 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	// 의도적으로 nullptr로 밀어줌 -> PlayerState의 ASC값을 대입할거라서 혼선방지용
 	ASC = nullptr;
 
-	// 네브워크 설정
+	// 네트워크 설정
 	bReplicates = true;
 
+	// Inventory 추가
+	InventoryComponent = CreateDefaultSubobject<UFZFInventoryComponent>(TEXT("InventoryComponent"));
 }
 
 
