@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+О╩©// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "UI/FZFGameStartWidget.h"
@@ -28,7 +28,7 @@ void UFZFGameStartWidget::OnHostStartClicked()
 	FString MyIP = GetLocalIPAddress();
 	UE_LOG(LogTemp, Warning, TEXT("Host IP Address: %s"), *MyIP);
 
-	// Todo ╥н╨Я ╥╧╨╖ ╤Г©Л╠Б
+	// Todo К║°К╧└ К═┬К╡╗ К²└Л ╟Й╦╟
 	UGameplayStatics::OpenLevel(GetWorld(), TEXT("FZF_LobbyLevel"), true,
 		TEXT("listen"));
 }
@@ -40,7 +40,7 @@ void UFZFGameStartWidget::OnGuestStartClicked()
 		FString TargetIP = IPAddressETB->GetText().ToString();
 		if (!TargetIP.IsEmpty())
 		{
-			// ют╥б╣х IP╥н а╒╪с ╫ц╣╣
+			// Л·┘К═╔К░° IPК║° Л═▒Л├█ Л▀°К▐└
 			UGameplayStatics::OpenLevel(GetWorld(), FName(*TargetIP));
 		}
 	}

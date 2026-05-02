@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -32,6 +32,6 @@ public:
 	UFUNCTION()
 	void OnGuestStartClicked();
 
-	// ·ÎÄÃ IP ÁÖ¼Ò¸¦ °¡Á®¿À´Â ÇÔ¼ö
+	// ë¡œì»¬ IP ì£¼ì†Œë¥¼ ê°€ì ¸ì˜¤ëŠ” í•¨ìˆ˜
 	FString GetLocalIPAddress();
 };
