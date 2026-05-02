@@ -18,15 +18,17 @@ AFZFStore::AFZFStore()
 	if (StoreStaticMeshRef.Succeeded())
 	{
 		StoreMesh->SetStaticMesh(StoreStaticMeshRef.Object);
+		StoreMesh->SetRelativeScale3D(FVector(2.0f, 2.0f, 2.0f));
 	}
 
 	// Store 트리거 박스 설정
 	TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
 	TriggerBox->SetupAttachment(RootComponent);
 	TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AFZFStore::OnTriggerBoxOverlap);
-	// Store 크기 설정
-	//TriggerBox->SetBoxExtent(FVector(32.f, 32.f, 32.f));
-	//TriggerBox->SetRelativeScale3D(FVector(0.5f, 0.5f, 1.0f));
+	// Store 위치/크기 설정
+	TriggerBox->SetRelativeLocation(FVector(0.f, 0.f, 80.f));
+	TriggerBox->SetBoxExtent(FVector(70.f, 60.f, 70.f));
+	TriggerBox->SetRelativeScale3D(FVector(1.25f, 1.0f, 1.0f));
 	TriggerBox->SetCollisionProfileName(TEXT("Trigger"));
 }
 
@@ -46,7 +48,16 @@ void AFZFStore::Tick(float DeltaTime)
 
 void AFZFStore::OnTriggerBoxOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// Todo: 상점 위젯 띄우기
+	TArray<AActor*> OverlappingActors;
+	TriggerBox->GetOverlappingActors(OverlappingActors);
+	
+	for (AActor* Actor : OverlappingActors)
+	{
+		if (Actor && Actor->ActorHasTag("Item"))
+		{
+
+		}
+	}
 }
 
 void AFZFStore::ProcessPurchase(APlayerController* Buyer, FName ItemId, float ItemCost)

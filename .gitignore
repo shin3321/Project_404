@@ -5,10 +5,8 @@
 
 # ConsoleEngine Includes
 Includes
-Wanted4_Project2/Intermediate/
-Wanted4_Project2/Library/
-Wanted4_Project2/Engine/
 
+Content/UndergroundSciFi
 
 *.obj
 *.pdb

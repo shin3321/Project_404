@@ -20,8 +20,10 @@ public class Project_404 : ModuleRules
             "GameplayAbilities",
             "GameplayTags",
             "GameplayTasks",
-            "NetCore", 
-            "UMG"
+            "NetCore",
+            "UMG",
+            "Sockets",
+            "Networking"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
