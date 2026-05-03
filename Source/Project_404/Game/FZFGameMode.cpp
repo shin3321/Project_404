@@ -27,7 +27,7 @@ void AFZFGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	// Todo 레벨 선택 시 게임 레벨에서 시작하게 옮겨야 함
-	GetWorldTimerManager().SetTimer(DayTimerHandle, this, &AFZFGameMode::UpdateGameCLock, 1.0f, false);
+	GetWorldTimerManager().SetTimer(DayTimerHandle, this, &AFZFGameMode::UpdateGameCLock, 1.0f, true);
 	GameState = Cast<AFZFGameState>(GetGameState<AFZFGameState>());
 }
 
@@ -81,5 +81,5 @@ void AFZFGameMode::StartNewDay()
 {
 	GameState->CurrentPhase = EGamePhase::Exploration;
 	GameState->RemainingRimeSeconds = 420;
-	GetWorldTimerManager().SetTimer(DayTimerHandle, this, &AFZFGameMode::UpdateGameCLock, 1.0f, false);
+	GetWorldTimerManager().SetTimer(DayTimerHandle, this, &AFZFGameMode::UpdateGameCLock, 1.0f, true);
 }

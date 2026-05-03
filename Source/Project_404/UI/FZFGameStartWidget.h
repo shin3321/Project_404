@@ -17,13 +17,13 @@ class PROJECT_404_API UFZFGameStartWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
-	UPROPERTY(meta = (WBP_FZFGameStart))
+	UPROPERTY(meta = (BindWidget))
 	class UButton* HostStartButton;
 
-	UPROPERTY(meta = (WBP_FZFGameStart))
+	UPROPERTY(meta = (BindWidget))
 	class UButton* GuestStartButton;
 
-	UPROPERTY(meta = (WBP_FZFGameStart))
+	UPROPERTY(meta = (BindWidget))
 	class UEditableText* IPAddressETB;
 
 	UFUNCTION()
