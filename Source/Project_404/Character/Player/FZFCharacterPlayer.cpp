@@ -125,6 +125,7 @@ void AFZFCharacterPlayer::BeginPlay()
 		{
 			HUDWidget->AddToViewport();
 			HUDWidget->HideItemName();
+			HUDWidget->SetCrosshairNormal();
 		}
 	}
 }
@@ -299,15 +300,17 @@ void AFZFCharacterPlayer::DetectInteractable()
 		}
 	}
 
-	// 상태가 변했을 때만 UI 업데이트
+	// 상태가 변했을 때만 아이템 UI 업데이트
 	if (NewTarget != CurrentTargetItem.Get())
 	{
+		// 아이템 타겟 갱신
 		CurrentTargetItem = Cast<AFZFItemBase>(NewTarget);
 
 		if (CurrentTargetItem.IsValid())
 		{
 			if (HUDWidget)
 			{
+				// 아이템 이름 표시
 				if (UFZFItemData* ItemData = CurrentTargetItem->GetItemData())
 				{
 					HUDWidget->SetItemName(ItemData->ItemName);
@@ -321,10 +324,27 @@ void AFZFCharacterPlayer::DetectInteractable()
 		{
 			if (HUDWidget)
 			{
+				// 아이템 이름 숨기기
 				HUDWidget->HideItemName();
 			}
 
 			UE_LOG(LogTemp, Log, TEXT("Target Lost"));
+		}
+	}
+
+	// 조준점 강조는 태그 기준으로 따로 처리
+	if (HUDWidget)
+	{
+		//태그로 조준점 변경
+		if (bHit && Hit.GetActor() && Hit.GetActor()->ActorHasTag(TEXT("OK")))
+		{
+			// 상호작용 가능한 액터를 바라보면 조준점 강조
+			HUDWidget->SetCrosshairHighlight();
+		}
+		else
+		{
+			// 아니면 기본 상태
+			HUDWidget->SetCrosshairNormal();
 		}
 	}
 }
