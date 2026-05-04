@@ -16,6 +16,8 @@
 #include "GameplayTag/FZFGameplayTags.h"
 #include "Item/FZFItemBase.h"
 
+#include "Inventory/FZFHUD.h"
+
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
 	// 기본 설정
@@ -114,6 +116,17 @@ void AFZFCharacterPlayer::BeginPlay()
 	// 0.1초마다 아이템 감지 함수를 실행
 	FTimerHandle DetectionTimerHandle;
 	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
+
+	//HUD위젯 올리기
+	if (HUDWidgetClass)
+	{
+		HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
+		if (HUDWidget)
+		{
+			HUDWidget->AddToViewport();
+			HUDWidget->HideItemName();
+		}
+	}
 }
 
 void AFZFCharacterPlayer::PossessedBy(AController* NewController)
@@ -289,16 +302,28 @@ void AFZFCharacterPlayer::DetectInteractable()
 	// 상태가 변했을 때만 UI 업데이트
 	if (NewTarget != CurrentTargetItem.Get())
 	{
-		CurrentTargetItem = Cast<AFZFItemBase>(NewTarget); // 여기서 한 번만 캐스팅
+		CurrentTargetItem = Cast<AFZFItemBase>(NewTarget);
 
 		if (CurrentTargetItem.IsValid())
 		{
-			// TODO : UI 표시 로직 실행
+			if (HUDWidget)
+			{
+				if (UFZFItemData* ItemData = CurrentTargetItem->GetItemData())
+				{
+					HUDWidget->SetItemName(ItemData->ItemName);
+					HUDWidget->ShowItemName();
+				}
+			}
+
 			UE_LOG(LogTemp, Log, TEXT("Target Changed: %s"), *CurrentTargetItem->GetName());
 		}
 		else
 		{
-			// TODO : UI 숨기기 로직 실행
+			if (HUDWidget)
+			{
+				HUDWidget->HideItemName();
+			}
+
 			UE_LOG(LogTemp, Log, TEXT("Target Lost"));
 		}
 	}

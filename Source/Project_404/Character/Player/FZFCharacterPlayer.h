@@ -9,6 +9,8 @@
 class UInputAction;
 class UInputMappingContext;
 class UFZFInventoryComponent;
+class UFZFHUD;
+
 
 
 UCLASS()
@@ -89,5 +91,12 @@ protected:
 	// 플레이어 인벤토리 데이터 관리 컴포넌트 추가
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	TObjectPtr<UFZFInventoryComponent> InventoryComponent;
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UFZFHUD> HUDWidgetClass;
+
+	UPROPERTY()
+	UFZFHUD* HUDWidget;
 
 };
