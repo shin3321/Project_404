@@ -481,6 +481,8 @@ Plugins/*/Intermediate/
 Content/Assets
 
 # Hyukjin_Asset
-Content/Sci-FI_Troopers_Collection
-Content/**/LowerSector_Mod
+Content/**/Sci-FI_Troopers_Collection/
+Content/**/LowerSector_Mod/
+Content/**/FirstPerson/
+
 

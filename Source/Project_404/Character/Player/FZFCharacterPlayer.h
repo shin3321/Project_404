@@ -23,6 +23,9 @@ public:
 	// 인벤토리 컴포넌트에 접근할 수 있도록 Getter 추가 (GA에서 사용)
 	UFZFInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 	
+	// 팔 매쉬 Getter
+	FORCEINLINE USkeletalMeshComponent* GetArmMesh() const { return ArmMesh; }
+	
 	// 카메라에 안전하게 접근할 수 있도록 Getter 추가 (GA에서 사용)
 	FORCEINLINE class UCameraComponent* GetCamera() const { return Camera; }
 
@@ -55,6 +58,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	TObjectPtr<class UCameraComponent> Camera;
 
+
+// Mesh Section
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Mesh, BlueprintReadOnly)
+	TObjectPtr<USkeletalMeshComponent> ArmMesh;
 
 // Input Section
 protected:

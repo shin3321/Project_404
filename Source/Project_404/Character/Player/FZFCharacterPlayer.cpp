@@ -29,28 +29,56 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 800.0f;
-
-	// 캡슐 컴포넌트에 맞춰 스켈레탈 메시의 위치(바닥)와 방향(정면) 정렬
-	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
-
-	// 메시 에셋 지정
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMesh(TEXT("/Game/Project404/Character/Player/SkeletalMesh/SK_SciFITrooper-01.SK_SciFITrooper-01"));
-
-	// 로드 성공했으면 설정
-	if (CharacterMesh.Succeeded())
-	{
-		GetMesh()->SetSkeletalMesh(CharacterMesh.Object);
-	}
+	
 
 	// 카메라 컴포넌트 설정
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-
 	// 캡슐 컴포넌트(Root)에 붙이고 Z값을 눈높이로 올리기
 	Camera->SetupAttachment(RootComponent);
 	Camera->SetRelativeLocation(FVector(0.0f, 0.0f, 64.0f)); // 눈높이에 맞춰 Z축 위치 조절 (캐릭터 크기에 맞게 수정 필요)
-
 	// 마우스 입력(컨트롤러 회전)에 따라 카메라가 상하좌우로 움직이도록 설정
 	Camera->bUsePawnControlRotation = true;
+
+	// 캡슐 컴포넌트에 맞춰 스켈레탈 메시의 위치(바닥)와 방향(정면) 정렬
+	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -108.0f), FRotator(0.0f, -90.0f, 0.0f));
+
+	// 메시 에셋 지정
+	
+	// 전신 매쉬
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMeshRef(TEXT("/Game/Project404/Character/Player/SkeletalMesh/SK_SciFITrooper-01.SK_SciFITrooper-01"));
+	// 팔 매쉬
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ArmMeshRef(TEXT("/Game/Project404/Character/Player/SkeletalMesh/2_Hand.2_Hand"));
+
+	if (GetMesh() && CharacterMeshRef.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(CharacterMeshRef.Object);
+		GetMesh()->SetOwnerNoSee(true); // 나에게는 내 몸통이 안 보임 (그림자는 보임)
+	}
+
+	// 팔 메시 설정
+	ArmMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterArmMesh"));
+	ArmMesh->SetupAttachment(Camera);
+	ArmMesh->SetOnlyOwnerSee(true); // 나에게만 보임
+	ArmMesh->bCastDynamicShadow = false; // 그림자 제거
+	ArmMesh->CastShadow = false;
+
+	// 팔 매시 위치 및 회전
+	ArmMesh->SetRelativeLocation(FVector(10.0f, 0.0f, -88.0f));
+	ArmMesh->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+
+	// 팔 전용 메쉬 할당
+	if (ArmMeshRef.Succeeded())
+	{
+		ArmMesh->SetSkeletalMesh(ArmMeshRef.Object);
+	}
+
+	// ArmMesh ABP 설정
+	static ConstructorHelpers::FClassFinder<UAnimInstance> ArmABPRef(TEXT("/Game/Project404/Character/Player/Animation/ABP_Player.ABP_Player_C"));
+
+	if (ArmABPRef.Succeeded())
+	{
+		ArmMesh->SetAnimInstanceClass(ArmABPRef.Class);
+	}
 
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultMappingContextRef(TEXT("/Game/Project404/Input/IMC_Default.IMC_Default"));
 	if (DefaultMappingContextRef.Succeeded())
@@ -114,6 +142,7 @@ void AFZFCharacterPlayer::BeginPlay()
 	// 0.1초마다 아이템 감지 함수를 실행
 	FTimerHandle DetectionTimerHandle;
 	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
+
 }
 
 void AFZFCharacterPlayer::PossessedBy(AController* NewController)
@@ -209,14 +238,19 @@ void AFZFCharacterPlayer::ApplyMappingContext(UInputMappingContext* InMappingCon
 
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 {
+	// 입력 값으로부터 Vector2D 데이터 추출
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
+	// 컨트롤러의 현재 회전값 가져오기
 	const FRotator Rotation = Controller->GetControlRotation();
+	// 캐릭터 이동에 필요한 Yaw(좌우 회전) 값만 추출
 	const FRotator YawRotation(0, Rotation.Yaw, 0);
 
+	// 회전 행렬을 통해 현재 바라보는 방향의 앞(X)과 오른쪽(Y) 벡터를 계산
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
+	// 계산된 방향과 입력된 크기(MovementVector)를 조합하여 캐릭터를 실제로 이동
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
 }
