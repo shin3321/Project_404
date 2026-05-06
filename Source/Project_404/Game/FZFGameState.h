@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "Manager/FZFRoomManager.h"
 #include "FZFGameState.generated.h"
 
 /**
@@ -18,5 +19,8 @@ public:
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	UFZFRoomManager* GetRoomManager() const { return RoomManagerComponent; }
+protected:
+	UPROPERTY()
+	UFZFRoomManager* RoomManagerComponent;
 };

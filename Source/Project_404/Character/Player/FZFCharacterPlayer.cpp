@@ -12,6 +12,10 @@
 #include "GAS/Attributes/FZFPlayerSet.h"
 #include "FZFPlayerState.h"
 
+#include "Inventory/FZFInventoryComponent.h"
+#include "GameplayTag/FZFGameplayTags.h"
+#include "Item/FZFItemBase.h"
+
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
 	// 기본 설정
@@ -30,7 +34,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
 
 	// 메시 에셋 지정
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMesh(TEXT(""));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMesh(TEXT("/Game/Project404/Character/Player/SkeletalMesh/SK_SciFITrooper-01.SK_SciFITrooper-01"));
 
 	// 로드 성공했으면 설정
 	if (CharacterMesh.Succeeded())
@@ -86,9 +90,11 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	// 의도적으로 nullptr로 밀어줌 -> PlayerState의 ASC값을 대입할거라서 혼선방지용
 	ASC = nullptr;
 
-	// 네브워크 설정
+	// 네트워크 설정
 	bReplicates = true;
 
+	// Inventory 추가
+	InventoryComponent = CreateDefaultSubobject<UFZFInventoryComponent>(TEXT("InventoryComponent"));
 }
 
 
@@ -96,7 +102,18 @@ void AFZFCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// 인벤토리 위젯 올리기
+	if (InventoryComponent)
+	{
+		InventoryComponent->ShowInventory();
+	}
+
+	// IMC 플레이어에 적용시키기(IMC_Default)
 	ApplyMappingContext(DefaultMappingContext);
+
+	// 0.1초마다 아이템 감지 함수를 실행
+	FTimerHandle DetectionTimerHandle;
+	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
 }
 
 void AFZFCharacterPlayer::PossessedBy(AController* NewController)
@@ -158,7 +175,7 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	
 		// Interaction
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AFZFCharacterPlayer::Interact);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
 	}
 }
 
@@ -206,11 +223,28 @@ void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 
 void AFZFCharacterPlayer::Look(const FInputActionValue& Value)
 {
+	// 입력 값으로부터 Vector2D 데이터 추출
+	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
+	if (Controller != nullptr)
+	{
+		// 좌우 회전 (Yaw): 마우스 X축 이동량
+		AddControllerYawInput(LookAxisVector.X);
+
+		// 상하 회전 (Pitch): 마우스 Y축 이동량
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
 }
 
-void AFZFCharacterPlayer::Interact(const FInputActionValue& Value)
+void AFZFCharacterPlayer::Interact()
 {
+	// ASC가 유효한지 확인
+	if (ASC)
+	{
+		// "Ability.Action.Interact" 태그를 가진 Gameplay Ability를 실행
+		// Native Tag를 직접 전달
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Interact)); 
+	}
 }
 
 void AFZFCharacterPlayer::OnRep_PlayerState()
@@ -223,4 +257,49 @@ void AFZFCharacterPlayer::OnRep_PlayerState()
 	 */
 
 	InitAbilitySystem();
+}
+
+void AFZFCharacterPlayer::DetectInteractable()
+{
+	if (!Camera)
+	{
+		return;
+	}
+
+	FVector Start = Camera->GetComponentLocation();
+	FVector End = Start + (Camera->GetForwardVector() * 500.f);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+
+	AActor* NewTarget = nullptr;
+
+	if (bHit && Hit.GetActor())
+	{
+		// 특정 클래스인지 먼저 확인
+		if (Hit.GetActor()->IsA(AFZFItemBase::StaticClass()))
+		{
+			NewTarget = Hit.GetActor();
+		}
+	}
+
+	// 상태가 변했을 때만 UI 업데이트
+	if (NewTarget != CurrentTargetItem.Get())
+	{
+		CurrentTargetItem = Cast<AFZFItemBase>(NewTarget); // 여기서 한 번만 캐스팅
+
+		if (CurrentTargetItem.IsValid())
+		{
+			// TODO : UI 표시 로직 실행
+			UE_LOG(LogTemp, Log, TEXT("Target Changed: %s"), *CurrentTargetItem->GetName());
+		}
+		else
+		{
+			// TODO : UI 숨기기 로직 실행
+			UE_LOG(LogTemp, Log, TEXT("Target Lost"));
+		}
+	}
 }

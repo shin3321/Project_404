@@ -22,6 +22,8 @@ public:
 	 */
 	AFZFPlayerState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 	// ASC 인터페이스 상속 함수
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;

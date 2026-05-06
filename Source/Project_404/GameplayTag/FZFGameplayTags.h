@@ -8,5 +8,5 @@
 namespace FZFGameplayTags
 {
 	// .cpp 파일에 정의된 태그를 다른 클래스에서도 참조할 수 있도록 외부에 공개
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Action_Interact);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Interact);
 }
