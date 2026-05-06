@@ -21,7 +21,10 @@ public class Project_404 : ModuleRules
             "GameplayTags",
             "GameplayTasks",
             "NetCore", 
-            "UMG"
+            "UMG",
+            "NavigationSystem",
+            "AIModule",
+            "GameplayTasks"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
