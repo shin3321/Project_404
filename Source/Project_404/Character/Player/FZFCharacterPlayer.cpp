@@ -16,6 +16,10 @@
 #include "GameplayTag/FZFGameplayTags.h"
 #include "Item/FZFItemBase.h"
 
+#include "Kismet/GameplayStatics.h"
+
+#include "Game/FZFGameMode.h"
+
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
 	// 기본 설정
@@ -24,6 +28,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	bUseControllerRotationYaw = true;		// Z축 회전, 마우스 좌우 회전 시 캐릭터 몸통(캡슐)도 같이 회전 
 	bUseControllerRotationRoll = false;		// X축 회전
 
+	PrimaryActorTick.bCanEverTick = true;
 	// 무브먼트 설정
 	// 캐릭터가 이동하는 방향에 맞게 회전을 해주는 옵션
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -95,6 +100,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 
 	// Inventory 추가
 	InventoryComponent = CreateDefaultSubobject<UFZFInventoryComponent>(TEXT("InventoryComponent"));
+
 }
 
 
@@ -114,6 +120,19 @@ void AFZFCharacterPlayer::BeginPlay()
 	// 0.1초마다 아이템 감지 함수를 실행
 	FTimerHandle DetectionTimerHandle;
 	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
+
+	AFZFGameMode* GameMode = GetWorld()->GetAuthGameMode<AFZFGameMode>();
+	if (GameMode)
+	{
+		GameMode->OnAllPlayersReady();
+	}
+}
+
+void AFZFCharacterPlayer::Tick(float deltaTime)
+{
+	Super::Tick(deltaTime);
+	FVector CurVelocity = GetCharacterMovement()->Velocity;
+	//UE_LOG(LogTemp, Warning, TEXT("Current Velocity: %s"), *CurVelocity.ToString());
 }
 
 void AFZFCharacterPlayer::PossessedBy(AController* NewController)
@@ -173,7 +192,7 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		// Jump
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-	
+
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
 	}
@@ -200,6 +219,11 @@ void AFZFCharacterPlayer::ApplyMappingContext(UInputMappingContext* InMappingCon
 
 				// 새로운 입력 매핑 컨텍스트를 우선순위 0으로 추가 적용
 				InputSystem->AddMappingContext(InMappingContext, 0);
+
+				FInputModeGameOnly InputMode;
+				PC->SetInputMode(InputMode);
+				PC->bShowMouseCursor = false;
+
 				UE_LOG(LogTemp, Log, TEXT("ApplyMappingContext : %s 적용 완료"), *InMappingContext->GetName());
 			}
 		}
@@ -207,18 +231,38 @@ void AFZFCharacterPlayer::ApplyMappingContext(UInputMappingContext* InMappingCon
 
 }
 
+void AFZFCharacterPlayer::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+
+	if (GetCharacterMovement())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Movement Mode: %d"),
+			(int32)GetCharacterMovement()->MovementMode);
+		UE_LOG(LogTemp, Warning, TEXT("Max Walk Speed: %f"),
+			GetCharacterMovement()->MaxWalkSpeed);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("PawnClientRestart"));
+
+	ApplyMappingContext(DefaultMappingContext);
+}
+
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 {
 	FVector2D MovementVector = Value.Get<FVector2D>();
+	if (Controller != nullptr)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Move Input: %s"), *MovementVector.ToString());
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	AddMovementInput(ForwardDirection, MovementVector.X);
-	AddMovementInput(RightDirection, MovementVector.Y);
+		AddMovementInput(ForwardDirection, MovementVector.X);
+		AddMovementInput(RightDirection, MovementVector.Y);
+	}
 }
 
 void AFZFCharacterPlayer::Look(const FInputActionValue& Value)
@@ -243,7 +287,7 @@ void AFZFCharacterPlayer::Interact()
 	{
 		// "Ability.Action.Interact" 태그를 가진 Gameplay Ability를 실행
 		// Native Tag를 직접 전달
-		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Interact)); 
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Interact));
 	}
 }
 

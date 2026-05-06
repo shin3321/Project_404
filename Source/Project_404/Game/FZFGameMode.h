@@ -19,13 +19,20 @@ public:
 	AFZFGameMode();
 
 protected:
+	virtual void StartPlay() override;
 	virtual void BeginPlay() override;
 
 	// 접속 및 스폰 관리 로직
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
-	//virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+	virtual void RestartPlayer(AController* NewPlayer) override;
+public:
+	UFUNCTION(BlueprintCallable, Category = "Network")
+	void OnAllPlayersReady();
+
 	//virtual void Logout(AController* Exiting) override;
 protected:
 	class AFZFGameState* GameState;

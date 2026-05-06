@@ -2,6 +2,7 @@
 
 
 #include "Game/FZFGameState.h"
+#include "Net/UnrealNetwork.h"
 
 AFZFGameState::AFZFGameState()
 {
@@ -11,4 +12,8 @@ AFZFGameState::AFZFGameState()
 void AFZFGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AFZFGameState, CurrentDay);
+	DOREPLIFETIME(AFZFGameState, RemainingRimeSeconds);
+	DOREPLIFETIME(AFZFGameState, CurrentPhase);
 }

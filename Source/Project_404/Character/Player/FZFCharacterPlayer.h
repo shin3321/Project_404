@@ -28,6 +28,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float deltaTime)override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void InitAbilitySystem() override;
 
@@ -36,6 +37,10 @@ protected:
 
 	// 입력 매핑 컨텍스트(IMC)를 활성화하여 캐릭터의 조작 체계를 설정
 	void ApplyMappingContext(UInputMappingContext* InMappingContext);
+	
+	// 네트워크 연결 시 클라이언트 재연결
+	virtual void PawnClientRestart() override;
+
 protected:
 	// 이동 함수
 	void Move(const FInputActionValue& Value);
