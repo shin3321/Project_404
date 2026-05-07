@@ -63,7 +63,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	ArmMesh->CastShadow = false;
 
 	// 팔 매시 위치 및 회전
-	ArmMesh->SetRelativeLocation(FVector(10.0f, 0.0f, -88.0f));
+	ArmMesh->SetRelativeLocation(FVector(10.0f, 0.0f, -108.0f));
 	ArmMesh->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
 
 	// 팔 전용 메쉬 할당
