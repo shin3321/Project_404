@@ -97,6 +97,34 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 
 	// Inventory 추가
 	InventoryComponent = CreateDefaultSubobject<UFZFInventoryComponent>(TEXT("InventoryComponent"));
+
+
+	// 슬롯 1~5 입력 액션 에셋 로드
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot1ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot1.IA_Slot1"));
+	if (Slot1ActionRef.Succeeded())
+	{
+		Slot1Action = Slot1ActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot2ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot2.IA_Slot2"));
+	if (Slot2ActionRef.Succeeded())
+	{
+		Slot2Action = Slot2ActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot3ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot3.IA_Slot3"));
+	if (Slot3ActionRef.Succeeded())
+	{
+		Slot3Action = Slot3ActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot4ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot4.IA_Slot4"));
+	if (Slot4ActionRef.Succeeded())
+	{
+		Slot4Action = Slot4ActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot5ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot5.IA_Slot5"));
+	if (Slot5ActionRef.Succeeded())
+	{
+		Slot5Action = Slot5ActionRef.Object;
+	}
 }
 
 
@@ -190,6 +218,14 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
+
+		// 숫자키 입력과 슬롯 선택 함수 연결
+		EnhancedInputComponent->BindAction(Slot1Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot1);
+		EnhancedInputComponent->BindAction(Slot2Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot2);
+		EnhancedInputComponent->BindAction(Slot3Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot3);
+		EnhancedInputComponent->BindAction(Slot4Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot4);
+		EnhancedInputComponent->BindAction(Slot5Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot5);
+
 	}
 }
 
@@ -317,8 +353,6 @@ void AFZFCharacterPlayer::DetectInteractable()
 					HUDWidget->ShowItemName();
 				}
 			}
-
-			UE_LOG(LogTemp, Log, TEXT("Target Changed: %s"), *CurrentTargetItem->GetName());
 		}
 		else
 		{
@@ -327,8 +361,6 @@ void AFZFCharacterPlayer::DetectInteractable()
 				// 아이템 이름 숨기기
 				HUDWidget->HideItemName();
 			}
-
-			UE_LOG(LogTemp, Log, TEXT("Target Lost"));
 		}
 	}
 
@@ -347,4 +379,51 @@ void AFZFCharacterPlayer::DetectInteractable()
 			HUDWidget->SetCrosshairNormal();
 		}
 	}
+
+
+}
+
+// 1번 슬롯 선택
+void AFZFCharacterPlayer::SelectSlot1()
+{
+    if (InventoryComponent)
+    {
+        InventoryComponent->SelectSlot(0);
+    }
+}
+
+// 2번 슬롯 선택
+void AFZFCharacterPlayer::SelectSlot2()
+{
+    if (InventoryComponent)
+    {
+        InventoryComponent->SelectSlot(1);
+    }
+}
+
+// 3번 슬롯 선택
+void AFZFCharacterPlayer::SelectSlot3()
+{
+    if (InventoryComponent)
+    {
+        InventoryComponent->SelectSlot(2);
+    }
+}
+
+// 4번 슬롯 선택
+void AFZFCharacterPlayer::SelectSlot4()
+{
+    if (InventoryComponent)
+    {
+        InventoryComponent->SelectSlot(3);
+    }
+}
+
+// 5번 슬롯 선택
+void AFZFCharacterPlayer::SelectSlot5()
+{
+    if (InventoryComponent)
+    {
+        InventoryComponent->SelectSlot(4);
+    }
 }

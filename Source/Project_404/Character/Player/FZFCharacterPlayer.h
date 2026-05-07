@@ -19,6 +19,14 @@ class PROJECT_404_API AFZFCharacterPlayer : public AFZFCharacterBase
 	GENERATED_BODY()
 	
 public:
+	// 숫자키 1~5번 슬롯 선택 함수
+	void SelectSlot1();
+	void SelectSlot2();
+	void SelectSlot3();
+	void SelectSlot4();
+	void SelectSlot5();
+
+public:
 	AFZFCharacterPlayer();
 
 public:
@@ -85,6 +93,18 @@ protected:
 	// 현재 카메라 조준점에 들어와 있는 아이템 (UI 표시용)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	TWeakObjectPtr<class AFZFItemBase> CurrentTargetItem;
+
+	// 1~5번 슬롯 입력 액션
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> Slot1Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> Slot2Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> Slot3Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> Slot4Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> Slot5Action;
 
 // Inventory Section
 protected:

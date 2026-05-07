@@ -46,4 +46,10 @@ public:
     // 아이템 데이터를 인벤토리에 추가하는 함수
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     bool AddItem(UFZFItemData* InItemData);
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+    int32 SelectedSlotIndex = -1;
+
+    UFUNCTION(BlueprintCallable, Category = "Inventory")
+    void SelectSlot(int32 InSlotIndex);
 };
