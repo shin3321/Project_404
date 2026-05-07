@@ -94,3 +94,14 @@ void UFZFInventoryComponent::SelectSlot(int32 InSlotIndex)
         InventoryWidget->RefreshInventory(InventoryItems, SelectedSlotIndex);
     }
 }
+
+void UFZFInventoryComponent::RemoveSelectedItem(UFZFItemData* InItemData)
+{
+    if (InventoryItems.Num() <= 0)
+        return;
+
+    InventoryItems.Remove(InItemData);
+
+    if (InventoryWidget)
+        InventoryWidget->RefreshInventory(InventoryItems);
+}

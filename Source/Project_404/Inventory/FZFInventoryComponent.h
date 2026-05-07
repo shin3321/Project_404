@@ -34,6 +34,8 @@ public:
     UFUNCTION(BlueprintCallable)
     void HideInventory();
 
+    void RemoveSelectedItem(UFZFItemData* InItemData);
+
     // 현재 인벤토리에 저장된 아이템 데이터 배열
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
     TArray<TObjectPtr<UFZFItemData>> InventoryItems;
