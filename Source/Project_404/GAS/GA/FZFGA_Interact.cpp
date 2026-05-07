@@ -68,7 +68,7 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	// 라인트레이스 디버그 선 표시
 	// 맞은 액터가 있으면 초록색, 없으면 빨간색
 	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
-	
+
 	if (!bHit && !Hit.GetActor())
 		return;
 
@@ -91,7 +91,7 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 		if (bSuccess == false || interactedSlot == EFZFWorkbenchSlot::None)
 			return;
 
-		if (interactedSlot == EFZFWorkbenchSlot::BaseSlot || 
+		if (interactedSlot == EFZFWorkbenchSlot::BaseSlot ||
 			interactedSlot == EFZFWorkbenchSlot::CoreSlot)
 		{
 			Inventory->RemoveSelectedItem(HeldItemData);
@@ -101,7 +101,7 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 			if (Inventory->AddItem(Workbench->GetSpawnedItem()->GetItemData()))
 				Workbench->DestroySpawnedItem();
 		}
-			
+
 		return;
 	}
 
@@ -121,3 +121,4 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 
 		return;
 	}
+}
