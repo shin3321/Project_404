@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/Monster/FZFMonster.h"
@@ -8,21 +8,21 @@
 
 AFZFMonster::AFZFMonster()
 {
-	// Ability System Components ¼³Á¤
+	// Ability System Components ì„¤ì •
 	ASC = CreateDefaultSubobject<UFZFAbilitySystemComponent>("AbilitySystem");
 	ASC->SetIsReplicated(true);
 
-	// AIController Å¬·¡½º ¼³Á¤.
+	// AIController í´ë˜ìŠ¤ ì„¤ì •.
 	AIControllerClass = AFZFAIController::StaticClass();
 
-	// ¸Ê¿¡¼­ ·Îµå ¶Ç´Â ·±Å¸ÀÓ¿¡ ½ºÆù(»ı¼º)µÇ´Â ¸ğµç °æ¿ì
-	// ¹Ì¸® ÁöÁ¤ÇÑ AIController¿¡ ºùÀÇµÇµµ·Ï ¼³Á¤.
+	// ë§µì—ì„œ ë¡œë“œ ë˜ëŠ” ëŸ°íƒ€ì„ì— ìŠ¤í°(ìƒì„±)ë˜ëŠ” ëª¨ë“  ê²½ìš°
+	// ë¯¸ë¦¬ ì§€ì •í•œ AIControllerì— ë¹™ì˜ë˜ë„ë¡ ì„¤ì •.
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	// ¸ó½ºÅÍ ¸Ş½Ã À§Ä¡ & È¸Àü º¯°æ
+	// ëª¬ìŠ¤í„° ë©”ì‹œ ìœ„ì¹˜ & íšŒì „ ë³€ê²½
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
 
-	// ¸ó½ºÅÍ ¸Ş½Ã ¼³Á¤
+	// ëª¬ìŠ¤í„° ë©”ì‹œ ì„¤ì •
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MonsterMesh(
 		TEXT("/Game/Jisung/Sci-FI_Troopers_Collection/SciFITrooper-02/SkeletalMesh/SK_SciFiTrooperV2.SK_SciFiTrooperV2")
 	);
@@ -59,8 +59,8 @@ float AFZFMonster::GetAIDetectRange()
 
 float AFZFMonster::GetAIAttackRange()
 {
-	// °ø°İ °Å¸®.
-	// Ä¸½¶ ÇüÅÂ = °ø°İ °Å¸® + (°ø°İ ¹İ°æ x 2).
+	// ê³µê²© ê±°ë¦¬.
+	// ìº¡ìŠ í˜•íƒœ = ê³µê²© ê±°ë¦¬ + (ê³µê²© ë°˜ê²½ x 2).
 	return 0.0f;
 }
 
@@ -71,15 +71,15 @@ float AFZFMonster::GetAITurnSpeed()
 
 void AFZFMonster::AttackByAI()
 {
-	// °ø°İ Àç»ı.
+	// ê³µê²© ì¬ìƒ.
 	//ProcessComboCommand();
 
-	// °ø°İ ³¡³­ ÈÄ Ã³¸®.
-	// Todo: ¾ÆÁ÷ °ø°İ ¾ğÁ¦ ³¡³µ´ÂÁö ¸ğ¸§.
+	// ê³µê²© ëë‚œ í›„ ì²˜ë¦¬.
+	// Todo: ì•„ì§ ê³µê²© ì–¸ì œ ëë‚¬ëŠ”ì§€ ëª¨ë¦„.
 }
 
 void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)
 {
-	// µ¨¸®°ÔÀÌÆ®¸¦ º¯¼ö¿¡ ÀúÀå.
+	// ë¸ë¦¬ê²Œì´íŠ¸ë¥¼ ë³€ìˆ˜ì— ì €ì¥.
 	OnAttackFinished = InOnAttackFinished;
 }

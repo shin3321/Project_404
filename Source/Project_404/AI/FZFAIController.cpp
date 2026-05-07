@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "AI/FZFAIController.h"
@@ -11,7 +11,7 @@
 
 AFZFAIController::AFZFAIController()
 {
-	// »ç¿ëÇÒ ºí·¢º¸µå ¾Ö¼Â ·Îµå.
+	// ì‚¬ìš©í•  ë¸”ë™ë³´ë“œ ì• ì…‹ ë¡œë“œ.
 	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBAssetRef(
 		TEXT("/Game/Project404/AI/BB_FZFMonster.BB_FZFMonster")
 	);
@@ -21,7 +21,7 @@ AFZFAIController::AFZFAIController()
 		BBAsset = BBAssetRef.Object;
 	}
 
-	// »ç¿ëÇÒ ºñÇìÀÌºñ¾î Æ®¸® ¾Ö¼Â ·Îµå.
+	// ì‚¬ìš©í•  ë¹„í—¤ì´ë¹„ì–´ íŠ¸ë¦¬ ì• ì…‹ ë¡œë“œ.
 	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAssetRef(
 		TEXT("/Game/Project404/AI/BT_FZFMonster.BT_FZFMonster")
 	);
@@ -34,23 +34,23 @@ AFZFAIController::AFZFAIController()
 
 void AFZFAIController::RunAI()
 {
-	// ºí·¢º¸µå ÄÄÆ÷³ÍÆ® Æ÷ÀÎÅÍ °¡Á®¿À±â.
+	// ë¸”ë™ë³´ë“œ ì»´í¬ë„ŒíŠ¸ í¬ì¸í„° ê°€ì ¸ì˜¤ê¸°.
 	UBlackboardComponent* BlackboardPtr = Blackboard.Get();
 
-	// »ç¿ëÇÒ ºí·¢º¸µå ÁöÁ¤.
-	// µÎ ¹øÂ° ÆÄ¶ó¹ÌÅÍ°¡ *& Å¸ÀÔÀÌ¾î¼­ ¸í½ÃÀûÀÎ º¯¼ö°¡ ÀÖ¾î¾ß ÇÔ.
+	// ì‚¬ìš©í•  ë¸”ë™ë³´ë“œ ì§€ì •.
+	// ë‘ ë²ˆì§¸ íŒŒë¼ë¯¸í„°ê°€ *& íƒ€ì…ì´ì–´ì„œ ëª…ì‹œì ì¸ ë³€ìˆ˜ê°€ ìˆì–´ì•¼ í•¨.
 	if (UseBlackboard(BBAsset, BlackboardPtr))
 	{
-		// ÆùÀÇ À§Ä¡¸¦ ºí·¢º¸µå¿¡ ÀúÀå.
+		// í°ì˜ ìœ„ì¹˜ë¥¼ ë¸”ë™ë³´ë“œì— ì €ì¥.
 		Blackboard->SetValueAsVector(
 			BBKEY_HOMEPOS,
 			GetPawn()->GetActorLocation()
 		);
 
-		// ºñÇìÀÌºñ¾î Æ®¸® ½ÇÇà.
+		// ë¹„í—¤ì´ë¹„ì–´ íŠ¸ë¦¬ ì‹¤í–‰.
 		bool Result = RunBehaviorTree(BTAsset);
 
-		// ¿¹¿Ü Ã³¸®.
+		// ì˜ˆì™¸ ì²˜ë¦¬.
 		ensureAlways(Result);
 	}
 }
@@ -69,6 +69,6 @@ void AFZFAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	// Æù¿¡ ºùÀÇÇÏ¸é AI ·ÎÁ÷ ½ÇÇà.
+	// í°ì— ë¹™ì˜í•˜ë©´ AI ë¡œì§ ì‹¤í–‰.
 	RunAI();
 }

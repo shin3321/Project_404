@@ -21,6 +21,8 @@ public class Project_404 : ModuleRules
             "GameplayTags",
             "GameplayTasks",
             "NetCore", 
+            "Sockets", 
+            "Networking",
             "UMG",
             "NavigationSystem",
             "AIModule",

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
-#include "MySaveGame.generated.h"
+#include "FZFSaveGame.generated.h"
 
 /**
  * 

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -17,24 +17,24 @@ class PROJECT_404_API AFZFAIController : public AAIController
 public:
 	AFZFAIController();
 
-	// AI ½ÇÇà ÇÔ¼ö.
+	// AI ì‹¤í–‰ í•¨ìˆ˜.
 	void RunAI();
 
-	// AI Áß´Ü ÇÔ¼ö.
+	// AI ì¤‘ë‹¨ í•¨ìˆ˜.
 	void StopAI();
 
 protected:
-	// ÄÁÆ®·Ñ·¯°¡ Æù¿¡ ºùÀÇÇßÀ» ¶§ È£ÃâµÇ´Â ÇÔ¼ö.
-	// BT/BB ¾Ö¼Â ¼³Á¤ ¹× ½ÇÇà Ã³¸®.
+	// ì»¨íŠ¸ë¡¤ëŸ¬ê°€ í°ì— ë¹™ì˜í–ˆì„ ë•Œ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜.
+	// BT/BB ì• ì…‹ ì„¤ì • ë° ì‹¤í–‰ ì²˜ë¦¬.
 	virtual void OnPossess(APawn* InPawn) override;
 
 	
 private:
-	// ºí·¢º¸µå ¾Ö¼Â.
+	// ë¸”ë™ë³´ë“œ ì• ì…‹.
 	UPROPERTY()
 	TObjectPtr<class UBlackboardData> BBAsset;
 
-	// ºñÇìÀÌºñ¾î Æ®¸® ¿¡¼Â.
+	// ë¹„í—¤ì´ë¹„ì–´ íŠ¸ë¦¬ ì—ì…‹.
 	UPROPERTY()
 	TObjectPtr<class UBehaviorTree> BTAsset;
 };

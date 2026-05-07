@@ -35,7 +35,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 800.0f;
-	
+
 
 	// 카메라 컴포넌트 설정
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -49,7 +49,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -108.0f), FRotator(0.0f, -90.0f, 0.0f));
 
 	// 메시 에셋 지정
-	
+
 	// 전신 매쉬
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMeshRef(TEXT("/Game/Project404/Character/Player/SkeletalMesh/SK_SciFITrooper-01.SK_SciFITrooper-01"));
 	// 팔 매쉬
@@ -320,12 +320,6 @@ void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 {
 	// 입력 값으로부터 Vector2D 데이터 추출
 	FVector2D MovementVector = Value.Get<FVector2D>();
-	if (Controller != nullptr)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Move Input: %s"), *MovementVector.ToString());
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
 
 	// 컨트롤러의 현재 회전값 가져오기
 	const FRotator Rotation = Controller->GetControlRotation();
@@ -456,44 +450,44 @@ void AFZFCharacterPlayer::DetectInteractable()
 // 1번 슬롯 선택
 void AFZFCharacterPlayer::SelectSlot1()
 {
-    if (InventoryComponent)
-    {
-        InventoryComponent->SelectSlot(0);
-    }
+	if (InventoryComponent)
+	{
+		InventoryComponent->SelectSlot(0);
+	}
 }
 
 // 2번 슬롯 선택
 void AFZFCharacterPlayer::SelectSlot2()
 {
-    if (InventoryComponent)
-    {
-        InventoryComponent->SelectSlot(1);
-    }
+	if (InventoryComponent)
+	{
+		InventoryComponent->SelectSlot(1);
+	}
 }
 
 // 3번 슬롯 선택
 void AFZFCharacterPlayer::SelectSlot3()
 {
-    if (InventoryComponent)
-    {
-        InventoryComponent->SelectSlot(2);
-    }
+	if (InventoryComponent)
+	{
+		InventoryComponent->SelectSlot(2);
+	}
 }
 
 // 4번 슬롯 선택
 void AFZFCharacterPlayer::SelectSlot4()
 {
-    if (InventoryComponent)
-    {
-        InventoryComponent->SelectSlot(3);
-    }
+	if (InventoryComponent)
+	{
+		InventoryComponent->SelectSlot(3);
+	}
 }
 
 // 5번 슬롯 선택
 void AFZFCharacterPlayer::SelectSlot5()
 {
-    if (InventoryComponent)
-    {
-        InventoryComponent->SelectSlot(4);
-    }
+	if (InventoryComponent)
+	{
+		InventoryComponent->SelectSlot(4);
+	}
 }
