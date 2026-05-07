@@ -17,8 +17,9 @@
 #include "Item/FZFItemBase.h"
 
 #include "Kismet/GameplayStatics.h"
-
 #include "Game/FZFGameMode.h"
+#include "Inventory/FZFHUD.h"
+
 
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
@@ -34,28 +35,56 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 800.0f;
-
-	// 캡슐 컴포넌트에 맞춰 스켈레탈 메시의 위치(바닥)와 방향(정면) 정렬
-	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
-
-	// 메시 에셋 지정
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMesh(TEXT("/Game/Project404/Character/Player/SkeletalMesh/SK_SciFITrooper-01.SK_SciFITrooper-01"));
-
-	// 로드 성공했으면 설정
-	if (CharacterMesh.Succeeded())
-	{
-		GetMesh()->SetSkeletalMesh(CharacterMesh.Object);
-	}
+	
 
 	// 카메라 컴포넌트 설정
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-
 	// 캡슐 컴포넌트(Root)에 붙이고 Z값을 눈높이로 올리기
 	Camera->SetupAttachment(RootComponent);
 	Camera->SetRelativeLocation(FVector(0.0f, 0.0f, 64.0f)); // 눈높이에 맞춰 Z축 위치 조절 (캐릭터 크기에 맞게 수정 필요)
-
 	// 마우스 입력(컨트롤러 회전)에 따라 카메라가 상하좌우로 움직이도록 설정
 	Camera->bUsePawnControlRotation = true;
+
+	// 캡슐 컴포넌트에 맞춰 스켈레탈 메시의 위치(바닥)와 방향(정면) 정렬
+	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -108.0f), FRotator(0.0f, -90.0f, 0.0f));
+
+	// 메시 에셋 지정
+	
+	// 전신 매쉬
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMeshRef(TEXT("/Game/Project404/Character/Player/SkeletalMesh/SK_SciFITrooper-01.SK_SciFITrooper-01"));
+	// 팔 매쉬
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ArmMeshRef(TEXT("/Game/Project404/Character/Player/SkeletalMesh/2_Hand.2_Hand"));
+
+	if (GetMesh() && CharacterMeshRef.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(CharacterMeshRef.Object);
+		GetMesh()->SetOwnerNoSee(true); // 나에게는 내 몸통이 안 보임 (그림자는 보임)
+	}
+
+	// 팔 메시 설정
+	ArmMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterArmMesh"));
+	ArmMesh->SetupAttachment(Camera);
+	ArmMesh->SetOnlyOwnerSee(true); // 나에게만 보임
+	ArmMesh->bCastDynamicShadow = false; // 그림자 제거
+	ArmMesh->CastShadow = false;
+
+	// 팔 매시 위치 및 회전
+	ArmMesh->SetRelativeLocation(FVector(10.0f, 0.0f, -108.0f));
+	ArmMesh->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+
+	// 팔 전용 메쉬 할당
+	if (ArmMeshRef.Succeeded())
+	{
+		ArmMesh->SetSkeletalMesh(ArmMeshRef.Object);
+	}
+
+	// ArmMesh ABP 설정
+	static ConstructorHelpers::FClassFinder<UAnimInstance> ArmABPRef(TEXT("/Game/Project404/Character/Player/Animation/ABP_Player.ABP_Player_C"));
+
+	if (ArmABPRef.Succeeded())
+	{
+		ArmMesh->SetAnimInstanceClass(ArmABPRef.Class);
+	}
 
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultMappingContextRef(TEXT("/Game/Project404/Input/IMC_Default.IMC_Default"));
 	if (DefaultMappingContextRef.Succeeded())
@@ -101,6 +130,33 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	// Inventory 추가
 	InventoryComponent = CreateDefaultSubobject<UFZFInventoryComponent>(TEXT("InventoryComponent"));
 
+
+	// 슬롯 1~5 입력 액션 에셋 로드
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot1ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot1.IA_Slot1"));
+	if (Slot1ActionRef.Succeeded())
+	{
+		Slot1Action = Slot1ActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot2ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot2.IA_Slot2"));
+	if (Slot2ActionRef.Succeeded())
+	{
+		Slot2Action = Slot2ActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot3ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot3.IA_Slot3"));
+	if (Slot3ActionRef.Succeeded())
+	{
+		Slot3Action = Slot3ActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot4ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot4.IA_Slot4"));
+	if (Slot4ActionRef.Succeeded())
+	{
+		Slot4Action = Slot4ActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot5ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot5.IA_Slot5"));
+	if (Slot5ActionRef.Succeeded())
+	{
+		Slot5Action = Slot5ActionRef.Object;
+	}
 }
 
 
@@ -120,19 +176,23 @@ void AFZFCharacterPlayer::BeginPlay()
 	// 0.1초마다 아이템 감지 함수를 실행
 	FTimerHandle DetectionTimerHandle;
 	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
-
-	AFZFGameMode* GameMode = GetWorld()->GetAuthGameMode<AFZFGameMode>();
-	if (GameMode)
-	{
-		GameMode->OnAllPlayersReady();
-	}
 }
 
 void AFZFCharacterPlayer::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
-	FVector CurVelocity = GetCharacterMovement()->Velocity;
-	//UE_LOG(LogTemp, Warning, TEXT("Current Velocity: %s"), *CurVelocity.ToString());
+
+	//HUD위젯 올리기
+	if (HUDWidgetClass)
+	{
+		HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
+		if (HUDWidget)
+		{
+			HUDWidget->AddToViewport();
+			HUDWidget->HideItemName();
+			HUDWidget->SetCrosshairNormal();
+		}
+	}
 }
 
 void AFZFCharacterPlayer::PossessedBy(AController* NewController)
@@ -195,6 +255,14 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
+
+		// 숫자키 입력과 슬롯 선택 함수 연결
+		EnhancedInputComponent->BindAction(Slot1Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot1);
+		EnhancedInputComponent->BindAction(Slot2Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot2);
+		EnhancedInputComponent->BindAction(Slot3Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot3);
+		EnhancedInputComponent->BindAction(Slot4Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot4);
+		EnhancedInputComponent->BindAction(Slot5Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot5);
+
 	}
 }
 
@@ -250,6 +318,7 @@ void AFZFCharacterPlayer::PawnClientRestart()
 
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 {
+	// 입력 값으로부터 Vector2D 데이터 추출
 	FVector2D MovementVector = Value.Get<FVector2D>();
 	if (Controller != nullptr)
 	{
@@ -257,12 +326,19 @@ void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		AddMovementInput(ForwardDirection, MovementVector.X);
-		AddMovementInput(RightDirection, MovementVector.Y);
-	}
+	// 컨트롤러의 현재 회전값 가져오기
+	const FRotator Rotation = Controller->GetControlRotation();
+	// 캐릭터 이동에 필요한 Yaw(좌우 회전) 값만 추출
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	// 회전 행렬을 통해 현재 바라보는 방향의 앞(X)과 오른쪽(Y) 벡터를 계산
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+	// 계산된 방향과 입력된 크기(MovementVector)를 조합하여 캐릭터를 실제로 이동
+	AddMovementInput(ForwardDirection, MovementVector.X);
+	AddMovementInput(RightDirection, MovementVector.Y);
 }
 
 void AFZFCharacterPlayer::Look(const FInputActionValue& Value)
@@ -330,20 +406,94 @@ void AFZFCharacterPlayer::DetectInteractable()
 		}
 	}
 
-	// 상태가 변했을 때만 UI 업데이트
+	// 상태가 변했을 때만 아이템 UI 업데이트
 	if (NewTarget != CurrentTargetItem.Get())
 	{
-		CurrentTargetItem = Cast<AFZFItemBase>(NewTarget); // 여기서 한 번만 캐스팅
+		// 아이템 타겟 갱신
+		CurrentTargetItem = Cast<AFZFItemBase>(NewTarget);
 
 		if (CurrentTargetItem.IsValid())
 		{
-			// TODO : UI 표시 로직 실행
-			UE_LOG(LogTemp, Log, TEXT("Target Changed: %s"), *CurrentTargetItem->GetName());
+			if (HUDWidget)
+			{
+				// 아이템 이름 표시
+				if (UFZFItemData* ItemData = CurrentTargetItem->GetItemData())
+				{
+					HUDWidget->SetItemName(ItemData->ItemName);
+					HUDWidget->ShowItemName();
+				}
+			}
 		}
 		else
 		{
-			// TODO : UI 숨기기 로직 실행
-			UE_LOG(LogTemp, Log, TEXT("Target Lost"));
+			if (HUDWidget)
+			{
+				// 아이템 이름 숨기기
+				HUDWidget->HideItemName();
+			}
 		}
 	}
+
+	// 조준점 강조는 태그 기준으로 따로 처리
+	if (HUDWidget)
+	{
+		//태그로 조준점 변경
+		if (bHit && Hit.GetActor() && Hit.GetActor()->ActorHasTag(TEXT("OK")))
+		{
+			// 상호작용 가능한 액터를 바라보면 조준점 강조
+			HUDWidget->SetCrosshairHighlight();
+		}
+		else
+		{
+			// 아니면 기본 상태
+			HUDWidget->SetCrosshairNormal();
+		}
+	}
+
+
+}
+
+// 1번 슬롯 선택
+void AFZFCharacterPlayer::SelectSlot1()
+{
+    if (InventoryComponent)
+    {
+        InventoryComponent->SelectSlot(0);
+    }
+}
+
+// 2번 슬롯 선택
+void AFZFCharacterPlayer::SelectSlot2()
+{
+    if (InventoryComponent)
+    {
+        InventoryComponent->SelectSlot(1);
+    }
+}
+
+// 3번 슬롯 선택
+void AFZFCharacterPlayer::SelectSlot3()
+{
+    if (InventoryComponent)
+    {
+        InventoryComponent->SelectSlot(2);
+    }
+}
+
+// 4번 슬롯 선택
+void AFZFCharacterPlayer::SelectSlot4()
+{
+    if (InventoryComponent)
+    {
+        InventoryComponent->SelectSlot(3);
+    }
+}
+
+// 5번 슬롯 선택
+void AFZFCharacterPlayer::SelectSlot5()
+{
+    if (InventoryComponent)
+    {
+        InventoryComponent->SelectSlot(4);
+    }
 }

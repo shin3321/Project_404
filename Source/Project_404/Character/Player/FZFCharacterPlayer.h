@@ -9,6 +9,8 @@
 class UInputAction;
 class UInputMappingContext;
 class UFZFInventoryComponent;
+class UFZFHUD;
+
 
 
 UCLASS()
@@ -17,11 +19,22 @@ class PROJECT_404_API AFZFCharacterPlayer : public AFZFCharacterBase
 	GENERATED_BODY()
 	
 public:
+	// 숫자키 1~5번 슬롯 선택 함수
+	void SelectSlot1();
+	void SelectSlot2();
+	void SelectSlot3();
+	void SelectSlot4();
+	void SelectSlot5();
+
+public:
 	AFZFCharacterPlayer();
 
 public:
 	// 인벤토리 컴포넌트에 접근할 수 있도록 Getter 추가 (GA에서 사용)
 	UFZFInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+	
+	// 팔 매쉬 Getter
+	FORCEINLINE USkeletalMeshComponent* GetArmMesh() const { return ArmMesh; }
 	
 	// 카메라에 안전하게 접근할 수 있도록 Getter 추가 (GA에서 사용)
 	FORCEINLINE class UCameraComponent* GetCamera() const { return Camera; }
@@ -61,6 +74,11 @@ protected:
 	TObjectPtr<class UCameraComponent> Camera;
 
 
+// Mesh Section
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Mesh, BlueprintReadOnly)
+	TObjectPtr<USkeletalMeshComponent> ArmMesh;
+
 // Input Section
 protected:
 
@@ -89,10 +107,29 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	TWeakObjectPtr<class AFZFItemBase> CurrentTargetItem;
 
+	// 1~5번 슬롯 입력 액션
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> Slot1Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> Slot2Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> Slot3Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> Slot4Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> Slot5Action;
+
 // Inventory Section
 protected:
 	// 플레이어 인벤토리 데이터 관리 컴포넌트 추가
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	TObjectPtr<UFZFInventoryComponent> InventoryComponent;
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UFZFHUD> HUDWidgetClass;
+
+	UPROPERTY()
+	UFZFHUD* HUDWidget;
 
 };

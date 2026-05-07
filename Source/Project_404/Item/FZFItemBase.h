@@ -17,13 +17,13 @@ public:
 	AFZFItemBase();
 
 	UFZFItemData* GetItemData() const { return ItemData; }
+	void InitializeItem(UFZFItemData* InItemData);
 
 protected:
 
 	virtual void BeginPlay() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	void InitializeItem(UFZFItemData* InItemData);
 	void ApplyItemData();
 	void ApplyAutoFitMeshScale();
 

@@ -17,8 +17,16 @@ public:
     UFUNCTION(BlueprintCallable)
     void SetSlotData(UFZFItemData* InItemData);
 
+    // 슬롯 선택 상태 표시 함수
+    UFUNCTION(BlueprintCallable)
+    void SetSelected(bool bIsSelected);
+
 protected:
     // 아이템 아이콘 이미지
     UPROPERTY(meta = (BindWidget))
     UImage* ItemIcon;
+
+    // 선택 상태 프레임 이미지
+    UPROPERTY(meta = (BindWidget))
+    UImage* SelectedFrame;
 };
