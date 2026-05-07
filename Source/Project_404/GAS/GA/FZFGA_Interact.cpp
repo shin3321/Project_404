@@ -5,6 +5,7 @@
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Item/FZFItemBase.h"
 #include "Inventory/FZFInventoryComponent.h"
+#include "Crafting/FZFEquipmentWorkbench.h"
 #include "Camera/CameraComponent.h"
 
 UFZFGA_Interact::UFZFGA_Interact()
@@ -68,23 +69,55 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	// 맞은 액터가 있으면 초록색, 없으면 빨간색
 	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
 	
-	if (bHit && Hit.GetActor())
+	if (!bHit && !Hit.GetActor())
+		return;
+
+	AActor* HitActor = Hit.GetActor();
+	UPrimitiveComponent* HitComponent = Hit.GetComponent();
+
+	// 1. 장비 제작대 상호작용 처리
+	if (AFZFEquipmentWorkbench* Workbench = Cast<AFZFEquipmentWorkbench>(HitActor))
 	{
-		// 아이템 베이스인지 확인
-		AFZFItemBase* ItemActor = Cast<AFZFItemBase>(Hit.GetActor());
-		if (ItemActor)
+		UFZFInventoryComponent* Inventory = Player->GetInventoryComponent();
+
+		// [Youngwoo Test] : InventoryItems[0]를 -> 선택한 아이템으로 수정해줘야됨.
+		UFZFItemData* HeldItemData = nullptr;
+		if (Inventory->InventoryItems.Num() > 0)
+			HeldItemData = Inventory->InventoryItems[0];
+
+		EFZFWorkbenchSlot interactedSlot;
+		bool bSuccess = Workbench->InteractWithComponent(HitComponent, HeldItemData, interactedSlot);
+
+		if (bSuccess == false || interactedSlot == EFZFWorkbenchSlot::None)
+			return;
+
+		if (interactedSlot == EFZFWorkbenchSlot::BaseSlot || 
+			interactedSlot == EFZFWorkbenchSlot::CoreSlot)
 		{
-			UFZFInventoryComponent* Inventory = Player->GetInventoryComponent();
-			if (Inventory)
-			{
-				// 아이템 데이터 획득 및 인벤토리 추가
-				if (Inventory->AddItem(ItemActor->GetItemData()))
-				{
-					
-					// 성공 시 액터 파괴
-					ItemActor->Destroy();
-				}
-			}
+			Inventory->RemoveSelectedItem(HeldItemData);
 		}
+		else if (interactedSlot == EFZFWorkbenchSlot::ResultSlot)
+		{
+			if (Inventory->AddItem(Workbench->GetSpawnedItem()->GetItemData()))
+				Workbench->DestroySpawnedItem();
+		}
+			
+		return;
 	}
-}
+
+	// 2. 월드 아이템 줍기 처리
+	if (AFZFItemBase* ItemActor = Cast<AFZFItemBase>(HitActor))
+	{
+		UFZFInventoryComponent* Inventory = Player->GetInventoryComponent();
+		if (!Inventory)
+		{
+			return;
+		}
+
+		if (Inventory->AddItem(ItemActor->GetItemData()))
+		{
+			ItemActor->Destroy();
+		}
+
+		return;
+	}

@@ -71,3 +71,14 @@ void UFZFInventoryComponent::HideInventory()
         InventoryWidget->RemoveFromParent();
     }
 }
+
+void UFZFInventoryComponent::RemoveSelectedItem(UFZFItemData* InItemData)
+{
+    if (InventoryItems.Num() <= 0)
+        return;
+
+    InventoryItems.Remove(InItemData);
+
+    if (InventoryWidget)
+        InventoryWidget->RefreshInventory(InventoryItems);
+}
