@@ -29,6 +29,8 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Shop")
 	void RequestPurchase(class AFZFStore* TargetStore, FName ItemId, float ItemCost);
 
+	void LoadAndSyncPlayerData();
+
 protected:
 	// 실제로 서버로 넘어가서 실행될 RPC 함수
 	// Reliable: 반드시 도착하도록 보장 (결제 같은 중요 로직에 필수)

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/TimerHandle.h"
 #include "GameFramework/GameMode.h"
+
 #include "FZFGameMode.generated.h"
 
 /**
@@ -34,6 +35,9 @@ public:
 	void OnAllPlayersReady();
 
 	//virtual void Logout(AController* Exiting) override;
+public:
+	void NavigateItemRelocate();
+
 protected:
 	class AFZFGameState* GameState;
 
@@ -41,6 +45,7 @@ protected:
 	FTimerHandle DayTimerHandle;
 	void UpdateGameCLock();
 	void StartNewDay();
+
 
 protected:
 	// 현재 접속 중인 플레이어 수A

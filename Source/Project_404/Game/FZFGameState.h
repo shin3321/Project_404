@@ -39,7 +39,7 @@ public:
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	int32 RemainingRimeSeconds = 420;
-
+	
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	EGamePhase CurrentPhase = EGamePhase::Gathering;
 };

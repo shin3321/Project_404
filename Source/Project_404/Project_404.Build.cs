@@ -23,7 +23,8 @@ public class Project_404 : ModuleRules
             "NetCore",
             "UMG",
             "Sockets",
-            "Networking"
+            "Networking",
+            "NavigationSystem"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });

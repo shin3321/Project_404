@@ -16,6 +16,15 @@ void AFZFPlayerController::RequestPurchase(AFZFStore* TargetStore, FName ItemId,
 	ServerRequestPurchase(TargetStore, ItemId, ItemCost);
 }
 
+void AFZFPlayerController::LoadAndSyncPlayerData()
+{
+	// 내 컴퓨터에서 돌아가는 컨트롤러일 때만 실행
+	if (IsLocalController())
+	{
+		
+	}
+}
+
 // 서버 로직을 통과하기 전 검증 함수 
 bool AFZFPlayerController::ServerRequestPurchase_Validate(AFZFStore* TargetStore, FName ItemId, float ItemCost)
 {

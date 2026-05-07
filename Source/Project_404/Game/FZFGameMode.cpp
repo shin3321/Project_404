@@ -6,8 +6,11 @@
 #include "Character/Player/FZFPlayerState.h"
 #include "Character/FZFCharacterBase.h"
 
+#include "Item/FZFItemBase.h"
+
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
+#include "NavigationSystem.h"
 
 #include "Game/FZFGameState.h"
 #include "Project_404.h"
@@ -146,4 +149,32 @@ void AFZFGameMode::StartNewDay()
 	GameState->CurrentPhase = EGamePhase::Exploration;
 	GameState->RemainingRimeSeconds = 420;
 	GetWorldTimerManager().SetTimer(DayTimerHandle, this, &AFZFGameMode::UpdateGameCLock, 1.0f, true);
+}
+
+// 아이템 재배치 함수 
+// Todo 맵에 Navigation System 배치하기
+void AFZFGameMode::NavigateItemRelocate()
+{
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (!NavSys) return;
+
+	TArray<AActor*> CurrentItems;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFZFItemBase::StaticClass(), CurrentItems);
+
+	for (AActor* Item : CurrentItems)
+	{
+		FNavLocation RandomLocation;
+
+		// 특정 중심점 기분으로 반경 유닛 내에서 랜덤한 아이템 배치
+		// 중심점 편의상 0,0으로 함
+		FVector Origin = FVector::ZeroVector;
+
+		// 반경
+		float SearchRadius = 5000.0f;
+
+		if (NavSys->GetRandomReachablePointInRadius(Origin, SearchRadius, RandomLocation))
+		{
+			Item->SetActorLocation(RandomLocation.Location);
+		}
+	}
 }

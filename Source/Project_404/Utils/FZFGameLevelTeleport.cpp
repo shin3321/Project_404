@@ -13,6 +13,9 @@ AFZFGameLevelTeleport::AFZFGameLevelTeleport()
 
 	TransferVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TransferVolume"));
 
+	RootComponent = TransferVolume;
+
+	TransferVolume->InitBoxExtent(FVector(100.f, 200.f, 500.f));
 	// 충돌 설정
 	TransferVolume->SetCollisionProfileName(TEXT("Trigger"));
 	TransferVolume->OnComponentBeginOverlap.AddDynamic(this, &AFZFGameLevelTeleport::OnOverlapBegin);
