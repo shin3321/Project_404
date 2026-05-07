@@ -1,14 +1,28 @@
 ﻿#include "FZFInventorySlotWidget.h"
 #include "Components/Image.h"
-
 // 슬롯에 아이템 데이터를 설정하는 함수
-void UFZFInventorySlotWidget::SetSlotData( UFZFItemData* InItemData)
+void UFZFInventorySlotWidget::SetSlotData(UFZFItemData* InItemData)
 {
     UE_LOG(LogTemp, Warning, TEXT("SetSlotData Called"));
 
-    if (ItemIcon)
+    if (!ItemIcon || !InItemData)
     {
+        return;
+    }
+
+    if (InItemData->Icon)
+    {
+        // 아이콘은 항상 보이게 설정
         ItemIcon->SetBrushFromTexture(InItemData->Icon);
+        ItemIcon->SetVisibility(ESlateVisibility::Visible);
+        ItemIcon->SetOpacity(1.0f);
+    }
+
+    if (SelectedFrame)
+    {
+        // 프레임도 기본적으로 항상 보이게 설정
+        SelectedFrame->SetVisibility(ESlateVisibility::Visible);
+        SelectedFrame->SetOpacity(0.35f);
     }
 }
 
@@ -17,17 +31,13 @@ void UFZFInventorySlotWidget::SetSelected(bool bIsSelected)
 {
     UE_LOG(LogTemp, Warning, TEXT("SetSelected Called: %s"), bIsSelected ? TEXT("true") : TEXT("false"));
 
-    if (ItemIcon)
-    {
-        // 선택 안 된 슬롯도 보이게 너무 낮추지 않기
-        ItemIcon->SetOpacity(bIsSelected ? 1.0f : 0.8f);
-        ItemIcon->SetVisibility(ESlateVisibility::Visible);
-    }
     if (SelectedFrame)
     {
         UE_LOG(LogTemp, Warning, TEXT("SelectedFrame Valid"));
-        // 선택된 슬롯만 프레임 표시
-        SelectedFrame->SetVisibility(bIsSelected ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+
+        // 선택 상태에 따라 프레임만 opacity 변경
+        SelectedFrame->SetVisibility(ESlateVisibility::Visible);
+        SelectedFrame->SetOpacity(bIsSelected ? 1.0f : 0.35f);
     }
     else
     {
