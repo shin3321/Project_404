@@ -23,11 +23,11 @@ AFZFMonster::AFZFMonster()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	// 몬스터 메시 위치 & 회전 변경
-	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
+	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 12.0f), FRotator(0.0f, -90.0f, 0.0f));
 
 	// 몬스터 메시 설정
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MonsterMesh(
-		TEXT("/Game/Jisung/Sci-FI_Troopers_Collection/SciFITrooper-02/SkeletalMesh/SK_SciFiTrooperV2.SK_SciFiTrooperV2")
+		TEXT("/Game/Assets/Monster/M1/SK_M1.SK_M1")
 	);
 
 	if (MonsterMesh.Succeeded())
