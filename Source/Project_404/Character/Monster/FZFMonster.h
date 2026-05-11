@@ -34,7 +34,7 @@ protected:
 	virtual void AttackByAI() override; 
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) override;
 
-	// SetAIAttackDelegate 함수로부터 전달받은 델리게이트를 저정할 변수.
+	// SetAIAttackDelegate 함수로부터 전달받은 델리게이트를 저장할 변수.
 	FAICharacterAttackFinished OnAttackFinished;
 
 	// 몬스터 AttributeSet 할당
