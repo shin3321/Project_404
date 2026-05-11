@@ -23,7 +23,7 @@ AFZFMonster::AFZFMonster()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	// 몬스터 메시 위치 & 회전 변경
-	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 12.0f), FRotator(0.0f, -90.0f, 0.0f));
+	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 27.0f), FRotator(0.0f, -90.0f, 0.0f));
 
 	// 몬스터 메시 설정
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MonsterMesh(
@@ -35,6 +35,24 @@ AFZFMonster::AFZFMonster()
 		GetMesh()->SetSkeletalMesh(MonsterMesh.Object);
 	}
 
+	// 애님 블루프린트 클래스 정보 지정.
+	static ConstructorHelpers::FClassFinder<UAnimInstance> MonsterAnim(
+		TEXT("/Game/Project404/Animation/ABP_M1.ABP_M1_C")
+	);
+
+	if (MonsterAnim.Succeeded())
+	{
+		GetMesh()->SetAnimInstanceClass(MonsterAnim.Class);
+	}
+
+	// 몽타주 및 액션 데이터 기본 값 설정.
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackMontageRef(
+		TEXT("/Game/Project404/Animation/AM_AttackM1.AM_AttackM1")
+	);
+	if (AttackMontageRef.Succeeded())
+	{
+		AttackMontage = AttackMontageRef.Object;
+	}
 }
 
 void AFZFMonster::BeginPlay()
@@ -113,10 +131,7 @@ void AFZFMonster::AttackByAI()
 	//}
 	
 	// 공격 재생.
-	//ProcessComboCommand();
-
-	// 공격 끝난 후 처리.
-	// Todo: 아직 공격 언제 끝났는지 모름.
+	ProcessAttack();
 }
 
 void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)
@@ -127,6 +142,40 @@ void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAtta
 	// 실제 공격 종료 시점은 Gameplay Ability(GA) 내부에서
 	// 몽타주 종료 섹션 등에 GameplayEvent를 날려 캐릭터가 받게 하거나, 
 	// OnAbilityEnded 델리게이트를 통해 OnAttackFinished.ExecuteIfBound()를 호출
+}
+
+void AFZFMonster::ProcessAttack()
+{
+	AttackActionBegin();
+}
+
+void AFZFMonster::AttackActionBegin()
+{
+	// 몽타주 재생.
+	// 애님 인스턴스 가져오기.
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		// 몽타주 재생 속도.
+		const float AttackSpeedRate = Stat->GetTotalStat().AttackSpeed;
+
+		// 몽타주 재생.
+		AnimInstance->Montage_Play(AttackMontage, AttackSpeedRate);
+
+		// 몽타주 종료 이벤트에 등록할 델리게이트 설정.
+		FOnMontageEnded OnMontageEnded;
+		OnMontageEnded.BindUObject(this, &AABCharacterBase::ComboActionEnd);
+
+		// 몽타주 재생 종료 시 발행되는 이벤트에 등록.
+		AnimInstance->Montage_SetEndDelegate(OnMontageEnded, AttackMontage);
+
+		// 몽타주 재생 시 이동 안하도록 설정.
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	}
+}
+
+void AFZFMonster::AttackActionEnd(UAnimMontage* TargetMontage, bool bInterrupted)
+{
 }
 
 //void AFZFMonster::NotifyComboActionEnd()
