@@ -21,6 +21,9 @@ public:
     UFUNCTION(BlueprintCallable)
     void SetSelected(bool bIsSelected);
 
+    UFUNCTION(BlueprintCallable)
+    void ClearSlot();
+
 protected:
     // 아이템 아이콘 이미지
     UPROPERTY(meta = (BindWidget))
@@ -29,4 +32,6 @@ protected:
     // 선택 상태 프레임 이미지
     UPROPERTY(meta = (BindWidget))
     UImage* SelectedFrame;
+
+
 };
