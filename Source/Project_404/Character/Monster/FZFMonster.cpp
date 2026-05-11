@@ -70,12 +70,14 @@ float AFZFMonster::GetAIPatrolRadius()
 float AFZFMonster::GetAIDetectRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
+	MonsterAttributeSet->GetDetectRange();
 	return 400.0f;
 }
 
 float AFZFMonster::GetAIAttackRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
+	MonsterAttributeSet->GetAttackRange();
 	// 공격 거리.
 	// 캡슐 형태 = 공격 거리 + (공격 반경 x 2).
 	return 0.0f;

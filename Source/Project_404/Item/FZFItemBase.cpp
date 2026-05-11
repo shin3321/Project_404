@@ -4,6 +4,8 @@
 #include "Item/FZFItemBase.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Character/Player/FZFCharacterPlayer.h"
+#include "Inventory/FZFInventoryComponent.h"
 
 // Sets default values
 AFZFItemBase::AFZFItemBase()
@@ -82,5 +84,25 @@ void AFZFItemBase::ApplyAutoFitMeshScale()
     const float FinalScale = FMath::Min3(ScaleX, ScaleY, ScaleZ);
 
     Mesh->SetRelativeScale3D(FVector(FinalScale));
+}
+
+void AFZFItemBase::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
+{
+    UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent();
+    if (!Inventory)
+        return;
+
+    if (Inventory->AddItem(GetItemData()))
+        Destroy();
+}
+
+FText AFZFItemBase::GetInteractableName(UPrimitiveComponent* HitComponent) const
+{
+    if (!ItemData)
+    {
+        return FText::GetEmpty();
+    }
+
+    return ItemData->ItemName;
 }
 

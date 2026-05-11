@@ -8,6 +8,8 @@ UFZFInventoryComponent::UFZFInventoryComponent()
 {
     // 이 컴포넌트는 Tick 사용 안 함
     PrimaryComponentTick.bCanEverTick = false;
+
+    InventoryItems.SetNum(MaxItemCount);
 }
 
 
@@ -21,18 +23,29 @@ bool UFZFInventoryComponent::AddItem(UFZFItemData* InItemData)
     }
 
     // 인벤토리가 가득 찼으면 추가 실패
-    if (InventoryItems.Num() >= MaxItemCount)
+    bool hasEmptySlot = false;
+    int index = -1;
+    for (auto slot : InventoryItems)
     {
-        return false;
+        index++;
+
+        if (slot == nullptr)
+        {
+            hasEmptySlot = true;
+            break;
+        }
     }
 
+    if (hasEmptySlot == false)
+        return false;
+
     // 인벤토리 배열에 아이템 데이터 추가
-    InventoryItems.Add(InItemData);
+    InventoryItems[index] = InItemData;
 
     // 인벤토리 위젯이 있으면 UI 갱신
     if (InventoryWidget)
     {
-        InventoryWidget->RefreshInventory(InventoryItems, SelectedSlotIndex);
+        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
     }
 
     // 아이템 추가 성공
@@ -58,7 +71,7 @@ void UFZFInventoryComponent::ShowInventory()
     if (InventoryWidget)
     {
         InventoryWidget->AddToViewport();
-        InventoryWidget->RefreshInventory(InventoryItems, SelectedSlotIndex);
+        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
     }
 }
 
@@ -76,7 +89,7 @@ void UFZFInventoryComponent::HideInventory()
 void UFZFInventoryComponent::SelectSlot(int32 InSlotIndex)
 {
     // 선택한 슬롯 번호가 인벤토리 범위를 벗어나면 선택 해제
-    if (InSlotIndex < 0 || InSlotIndex >= InventoryItems.Num())
+    if (InSlotIndex < 0 || InSlotIndex >= MaxItemCount)
     {
         SelectedSlotIndex = -1;
     }
@@ -91,17 +104,25 @@ void UFZFInventoryComponent::SelectSlot(int32 InSlotIndex)
     // 선택 상태 변경 후 UI 갱신
     if (InventoryWidget)
     {
-        InventoryWidget->RefreshInventory(InventoryItems, SelectedSlotIndex);
+        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
     }
 }
 
-void UFZFInventoryComponent::RemoveSelectedItem(UFZFItemData* InItemData)
+UFZFItemData* UFZFInventoryComponent::GetSelectedItemData() const
 {
-    if (InventoryItems.Num() <= 0)
+    if (SelectedSlotIndex < 0 || SelectedSlotIndex > InventoryItems.Num() - 1)
+        return nullptr;
+
+    return InventoryItems[SelectedSlotIndex];
+}
+
+void UFZFInventoryComponent::RemoveSelectedItem()
+{
+    if (SelectedSlotIndex < 0 || SelectedSlotIndex >= MaxItemCount)
         return;
 
-    InventoryItems.Remove(InItemData);
+    InventoryItems[SelectedSlotIndex] = nullptr;
 
     if (InventoryWidget)
-        InventoryWidget->RefreshInventory(InventoryItems, SelectedSlotIndex);
+        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
 }

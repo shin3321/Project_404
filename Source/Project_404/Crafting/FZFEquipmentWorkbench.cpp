@@ -11,6 +11,9 @@
 #include "Item/CraftMaterial/FZFCraftPartItemData.h"
 #include "Item/Recipe/FZFEquipmentRecipeData.h"
 
+#include "Character/Player/FZFCharacterPlayer.h"
+#include "Inventory/FZFInventoryComponent.h"
+
 
 namespace
 {
@@ -86,29 +89,6 @@ void AFZFEquipmentWorkbench::BeginPlay()
 	SetupInteractionBox(ResultInteractionBoxRef);
 
 	UpdatePreviewMeshes();
-}
-
-bool AFZFEquipmentWorkbench::InteractWithComponent(UPrimitiveComponent* HitComponent, UFZFItemData* HeldItemData, EFZFWorkbenchSlot& OutInteractedSlot)
-{
-	EFZFWorkbenchSlot HitSlot = GetSlotFromHitComponent(HitComponent);
-	OutInteractedSlot = HitSlot;
-
-	switch (HitSlot)
-	{
-	case EFZFWorkbenchSlot::BaseSlot:
-	case EFZFWorkbenchSlot::CoreSlot:
-	{
-		return TryInsertMaterialToSlot(HitSlot, HeldItemData);
-	}
-	case EFZFWorkbenchSlot::Crafting:
-		return TryCraft();
-
-	case EFZFWorkbenchSlot::ResultSlot:
-		return IsValid(SpawnedItem);
-
-	default:
-		return false;
-	}
 }
 
 EFZFWorkbenchSlot AFZFEquipmentWorkbench::GetSlotFromHitComponent(UPrimitiveComponent* HitComponent) const
@@ -308,5 +288,75 @@ void AFZFEquipmentWorkbench::UpdatePreviewMeshes()
 	if (ResultMeshRef)
 	{
 		ResultMeshRef->SetVisibility(false);
+	}
+}
+
+void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
+{
+	if (!IsValid(Interactor))
+		return;
+
+	UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent();
+
+	UFZFItemData* HeldItemData = Inventory->GetSelectedItemData();
+
+	// 충돌한 Slot을 가져와서 switch문의 케이스별로 각 슬롯들이 시도해야 하는 동작을 수행한다.
+	EFZFWorkbenchSlot HitSlot = GetSlotFromHitComponent(HitComponent);
+	switch (HitSlot)
+	{
+	case EFZFWorkbenchSlot::BaseSlot:
+	case EFZFWorkbenchSlot::CoreSlot:
+	{
+		if (TryInsertMaterialToSlot(HitSlot, HeldItemData) == false)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Failed to insert material into workbench slot."));
+			return;
+		}
+
+		Inventory->RemoveSelectedItem();
+		break;
+	}
+	case EFZFWorkbenchSlot::Crafting:
+		if (TryCraft() == false)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Failed to craft item at workbench"));
+			return;
+		}
+		break;
+
+	case EFZFWorkbenchSlot::ResultSlot:
+		if (IsValid(SpawnedItem) == false)
+			return;
+
+		if (Inventory->AddItem(SpawnedItem->GetItemData()))
+			DestroySpawnedItem();
+
+		break;
+
+	default:
+		break;
+	}
+}
+
+FText AFZFEquipmentWorkbench::GetInteractableName(UPrimitiveComponent* HitComponent) const
+{
+	const EFZFWorkbenchSlot HitSlot = GetSlotFromHitComponent(HitComponent);
+
+	switch (HitSlot)
+	{
+	case EFZFWorkbenchSlot::BaseSlot:
+		return FText::FromString(TEXT("Base Part"));
+
+	case EFZFWorkbenchSlot::CoreSlot:
+		return FText::FromString(TEXT("Core Part"));
+
+	case EFZFWorkbenchSlot::Crafting:
+		return FText::FromString(TEXT("Craft"));
+
+	case EFZFWorkbenchSlot::ResultSlot:
+		return FText::FromString(TEXT("GetItem"));
+
+	default:
+		return FText::GetEmpty();
 	}
 }

@@ -14,11 +14,12 @@
 
 #include "Inventory/FZFInventoryComponent.h"
 #include "GameplayTag/FZFGameplayTags.h"
-#include "Item/FZFItemBase.h"
+#include "Interface/FZFInteractableInterface.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Game/FZFGameMode.h"
 #include "Inventory/FZFHUD.h"
+#include "Components/PrimitiveComponent.h"
 
 
 AFZFCharacterPlayer::AFZFCharacterPlayer()
@@ -78,6 +79,10 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 		ArmMesh->SetSkeletalMesh(ArmMeshRef.Object);
 	}
 
+	// 점프 관련 설정
+	GetCharacterMovement()->JumpZVelocity = 550.0f; // 점프 힘
+	GetCharacterMovement()->GravityScale = 1.6f; // 중력 배율
+
 	// ArmMesh ABP 설정
 	static ConstructorHelpers::FClassFinder<UAnimInstance> ArmABPRef(TEXT("/Game/Project404/Character/Player/Animation/ABP_Player.ABP_Player_C"));
 
@@ -114,10 +119,18 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 		InteractAction = InteractActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/ArenaBattle/Input/Actions/IA_Jump.IA_Jump"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Project404/Input/Actions/IA_Jump.IA_Jump"));
 	if (JumpActionRef.Succeeded())
 	{
 		// 점프 액션
+		JumpAction = JumpActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(TEXT("/Game/Project404/Input/Actions/IA_Run.IA_Run"));
+	if (RunActionRef.Succeeded())
+	{
+		// 달리기 액션
+		RunAction = RunActionRef.Object;
 	}
 
 	// GAS
@@ -176,23 +189,19 @@ void AFZFCharacterPlayer::BeginPlay()
 	// 0.1초마다 아이템 감지 함수를 실행
 	FTimerHandle DetectionTimerHandle;
 	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
+
+	if (HUDWidgetClass)
+	{
+		HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
+		HUDWidget->AddToViewport();
+		HUDWidget->HideWidget();
+		HUDWidget->SetCrosshairNormal();
+	}
 }
 
 void AFZFCharacterPlayer::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
-
-	//HUD위젯 올리기
-	if (HUDWidgetClass)
-	{
-		HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
-		if (HUDWidget)
-		{
-			HUDWidget->AddToViewport();
-			HUDWidget->HideItemName();
-			HUDWidget->SetCrosshairNormal();
-		}
-	}
 }
 
 void AFZFCharacterPlayer::PossessedBy(AController* NewController)
@@ -212,6 +221,7 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 {
 	Super::InitAbilitySystem();
 
+	int32 InputID = 0;
 	if (AFZFPlayerState* PS = GetPlayerState<AFZFPlayerState>())
 	{
 		/** * [GAS 핵심 설정]
@@ -228,6 +238,7 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 		for (const auto& StartupAbility : StartupAbilities)
 		{
 			FGameplayAbilitySpec StartSpec(StartupAbility);
+			StartSpec.InputID = InputID++;
 			ASC->GiveAbility(StartSpec);
 		}
 	}
@@ -250,8 +261,12 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFZFCharacterPlayer::Look);
 
 		// Jump
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::JumpStart);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AFZFCharacterPlayer::JumpEnd);
+
+		// Run
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::RunStart);
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFZFCharacterPlayer::RunEnd);
 
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
@@ -361,6 +376,41 @@ void AFZFCharacterPlayer::Interact()
 	}
 }
 
+void AFZFCharacterPlayer::RunStart()
+{
+
+	if (ASC)
+	{
+		
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Run));
+	}
+}
+
+void AFZFCharacterPlayer::RunEnd()
+{
+	if (ASC)
+	{
+		// GameplayTagContainer를 단일 태그로 직접 초기화
+		const FGameplayTagContainer RunTag(FZFGameplayTags::Ability_Action_Run);
+		
+		// 해당 태그를 가진 어빌리티들을 취소(주소값을 전달하여 불필요한 복사 방지)
+		ASC->CancelAbilities(&RunTag);
+	}
+}
+
+void AFZFCharacterPlayer::JumpStart()
+{
+	if (ASC)
+	{
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Jump));
+	}
+}
+
+void AFZFCharacterPlayer::JumpEnd()
+{
+	StopJumping();
+}
+
 void AFZFCharacterPlayer::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
@@ -376,9 +426,10 @@ void AFZFCharacterPlayer::OnRep_PlayerState()
 void AFZFCharacterPlayer::DetectInteractable()
 {
 	if (!Camera)
-	{
 		return;
-	}
+
+	if (!HUDWidget)
+		return;
 
 	FVector Start = Camera->GetComponentLocation();
 	FVector End = Start + (Camera->GetForwardVector() * 500.f);
@@ -389,62 +440,51 @@ void AFZFCharacterPlayer::DetectInteractable()
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
 
-	AActor* NewTarget = nullptr;
+	UPrimitiveComponent* NewTarget = nullptr;
+	IFZFInteractableInterface* Interactable = nullptr;
 
-	if (bHit && Hit.GetActor())
+	if (bHit)
 	{
-		// 특정 클래스인지 먼저 확인
-		if (Hit.GetActor()->IsA(AFZFItemBase::StaticClass()))
-		{
-			NewTarget = Hit.GetActor();
-		}
+		UPrimitiveComponent* HitComponent = Hit.GetComponent();
+
+		if (IsValid(HitComponent) == false)
+			return;
+
+		AActor* OwnerActor = HitComponent->GetOwner();
+		Interactable = Cast<IFZFInteractableInterface>(OwnerActor);
+		if (Interactable)
+			NewTarget = HitComponent;
+	}
+	else
+	{
+		HUDWidget->HideWidget();
 	}
 
-	// 상태가 변했을 때만 아이템 UI 업데이트
-	if (NewTarget != CurrentTargetItem.Get())
+	// 상태가 변했을 때만 Widget 업데이트
+	if (NewTarget != CurrentInteractableTarget.Get())
 	{
-		// 아이템 타겟 갱신
-		CurrentTargetItem = Cast<AFZFItemBase>(NewTarget);
-
-		if (CurrentTargetItem.IsValid())
+		CurrentInteractableTarget = NewTarget;
+		if (IsValid(NewTarget) && Interactable)
 		{
-			if (HUDWidget)
+			const FText InteractableName = Interactable->GetInteractableName(Hit.GetComponent());
+			if (!InteractableName.IsEmpty())
 			{
-				// 아이템 이름 표시
-				if (UFZFItemData* ItemData = CurrentTargetItem->GetItemData())
-				{
-					HUDWidget->SetItemName(ItemData->ItemName);
-					HUDWidget->ShowItemName();
-				}
+				HUDWidget->SetTargetName(InteractableName);
+				HUDWidget->ShowWidget();
+				HUDWidget->SetCrosshairHighlight();
+			}
+			else
+			{
+				HUDWidget->HideWidget();
+				HUDWidget->SetCrosshairNormal();
 			}
 		}
 		else
 		{
-			if (HUDWidget)
-			{
-				// 아이템 이름 숨기기
-				HUDWidget->HideItemName();
-			}
-		}
-	}
-
-	// 조준점 강조는 태그 기준으로 따로 처리
-	if (HUDWidget)
-	{
-		//태그로 조준점 변경
-		if (bHit && Hit.GetActor() && Hit.GetActor()->ActorHasTag(TEXT("OK")))
-		{
-			// 상호작용 가능한 액터를 바라보면 조준점 강조
-			HUDWidget->SetCrosshairHighlight();
-		}
-		else
-		{
-			// 아니면 기본 상태
+			HUDWidget->HideWidget();
 			HUDWidget->SetCrosshairNormal();
 		}
 	}
-
-
 }
 
 // 1번 슬롯 선택
