@@ -13,12 +13,6 @@ class PROJECT_404_API UFZFMonsterSet : public UFZFAttributeSet
 
 public:
 	UFZFMonsterSet();
-
-	// 공격 사거리 (Attack Range)
-	ATTRIBUTE_ACCESSORS(UFZFMonsterSet, AttackRange);
-
-	// 공격 반경 (Attack Radius)
-	ATTRIBUTE_ACCESSORS(UFZFMonsterSet, AttackRadius);
 	 
 	// 탐지 거리 (Detection Range)
 	ATTRIBUTE_ACCESSORS(UFZFMonsterSet, DetectRange);
@@ -26,12 +20,6 @@ public:
 	ATTRIBUTE_ACCESSORS(UFZFMonsterSet, TurnSpeed);
 
 private:
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
-	FGameplayAttributeData AttackRange;
-
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
-	FGameplayAttributeData AttackRadius;
-
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData DetectRange;
 

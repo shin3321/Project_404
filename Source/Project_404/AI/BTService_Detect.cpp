@@ -6,7 +6,7 @@
 //#include "Physics/ABCollision.h"
 #include "Interface/FZFMonsterAIInterface.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "ABAI.h"
+#include "FZFAI.h"
 #include "Engine/OverlapResult.h"
 
 UBTService_Detect::UBTService_Detect()
@@ -47,12 +47,14 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 		return;
 	}
 
+	// Interface: 수정
 	// NPC가 캐릭터를 감지할 범위(반지름).
 	float DetectRadius = AIPawn->GetAIDetectRange();
 
-	// 쿼리 파라미터.
+	// 쿼리 파라미터. -> AI가 제어하는 Pawn은 감지대상 제외
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Detect), false, ControllingPawn);
 
+	// Physics: 수정
 	// 충돌 처리 결과를 저장할 배열.
 	TArray<FOverlapResult> Results;
 	bool bResult = World->OverlapMultiByChannel(
@@ -74,7 +76,7 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 			// 감지된 액터를 폰으로 변환.
 			APawn* Pawn = Cast<APawn>(OverlapResult.GetActor());
 
-			// 플레이어인지 확인.
+			// 플레이어인지 확인. (AI는 제외)
 			if (Pawn && Pawn->GetController()->IsPlayerController())
 			{
 				// 감지한 정보를 블랙보드에 저장.

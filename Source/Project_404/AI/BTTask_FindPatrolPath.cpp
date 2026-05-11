@@ -3,7 +3,7 @@
 
 #include "AI/BTTask_FindPatrolPath.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "ABAI.h"
+#include "FZFAI.h"
 #include "NavigationSystem.h"
 #include "AIController.h"
 #include "Interface/FZFMonsterAIInterface.h"
