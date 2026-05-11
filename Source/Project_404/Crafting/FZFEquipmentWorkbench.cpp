@@ -298,10 +298,7 @@ void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiv
 
 	UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent();
 
-	// [Youngwoo Test] : InventoryItems[0]를 -> 선택한 아이템으로 수정해줘야됨.
-	UFZFItemData* HeldItemData = nullptr;
-	if (Inventory->InventoryItems.Num() > 0)
-		HeldItemData = Inventory->InventoryItems[0];
+	UFZFItemData* HeldItemData = Inventory->GetSelectedItemData();
 
 	// 충돌한 Slot을 가져와서 switch문의 케이스별로 각 슬롯들이 시도해야 하는 동작을 수행한다.
 	EFZFWorkbenchSlot HitSlot = GetSlotFromHitComponent(HitComponent);
@@ -316,7 +313,7 @@ void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiv
 			return;
 		}
 
-		Inventory->RemoveSelectedItem(HeldItemData);
+		Inventory->RemoveSelectedItem();
 		break;
 	}
 	case EFZFWorkbenchSlot::Crafting:
