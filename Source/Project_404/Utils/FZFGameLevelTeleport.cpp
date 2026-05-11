@@ -25,6 +25,7 @@ AFZFGameLevelTeleport::AFZFGameLevelTeleport()
 void AFZFGameLevelTeleport::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 // Called every frame
@@ -39,9 +40,20 @@ void AFZFGameLevelTeleport::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, 
 
 	if (Cast<AFZFCharacterBase>(OtherActor))
 	{
-		FString LevelPath = TEXT("/Game/Project404/Map/FZFGameLevel");
-
-		GetWorld()->ServerTravel(LevelPath);
-
+		if(APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			EnableInput(PlayerController);
+			if(PlayerController->WasInputKeyJustPressed(EKeys::E))
+			{
+				EnterLobbyLevel();
+			}
+		}
 	}
+}
+
+void AFZFGameLevelTeleport::EnterLobbyLevel()
+{
+	FString LevelPath = TEXT("/Game/Project404/Map/FZFGameLevel");
+
+	GetWorld()->ServerTravel(LevelPath);
 }

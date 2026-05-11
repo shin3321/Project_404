@@ -44,6 +44,8 @@ protected:
 	UPROPERTY()
 	FTimerHandle DayTimerHandle;
 	void UpdateGameCLock();
+
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "GameEvent")
 	void StartNewDay();
 
 

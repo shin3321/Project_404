@@ -39,4 +39,14 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UFZFPlayerSet> PlayerSet;
+
+	// 재화 정보
+	UPROPERTY()
+	int32 PumpItUpPoint;
+
+	// HP 정보
+	UPROPERTY()
+	float PlayerHp;
+
+
 };
