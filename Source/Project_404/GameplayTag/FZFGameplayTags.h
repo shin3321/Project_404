@@ -18,4 +18,6 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Run);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Jump);
 
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Stamina_NoRegen);
+
 }

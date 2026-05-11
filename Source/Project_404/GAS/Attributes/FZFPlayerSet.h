@@ -16,4 +16,11 @@ class PROJECT_404_API UFZFPlayerSet : public UFZFAttributeSet
 	
 public:
 	UFZFPlayerSet();
+
+public:
+	ATTRIBUTE_ACCESSORS(UFZFPlayerSet, Stamina);
+
+public:
+	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData Stamina;
 };

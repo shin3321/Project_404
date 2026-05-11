@@ -12,4 +12,7 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Walk,"State.Movement.Walk");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Run,"State.Movement.Run");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Jump,"State.Movement.Jump");
+	
+	UE_DEFINE_GAMEPLAY_TAG(State_Stamina_NoRegen,"State.Stamina.NoRegen");
+
 }
