@@ -36,9 +36,9 @@ public:
 protected:
     //이름 표시용 텍스트 블록
     UPROPERTY(meta = (BindWidget))
-    UTextBlock* NameText;
+    TObjectPtr<UTextBlock> NameText;
 
     // 화면 중앙 조준점 이미지
     UPROPERTY(meta = (BindWidget))
-    UImage* CrosshairImage;
+    TObjectPtr<UImage> CrosshairImage;
 };

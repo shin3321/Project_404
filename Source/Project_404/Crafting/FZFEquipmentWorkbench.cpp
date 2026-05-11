@@ -348,16 +348,16 @@ FText AFZFEquipmentWorkbench::GetInteractableName(UPrimitiveComponent* HitCompon
 	switch (HitSlot)
 	{
 	case EFZFWorkbenchSlot::BaseSlot:
-		return FText::FromString(TEXT("Insert Base Part"));
+		return FText::FromString(TEXT("Base Part"));
 
 	case EFZFWorkbenchSlot::CoreSlot:
-		return FText::FromString(TEXT("Insert Core Part"));
+		return FText::FromString(TEXT("Core Part"));
 
 	case EFZFWorkbenchSlot::Crafting:
-		return FText::FromString(TEXT("Craft Equipment"));
+		return FText::FromString(TEXT("Craft"));
 
 	case EFZFWorkbenchSlot::ResultSlot:
-		return FText::FromString(TEXT("Take Result Item"));
+		return FText::FromString(TEXT("GetItem"));
 
 	default:
 		return FText::GetEmpty();

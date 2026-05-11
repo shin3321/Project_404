@@ -418,28 +418,19 @@ void AFZFCharacterPlayer::DetectInteractable()
 			{
 				HUDWidget->SetTargetName(InteractableName);
 				HUDWidget->ShowWidget();
+				HUDWidget->SetCrosshairHighlight();
 			}
 			else
 			{
 				HUDWidget->HideWidget();
+				HUDWidget->SetCrosshairNormal();
 			}
 		}
 		else
 		{
 			HUDWidget->HideWidget();
+			HUDWidget->SetCrosshairNormal();
 		}
-	}
-
-	//태그로 조준점 변경
-	if (bHit && Hit.GetActor() && Hit.GetActor()->ActorHasTag(TEXT("OK")))
-	{
-		// 상호작용 가능한 액터를 바라보면 조준점 강조
-		HUDWidget->SetCrosshairHighlight();
-	}
-	else
-	{
-		// 아니면 기본 상태
-		HUDWidget->SetCrosshairNormal();
 	}
 }
 
