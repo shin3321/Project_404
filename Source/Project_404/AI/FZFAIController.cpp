@@ -7,7 +7,7 @@
 
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BehaviorTree.h"
-#include "ABAI.h"
+#include "FZFAI.h"
 
 AFZFAIController::AFZFAIController()
 {

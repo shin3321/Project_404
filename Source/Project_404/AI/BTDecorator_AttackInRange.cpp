@@ -3,7 +3,7 @@
 #include "AI/BTDecorator_AttackInRange.h"
 #include "Interface/FZFMonsterAIInterface.h"
 #include "AIController.h"
-#include "ABAI.h"
+#include "FZFAI.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 UBTDecorator_AttackInRange::UBTDecorator_AttackInRange()

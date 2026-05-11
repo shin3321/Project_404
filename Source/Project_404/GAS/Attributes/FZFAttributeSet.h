@@ -34,6 +34,12 @@ public:
 	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, MovementSpeed);
 	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, MaxMovementSpeed);
 
+	// 공격 사거리 (Attack Range)
+	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, AttackRange);
+
+	// 공격 반경 (Attack Radius)
+	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, AttackRadius);
+
 	// FGameplayAttributeData는 구조체로 BaseValue와	CurrentValue를 가지고 있다.
 	// BaseValue : 순수한 기본값
 	// CurrentValue : 현재 적용된 모든 효과가 계산된 결과값
@@ -55,5 +61,11 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData MaxMovementSpeed;
+
+	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData AttackRange;
+
+	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData AttackRadius;
 
 };
