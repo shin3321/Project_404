@@ -13,7 +13,7 @@ AFZFMonster::AFZFMonster()
 	ASC->SetIsReplicated(true);
 
 	// MonsterAttributeSet 설정
-	CreateDefaultSubobject<UFZFMonsterSet>(TEXT("MonsterAttributeSet"));
+	MonsterAttributeSet = CreateDefaultSubobject<UFZFMonsterSet>(TEXT("MonsterAttributeSet"));
 	
 	// AIController 클래스 설정.
 	AIControllerClass = AFZFAIController::StaticClass();
@@ -71,17 +71,28 @@ float AFZFMonster::GetAIPatrolRadius()
 float AFZFMonster::GetAIDetectRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
-	MonsterAttributeSet->GetDetectRange();
-	return 400.0f;
+	/*if (!MonsterAttributeSet)
+	{
+		UE_LOG(LogTemp, Error, TEXT("MonsterAttributeSet nullptr"));
+		return 400.0f;
+	}*/
+
+	return MonsterAttributeSet->GetDetectRange();
 }
 
 float AFZFMonster::GetAIAttackRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
-	MonsterAttributeSet->GetAttackRange();
+	/*if (!MonsterAttributeSet)
+	{
+		UE_LOG(LogTemp, Error, TEXT("MonsterAttributeSet nullptr"));
+		return 100.0f + (50.0f * 2);
+	}*/
+
 	// 공격 거리.
 	// 캡슐 형태 = 공격 거리 + (공격 반경 x 2).
-	return 0.0f;
+	return MonsterAttributeSet->GetAttackRange()
+		+ (MonsterAttributeSet->GetAttackRadius() * 2);
 }
 
 float AFZFMonster::GetAITurnSpeed()
@@ -92,6 +103,7 @@ float AFZFMonster::GetAITurnSpeed()
 
 void AFZFMonster::AttackByAI()
 {
+	// 공격 재생.
 	//if (ASC)
 	//{
 	//	// 공격 어빌리티 실행 (태그 기반)
@@ -116,3 +128,11 @@ void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAtta
 	// 몽타주 종료 섹션 등에 GameplayEvent를 날려 캐릭터가 받게 하거나, 
 	// OnAbilityEnded 델리게이트를 통해 OnAttackFinished.ExecuteIfBound()를 호출
 }
+
+//void AFZFMonster::NotifyComboActionEnd()
+//{
+//	Super::NotifyComboActionEnd();
+//
+//	// 앞서 전달받은 델리게이트 실행.
+//	OnAttackFinished.ExecuteIfBound();
+//}

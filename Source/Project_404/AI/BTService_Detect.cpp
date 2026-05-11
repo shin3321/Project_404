@@ -6,7 +6,7 @@
 //#include "Physics/ABCollision.h"
 #include "Interface/FZFMonsterAIInterface.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "ABAI.h"
+#include "FZFAI.h"
 #include "Engine/OverlapResult.h"
 
 UBTService_Detect::UBTService_Detect()
