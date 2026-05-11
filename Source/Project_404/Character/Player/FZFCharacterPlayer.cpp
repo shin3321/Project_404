@@ -114,10 +114,17 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 		InteractAction = InteractActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/ArenaBattle/Input/Actions/IA_Jump.IA_Jump"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Project404/Input/Actions/IA_Jump.IA_Jump"));
 	if (JumpActionRef.Succeeded())
 	{
 		// 점프 액션
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(TEXT("/Game/Project404/Input/Actions/IA_Run.IA_Run"));
+	if (RunActionRef.Succeeded())
+	{
+		// 달리기 액션
+		RunAction = RunActionRef.Object;
 	}
 
 	// GAS
@@ -212,6 +219,7 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 {
 	Super::InitAbilitySystem();
 
+	int32 InputID = 0;
 	if (AFZFPlayerState* PS = GetPlayerState<AFZFPlayerState>())
 	{
 		/** * [GAS 핵심 설정]
@@ -228,6 +236,7 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 		for (const auto& StartupAbility : StartupAbilities)
 		{
 			FGameplayAbilitySpec StartSpec(StartupAbility);
+			StartSpec.InputID = InputID++;
 			ASC->GiveAbility(StartSpec);
 		}
 	}
@@ -252,6 +261,10 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		// Jump
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+		// Run
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::RunStart);
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFZFCharacterPlayer::RunEnd);
 
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
@@ -358,6 +371,29 @@ void AFZFCharacterPlayer::Interact()
 		// "Ability.Action.Interact" 태그를 가진 Gameplay Ability를 실행
 		// Native Tag를 직접 전달
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Interact));
+	}
+}
+
+void AFZFCharacterPlayer::RunStart()
+{
+
+	UE_LOG(LogTemp, Warning, TEXT("RunStart() Called!"));
+	if (ASC)
+	{
+		
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Run));
+	}
+}
+
+void AFZFCharacterPlayer::RunEnd()
+{
+	if (ASC)
+	{
+		// GameplayTagContainer를 단일 태그로 직접 초기화
+		const FGameplayTagContainer RunTag(FZFGameplayTags::Ability_Action_Run);
+		
+		// 해당 태그를 가진 어빌리티들을 취소(주소값을 전달하여 불필요한 복사 방지)
+		ASC->CancelAbilities(&RunTag);
 	}
 }
 

@@ -64,6 +64,10 @@ protected:
 	// 상호작용 함수
 	void Interact();
 
+	// 달리기 함수
+	void RunStart();
+	void RunEnd();
+
 // Camera Section
 	// 네트워크 상태 동기화 함수
 	virtual void OnRep_PlayerState() override;
@@ -96,6 +100,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
 	TObjectPtr<UInputAction> InteractAction;
+
+	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
+	TObjectPtr<UInputAction> RunAction;
 
 // Interact Section
 protected:
