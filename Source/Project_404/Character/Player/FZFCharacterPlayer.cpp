@@ -14,11 +14,12 @@
 
 #include "Inventory/FZFInventoryComponent.h"
 #include "GameplayTag/FZFGameplayTags.h"
-#include "Item/FZFItemBase.h"
+#include "Interface/FZFInteractableInterface.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Game/FZFGameMode.h"
 #include "Inventory/FZFHUD.h"
+#include "Components/PrimitiveComponent.h"
 
 
 AFZFCharacterPlayer::AFZFCharacterPlayer()
@@ -176,23 +177,19 @@ void AFZFCharacterPlayer::BeginPlay()
 	// 0.1초마다 아이템 감지 함수를 실행
 	FTimerHandle DetectionTimerHandle;
 	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
+
+	if (HUDWidgetClass)
+	{
+		HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
+		HUDWidget->AddToViewport();
+		HUDWidget->HideWidget();
+		HUDWidget->SetCrosshairNormal();
+	}
 }
 
 void AFZFCharacterPlayer::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
-
-	//HUD위젯 올리기
-	if (HUDWidgetClass)
-	{
-		HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
-		if (HUDWidget)
-		{
-			HUDWidget->AddToViewport();
-			HUDWidget->HideItemName();
-			HUDWidget->SetCrosshairNormal();
-		}
-	}
 }
 
 void AFZFCharacterPlayer::PossessedBy(AController* NewController)
@@ -376,9 +373,10 @@ void AFZFCharacterPlayer::OnRep_PlayerState()
 void AFZFCharacterPlayer::DetectInteractable()
 {
 	if (!Camera)
-	{
 		return;
-	}
+
+	if (!HUDWidget)
+		return;
 
 	FVector Start = Camera->GetComponentLocation();
 	FVector End = Start + (Camera->GetForwardVector() * 500.f);
@@ -389,62 +387,60 @@ void AFZFCharacterPlayer::DetectInteractable()
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
 
-	AActor* NewTarget = nullptr;
+	UPrimitiveComponent* NewTarget = nullptr;
+	IFZFInteractableInterface* Interactable = nullptr;
 
-	if (bHit && Hit.GetActor())
+	if (bHit)
 	{
-		// 특정 클래스인지 먼저 확인
-		if (Hit.GetActor()->IsA(AFZFItemBase::StaticClass()))
-		{
-			NewTarget = Hit.GetActor();
-		}
+		UPrimitiveComponent* HitComponent = Hit.GetComponent();
+
+		if (IsValid(HitComponent) == false)
+			return;
+
+		AActor* OwnerActor = HitComponent->GetOwner();
+		Interactable = Cast<IFZFInteractableInterface>(OwnerActor);
+		if (Interactable)
+			NewTarget = HitComponent;
+	}
+	else
+	{
+		HUDWidget->HideWidget();
 	}
 
-	// 상태가 변했을 때만 아이템 UI 업데이트
-	if (NewTarget != CurrentTargetItem.Get())
+	// 상태가 변했을 때만 Widget 업데이트
+	if (NewTarget != CurrentInteractableTarget.Get())
 	{
-		// 아이템 타겟 갱신
-		CurrentTargetItem = Cast<AFZFItemBase>(NewTarget);
-
-		if (CurrentTargetItem.IsValid())
+		CurrentInteractableTarget = NewTarget;
+		if (IsValid(NewTarget) && Interactable)
 		{
-			if (HUDWidget)
+			const FText InteractableName = Interactable->GetInteractableName(Hit.GetComponent());
+			if (!InteractableName.IsEmpty())
 			{
-				// 아이템 이름 표시
-				if (UFZFItemData* ItemData = CurrentTargetItem->GetItemData())
-				{
-					HUDWidget->SetItemName(ItemData->ItemName);
-					HUDWidget->ShowItemName();
-				}
+				HUDWidget->SetTargetName(InteractableName);
+				HUDWidget->ShowWidget();
+			}
+			else
+			{
+				HUDWidget->HideWidget();
 			}
 		}
 		else
 		{
-			if (HUDWidget)
-			{
-				// 아이템 이름 숨기기
-				HUDWidget->HideItemName();
-			}
+			HUDWidget->HideWidget();
 		}
 	}
 
-	// 조준점 강조는 태그 기준으로 따로 처리
-	if (HUDWidget)
+	//태그로 조준점 변경
+	if (bHit && Hit.GetActor() && Hit.GetActor()->ActorHasTag(TEXT("OK")))
 	{
-		//태그로 조준점 변경
-		if (bHit && Hit.GetActor() && Hit.GetActor()->ActorHasTag(TEXT("OK")))
-		{
-			// 상호작용 가능한 액터를 바라보면 조준점 강조
-			HUDWidget->SetCrosshairHighlight();
-		}
-		else
-		{
-			// 아니면 기본 상태
-			HUDWidget->SetCrosshairNormal();
-		}
+		// 상호작용 가능한 액터를 바라보면 조준점 강조
+		HUDWidget->SetCrosshairHighlight();
 	}
-
-
+	else
+	{
+		// 아니면 기본 상태
+		HUDWidget->SetCrosshairNormal();
+	}
 }
 
 // 1번 슬롯 선택

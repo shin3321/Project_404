@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
@@ -13,32 +13,32 @@ class PROJECT_404_API UFZFHUD : public UUserWidget
     GENERATED_BODY()
 
 public:
-    // ¾ÆÀÌÅÛ ÀÌ¸§ ÅØ½ºÆ® ¼³Á¤
+    // íƒ€ê²Ÿ ì´ë¦„ í…ìŠ¤íŠ¸ ì„¤ì •
     UFUNCTION(BlueprintCallable)
-    void SetItemName(const FText& InItemName);
+    void SetTargetName(const FText& InTargetName);
 
-    // ¾ÆÀÌÅÛ ÀÌ¸§ ÅØ½ºÆ® Ç¥½Ã
+    // íƒ€ê²Ÿ ì´ë¦„ í…ìŠ¤íŠ¸ í‘œì‹œ
     UFUNCTION(BlueprintCallable)
-    void ShowItemName();
+    void ShowWidget();
 
-    // ¾ÆÀÌÅÛ ÀÌ¸§ ÅØ½ºÆ® ¼û±è
+    // íƒ€ê²Ÿ ì´ë¦„ í…ìŠ¤íŠ¸ ìˆ¨ê¹€
     UFUNCTION(BlueprintCallable)
-    void HideItemName();
+    void HideWidget();
 
-    // Á¶ÁØÁ¡ ±âº» »óÅÂ·Î º¯°æ
+    // ì¡°ì¤€ì  ê¸°ë³¸ ìƒíƒœë¡œ ë³€ê²½
     UFUNCTION(BlueprintCallable)
     void SetCrosshairNormal();
 
-    // Á¶ÁØÁ¡ °­Á¶ »óÅÂ·Î º¯°æ
+    // ì¡°ì¤€ì  ê°•ì¡° ìƒíƒœë¡œ ë³€ê²½
     UFUNCTION(BlueprintCallable)
     void SetCrosshairHighlight();
 
 protected:
-    // ¾ÆÀÌÅÛ ÀÌ¸§ Ç¥½Ã¿ë ÅØ½ºÆ® ºí·Ï
+    //ì´ë¦„ í‘œì‹œìš© í…ìŠ¤íŠ¸ ë¸”ë¡
     UPROPERTY(meta = (BindWidget))
-    UTextBlock* ItemNameText;
+    UTextBlock* NameText;
 
-    // È­¸é Áß¾Ó Á¶ÁØÁ¡ ÀÌ¹ÌÁö
+    // í™”ë©´ ì¤‘ì•™ ì¡°ì¤€ì  ì´ë¯¸ì§€
     UPROPERTY(meta = (BindWidget))
     UImage* CrosshairImage;
 };

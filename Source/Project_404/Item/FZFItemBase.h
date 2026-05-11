@@ -4,11 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/FZFInteractableInterface.h"
 #include "FZFItemData.h"
 #include "FZFItemBase.generated.h"
 
+class AFZFCharacterPlayer;
+class UPrimitiveComponent;
+
 UCLASS()
-class PROJECT_404_API AFZFItemBase : public AActor
+class PROJECT_404_API AFZFItemBase : public AActor, public IFZFInteractableInterface
 {
 	GENERATED_BODY()
 	
@@ -18,6 +22,9 @@ public:
 
 	UFZFItemData* GetItemData() const { return ItemData; }
 	void InitializeItem(UFZFItemData* InItemData);
+
+	void Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent) override;
+	FText GetInteractableName(UPrimitiveComponent* HitComponent) const override;
 
 protected:
 
