@@ -238,7 +238,6 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 		for (const auto& StartupAbility : StartupAbilities)
 		{
 			FGameplayAbilitySpec StartSpec(StartupAbility);
-			StartSpec.InputID = InputID++;
 			ASC->GiveAbility(StartSpec);
 		}
 	}
