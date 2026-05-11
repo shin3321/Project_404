@@ -63,7 +63,8 @@ void AFZFMonster::InitAbilitySystem()
 
 float AFZFMonster::GetAIPatrolRadius()
 {
-	// 인터페이스에서 작성
+	// 따로 데이터 에셋에서 받아오도록 수정 
+	// -> 지금은 하드코딩
 	return 800.0f;
 }
 

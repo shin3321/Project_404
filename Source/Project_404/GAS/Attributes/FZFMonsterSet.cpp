@@ -2,8 +2,9 @@
 
 
 #include "GAS/Attributes/FZFMonsterSet.h"
-#include "FZFMonsterSet.h"
 
 UFZFMonsterSet::UFZFMonsterSet()
 {
+	// 공격 반경 설정.
+	InitAttackRange(50.0f);
 }
