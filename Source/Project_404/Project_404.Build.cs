@@ -26,7 +26,6 @@ public class Project_404 : ModuleRules
             "UMG",
             "NavigationSystem",
             "AIModule",
-            "GameplayTasks"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });

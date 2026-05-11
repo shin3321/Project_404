@@ -38,7 +38,7 @@ public:
 	int32 CurrentDay = 1;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
-	int32 RemainingRimeSeconds = 420;
+	int32 RemainingRimeSeconds = 1200;
 	
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	EGamePhase CurrentPhase = EGamePhase::Gathering;

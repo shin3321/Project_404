@@ -13,6 +13,9 @@ AFZFItemBase::AFZFItemBase()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = false;
 
+    // 네트워크 복제 설정
+    bReplicates = true;
+
     Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
     Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 
