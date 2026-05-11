@@ -3,7 +3,7 @@
 
 #include "Character/Monster/FZFMonster.h"
 #include "GAS/FZFAbilitySystemComponent.h"
-#include "GAS/Attributes/FZFAttributeSet.h"
+#include "GAS/Attributes/FZFMonsterSet.h"
 #include "AI/FZFAIController.h"
 
 AFZFMonster::AFZFMonster()
@@ -12,6 +12,9 @@ AFZFMonster::AFZFMonster()
 	ASC = CreateDefaultSubobject<UFZFAbilitySystemComponent>("AbilitySystem");
 	ASC->SetIsReplicated(true);
 
+	// MonsterAttributeSet 설정
+	CreateDefaultSubobject<UFZFMonsterSet>(TEXT("MonsterAttributeSet"));
+	
 	// AIController 클래스 설정.
 	AIControllerClass = AFZFAIController::StaticClass();
 
@@ -43,22 +46,36 @@ void AFZFMonster::BeginPlay()
 void AFZFMonster::InitAbilitySystem()
 {
 	Super::InitAbilitySystem();
-	ASC->InitAbilityActorInfo(this, this);
+	if (ASC)
+	{
+		// ActorInfo 초기화 (소유자와 아바타 설정)
+		ASC->InitAbilityActorInfo(this, this);
+
+		// ASC로부터 MonsterSet을 찾아 캐싱
+		MonsterAttributeSet = const_cast<UFZFMonsterSet*>(ASC->GetSet<UFZFMonsterSet>());
+		if (MonsterAttributeSet == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[%s] MonsterAttributeSet 로드 실패!"), *GetName());
+		}
+	}
 
 }
 
 float AFZFMonster::GetAIPatrolRadius()
 {
+	// 인터페이스에서 작성
 	return 800.0f;
 }
 
 float AFZFMonster::GetAIDetectRange()
 {
+	// GAS AttributeSet에서 수치 가져오기
 	return 400.0f;
 }
 
 float AFZFMonster::GetAIAttackRange()
 {
+	// GAS AttributeSet에서 수치 가져오기
 	// 공격 거리.
 	// 캡슐 형태 = 공격 거리 + (공격 반경 x 2).
 	return 0.0f;
@@ -66,11 +83,20 @@ float AFZFMonster::GetAIAttackRange()
 
 float AFZFMonster::GetAITurnSpeed()
 {
+	// GAS AttributeSet에서 수치 가져오기
 	return 0.0f;
 }
 
 void AFZFMonster::AttackByAI()
 {
+	//if (ASC)
+	//{
+	//	// 공격 어빌리티 실행 (태그 기반)
+	//	// "Character.Action.Attack" 등의 태그를 미리 지정해두거나 변수로 관리
+	//	FGameplayTag AttackTag = FGameplayTag::RequestGameplayTag(FName("Character.Action.Attack"));
+	//	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
+	//}
+	
 	// 공격 재생.
 	//ProcessComboCommand();
 
@@ -82,4 +108,8 @@ void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAtta
 {
 	// 델리게이트를 변수에 저장.
 	OnAttackFinished = InOnAttackFinished;
+
+	// 실제 공격 종료 시점은 Gameplay Ability(GA) 내부에서
+	// 몽타주 종료 섹션 등에 GameplayEvent를 날려 캐릭터가 받게 하거나, 
+	// OnAbilityEnded 델리게이트를 통해 OnAttackFinished.ExecuteIfBound()를 호출
 }
