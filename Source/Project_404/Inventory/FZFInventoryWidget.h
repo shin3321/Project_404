@@ -19,7 +19,11 @@ class PROJECT_404_API UFZFInventoryWidget : public UUserWidget
 public:
     // 현재 인벤토리 아이템 목록으로 UI를 새로고침하는 함수
     UFUNCTION(BlueprintCallable)
-    void RefreshInventory(const TArray<UFZFItemData*>& Items, int32 SelectedIndex);
+    void RefreshInventory(
+        const TArray<UFZFItemData*>& Items,
+        int32 MaxSlotCount,
+        int32 SelectedSlotIndex
+    );
 
 protected:
     // 생성된 슬롯 위젯들을 담는 WrapBox
