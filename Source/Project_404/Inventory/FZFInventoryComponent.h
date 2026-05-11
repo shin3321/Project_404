@@ -34,7 +34,7 @@ public:
     UFUNCTION(BlueprintCallable)
     void HideInventory();
 
-    void RemoveSelectedItem(UFZFItemData* InItemData);
+    void RemoveSelectedItem();
 
     // 현재 인벤토리에 저장된 아이템 데이터 배열
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
@@ -54,4 +54,7 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     void SelectSlot(int32 InSlotIndex);
+
+    UFUNCTION()
+    UFZFItemData* GetSelectedItemData() const;
 };

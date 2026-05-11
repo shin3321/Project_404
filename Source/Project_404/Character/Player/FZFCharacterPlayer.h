@@ -11,8 +11,6 @@ class UInputMappingContext;
 class UFZFInventoryComponent;
 class UFZFHUD;
 
-
-
 UCLASS()
 class PROJECT_404_API AFZFCharacterPlayer : public AFZFCharacterBase
 {
@@ -64,6 +62,14 @@ protected:
 	// 상호작용 함수
 	void Interact();
 
+	// 달리기 함수
+	void RunStart();
+	void RunEnd();
+
+	// 점프 함수
+	void JumpStart();
+	void JumpEnd();
+
 // Camera Section
 	// 네트워크 상태 동기화 함수
 	virtual void OnRep_PlayerState() override;
@@ -97,15 +103,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
 	TObjectPtr<UInputAction> InteractAction;
 
+	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
+	TObjectPtr<UInputAction> RunAction;
+
 // Interact Section
 protected:
 	// 상호작용하면 UI로 표시하기 위한 함수
 	void DetectInteractable();
 
 protected:
-	// 현재 카메라 조준점에 들어와 있는 아이템 (UI 표시용)
+	// 현재 카메라 조준점에 들어와 있는 타겟 (UI 표시용)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
-	TWeakObjectPtr<class AFZFItemBase> CurrentTargetItem;
+	TWeakObjectPtr<class UPrimitiveComponent> CurrentInteractableTarget;
 
 	// 1~5번 슬롯 입력 액션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -125,11 +134,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	TObjectPtr<UFZFInventoryComponent> InventoryComponent;
 
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UFZFHUD> HUDWidgetClass;
 
 	UPROPERTY()
-	UFZFHUD* HUDWidget;
-
+	TObjectPtr<UFZFHUD> HUDWidget;
 };

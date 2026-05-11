@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Item/ItemTypes.h"
 #include "Item/FZFItemBase.h"
+#include "Interface/FZFInteractableInterface.h"
 #include "FZFEquipmentWorkbench.generated.h"
 
 class UPrimitiveComponent;
@@ -30,30 +31,35 @@ enum class EFZFWorkbenchSlot : uint8
 };
 
 UCLASS()
-class PROJECT_404_API AFZFEquipmentWorkbench : public AActor
+class PROJECT_404_API AFZFEquipmentWorkbench : public AActor, public IFZFInteractableInterface
 {
 	GENERATED_BODY()
 
 public:
 	AFZFEquipmentWorkbench();
 
-	bool TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData);
-	bool TryCraft();
 	bool SpawnResultItem(UFZFEquipmentRecipeData* Recipe);
-
-	UFUNCTION(BlueprintCallable, Category = "Workbench")
-	bool InteractWithComponent(UPrimitiveComponent* HitComponent, UFZFItemData* HeldItemData, EFZFWorkbenchSlot& OutInteractedSlot);
-
 	AFZFItemBase* GetSpawnedItem() const { return SpawnedItem; }
-
 	void DestroySpawnedItem();
+
+	// IFZFInteractableInterface의 순수 가상함수 구현.
+	void Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent) override;
+	FText GetInteractableName(UPrimitiveComponent* HitComponent) const override;
 
 protected:
 	virtual void BeginPlay() override;
 
 private:
 	UFZFEquipmentRecipeData* FindMatchedRecipe() const;
+
 	EFZFWorkbenchSlot GetSlotFromHitComponent(UPrimitiveComponent* HitComponent) const;
+
+	// 재료를 슬롯에 넣기를 시도하는 함수.
+	bool TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData);
+
+	// 제작 버튼을 누르는 함수.
+	bool TryCraft();
+
 	void UpdatePreviewMeshes();
 
 protected:
@@ -113,5 +119,4 @@ private:
 private:
 	UPROPERTY()
 	TObjectPtr<AFZFItemBase> SpawnedItem;
-
 };

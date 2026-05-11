@@ -14,4 +14,6 @@ class PROJECT_404_API UFZFPlayerSet : public UFZFAttributeSet
 {
 	GENERATED_BODY()
 	
+public:
+	UFZFPlayerSet();
 };

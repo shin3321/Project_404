@@ -3,15 +3,17 @@
 
 #include "GAS/GA/FZFGA_Interact.h"
 #include "Character/Player/FZFCharacterPlayer.h"
-#include "Item/FZFItemBase.h"
-#include "Inventory/FZFInventoryComponent.h"
-#include "Crafting/FZFEquipmentWorkbench.h"
+#include "Interface/FZFInteractableInterface.h"
 #include "Camera/CameraComponent.h"
 
 UFZFGA_Interact::UFZFGA_Interact()
 {
 	// 인스턴싱 정책: 어빌리티가 실행될 때마다 인스턴스를 생성 (데이터 관리가 편함)
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+
+	// 실행 정책 (반응성 강화)
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+
 }
 
 void UFZFGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -73,52 +75,13 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 		return;
 
 	AActor* HitActor = Hit.GetActor();
-	UPrimitiveComponent* HitComponent = Hit.GetComponent();
 
-	// 1. 장비 제작대 상호작용 처리
-	if (AFZFEquipmentWorkbench* Workbench = Cast<AFZFEquipmentWorkbench>(HitActor))
-	{
-		UFZFInventoryComponent* Inventory = Player->GetInventoryComponent();
-
-		// [Youngwoo Test] : InventoryItems[0]를 -> 선택한 아이템으로 수정해줘야됨.
-		UFZFItemData* HeldItemData = nullptr;
-		if (Inventory->InventoryItems.Num() > 0)
-			HeldItemData = Inventory->InventoryItems[0];
-
-		EFZFWorkbenchSlot interactedSlot;
-		bool bSuccess = Workbench->InteractWithComponent(HitComponent, HeldItemData, interactedSlot);
-
-		if (bSuccess == false || interactedSlot == EFZFWorkbenchSlot::None)
-			return;
-
-		if (interactedSlot == EFZFWorkbenchSlot::BaseSlot ||
-			interactedSlot == EFZFWorkbenchSlot::CoreSlot)
-		{
-			Inventory->RemoveSelectedItem(HeldItemData);
-		}
-		else if (interactedSlot == EFZFWorkbenchSlot::ResultSlot)
-		{
-			if (Inventory->AddItem(Workbench->GetSpawnedItem()->GetItemData()))
-				Workbench->DestroySpawnedItem();
-		}
-
+	if (!IsValid(HitActor))
 		return;
-	}
 
-	// 2. 월드 아이템 줍기 처리
-	if (AFZFItemBase* ItemActor = Cast<AFZFItemBase>(HitActor))
+	if (IFZFInteractableInterface* Interactable = Cast<IFZFInteractableInterface>(HitActor))
 	{
-		UFZFInventoryComponent* Inventory = Player->GetInventoryComponent();
-		if (!Inventory)
-		{
-			return;
-		}
-
-		if (Inventory->AddItem(ItemActor->GetItemData()))
-		{
-			ItemActor->Destroy();
-		}
-
-		return;
+		UPrimitiveComponent* HitComponent = Hit.GetComponent();
+		Interactable->Interact(Player, HitComponent);
 	}
 }

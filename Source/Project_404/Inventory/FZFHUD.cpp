@@ -1,50 +1,50 @@
-#include "Inventory/FZFHUD.h"
+ï»¿#include "Inventory/FZFHUD.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 
-// ¾ÆÀÌÅÛ ÀÌ¸§ ÅØ½ºÆ® ¼³Á¤
-void UFZFHUD::SetItemName(const FText& InItemName)
+// ì•„ì´í…œ ì´ë¦„ í…ìŠ¤íŠ¸ ì„¤ì •
+void UFZFHUD::SetTargetName(const FText& InTargetName)
 {
-    if (ItemNameText)
+    if (NameText)
     {
-        ItemNameText->SetText(InItemName);
+        NameText->SetText(InTargetName);
     }
 }
 
-// ¾ÆÀÌÅÛ ÀÌ¸§ ÅØ½ºÆ® Ç¥½Ã
-void UFZFHUD::ShowItemName()
+// ì•„ì´í…œ ì´ë¦„ í…ìŠ¤íŠ¸ í‘œì‹œ
+void UFZFHUD::ShowWidget()
 {
-    if (ItemNameText)
+    if (NameText)
     {
-        ItemNameText->SetVisibility(ESlateVisibility::Visible);
+        NameText->SetVisibility(ESlateVisibility::Visible);
     }
 }
 
-// ¾ÆÀÌÅÛ ÀÌ¸§ ÅØ½ºÆ® ¼û±è
-void UFZFHUD::HideItemName()
+// ì•„ì´í…œ ì´ë¦„ í…ìŠ¤íŠ¸ ìˆ¨ê¹€
+void UFZFHUD::HideWidget()
 {
-    if (ItemNameText)
+    if (NameText)
     {
-        ItemNameText->SetVisibility(ESlateVisibility::Hidden);
+        NameText->SetVisibility(ESlateVisibility::Hidden);
     }
 }
 
-// Á¶ÁØÁ¡À» ±âº» »óÅÂ·Î º¯°æ
+// ì¡°ì¤€ì ì„ ê¸°ë³¸ ìƒíƒœë¡œ ë³€ê²½
 void UFZFHUD::SetCrosshairNormal()
 {
     if (CrosshairImage)
     {
-        // Æò¼Ò¿¡´Â Á¶±Ý ¿¬ÇÏ°Ô º¸ÀÌµµ·Ï ¼³Á¤
+        // í‰ì†Œì—ëŠ” ì¡°ê¸ˆ ì—°í•˜ê²Œ ë³´ì´ë„ë¡ ì„¤ì •
         CrosshairImage->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.1f));
     }
 }
 
-// Á¶ÁØÁ¡À» °­Á¶ »óÅÂ·Î º¯°æ
+// ì¡°ì¤€ì ì„ ê°•ì¡° ìƒíƒœë¡œ ë³€ê²½
 void UFZFHUD::SetCrosshairHighlight()
 {
     if (CrosshairImage)
     {
-        // »óÈ£ÀÛ¿ë °¡´ÉÇÑ ¾×ÅÍ¸¦ ¹Ù¶óº¸¸é ´õ ÁøÇÏ°Ô Ç¥½Ã
+        // ìƒí˜¸ìž‘ìš© ê°€ëŠ¥í•œ ì•¡í„°ë¥¼ ë°”ë¼ë³´ë©´ ë” ì§„í•˜ê²Œ í‘œì‹œ
         CrosshairImage->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 1.f));
     }
 }
