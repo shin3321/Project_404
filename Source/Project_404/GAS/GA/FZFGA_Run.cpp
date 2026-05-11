@@ -9,7 +9,10 @@
 
 UFZFGA_Run::UFZFGA_Run()
 {
+    // 인스턴싱 정책: 어빌리티가 실행될 때마다 인스턴스를 생성 (데이터 관리가 편함)
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+
+    // 실행 정책 (반응성 강화)
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
 
@@ -23,7 +26,7 @@ void UFZFGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
     if (Character && ASC)
     {
         // AttributeSet에서 현재 속도를 가져옴
-        float TargetRunSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetMovementSpeedAttribute()) * 5.0f;
+        float TargetRunSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetMovementSpeedAttribute()) * 3.0f;
 
         // 캐릭터 무브먼트에 적용
         Character->GetCharacterMovement()->MaxWalkSpeed = TargetRunSpeed;

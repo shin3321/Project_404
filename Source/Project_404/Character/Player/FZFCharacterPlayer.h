@@ -66,6 +66,10 @@ protected:
 	void RunStart();
 	void RunEnd();
 
+	// 점프 함수
+	void JumpStart();
+	void JumpEnd();
+
 // Camera Section
 	// 네트워크 상태 동기화 함수
 	virtual void OnRep_PlayerState() override;
