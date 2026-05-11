@@ -6,4 +6,7 @@
 
 UFZFMonsterSet::UFZFMonsterSet()
 {
+	InitAttackRange(400.0f);
+	InitDetectRange(400.0f);
+	InitTurnSpeed(0.0f);
 }
