@@ -10,12 +10,15 @@ namespace FZFGameplayTags
 	// .cpp 파일에 정의된 태그를 다른 클래스에서도 참조할 수 있도록 외부에 공개
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Interact);
 
-	//아이템 버리기
+	// 아이템 버리기
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_DropItem);
 
+	// 달리기 / 점프
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Run);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Jump);
 
+	// 공격
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack);
 
 	// 움직임 상태 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Idle);
@@ -24,5 +27,5 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Jump);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Stamina_NoRegen);
-
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
 }

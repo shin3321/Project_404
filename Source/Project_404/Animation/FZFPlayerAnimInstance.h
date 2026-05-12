@@ -24,4 +24,8 @@ protected:
 	// 애니메이션을 업데이트 할 때마다(틱 마다) 실행되는 함수.
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	
+protected:
+	// 걷는지 뛰는지 확인하는 변수
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	uint8 bIsRunning : 1;
 };

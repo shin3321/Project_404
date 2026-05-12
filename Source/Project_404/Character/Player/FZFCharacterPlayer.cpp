@@ -127,7 +127,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 		DropItemAction = InteractActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/ArenaBattle/Input/Actions/IA_Jump.IA_Jump"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Project404/Input/Actions/IA_Jump.IA_Jump"));
 
 	if (JumpActionRef.Succeeded())
 	{

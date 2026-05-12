@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "GAS/GA/FZFGA_Run.h"
@@ -9,10 +9,10 @@
 
 UFZFGA_Run::UFZFGA_Run()
 {
-    // ÀÎ½ºÅÏ½Ì Á¤Ã¥: ¾îºô¸®Æ¼°¡ ½ÇÇàµÉ ¶§¸¶´Ù ÀÎ½ºÅÏ½º¸¦ »ý¼º (µ¥ÀÌÅÍ °ü¸®°¡ ÆíÇÔ)
+    // ì¸ìŠ¤í„´ì‹± ì •ì±…: ì–´ë¹Œë¦¬í‹°ê°€ ì‹¤í–‰ë  ë•Œë§ˆë‹¤ ì¸ìŠ¤í„´ìŠ¤ë¥¼ ìƒì„± (ë°ì´í„° ê´€ë¦¬ê°€ íŽ¸í•¨)
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 
-    // ½ÇÇà Á¤Ã¥ (¹ÝÀÀ¼º °­È­)
+    // ì‹¤í–‰ ì •ì±… (ë°˜ì‘ì„± ê°•í™”)
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
 
@@ -25,10 +25,10 @@ void UFZFGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
     if (Character && ASC)
     {
-        // AttributeSet¿¡¼­ ÇöÀç ¼Óµµ¸¦ °¡Á®¿È
+        // AttributeSetì—ì„œ í˜„ìž¬ ì†ë„ë¥¼ ê°€ì ¸ì˜´
         float TargetRunSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetMovementSpeedAttribute()) * 3.0f;
 
-        // Ä³¸¯ÅÍ ¹«ºê¸ÕÆ®¿¡ Àû¿ë
+        // ìºë¦­í„° ë¬´ë¸Œë¨¼íŠ¸ì— ì ìš©
         Character->GetCharacterMovement()->MaxWalkSpeed = TargetRunSpeed;
     }
 }
@@ -40,7 +40,7 @@ void UFZFGA_Run::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 
     if (Character && ASC)
     {
-        // ´Ù½Ã ±âº» ÀÌµ¿ ¼Óµµ(WalkSpeed) ¾îÆ®¸®ºäÆ® °ªÀ» °¡Á®¿Í¼­ ¿øº¹
+        // ë‹¤ì‹œ ê¸°ë³¸ ì´ë™ ì†ë„(WalkSpeed) ì–´íŠ¸ë¦¬ë·°íŠ¸ ê°’ì„ ê°€ì ¸ì™€ì„œ ì›ë³µ
         float DefaultWalkSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetMovementSpeedAttribute());
         Character->GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
     }
