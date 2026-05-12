@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "FZFBossLevelManager.generated.h"
-
+class AFZFLaserActor;
 
 UCLASS()
 class PROJECT_404_API AFZFBossLevelManager : public AActor
@@ -23,6 +23,23 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
 	UFUNCTION()
 	void HandlePhaseChanged(EBossPhase NewPhase);
+	
+	UFUNCTION()
+	void FirstPhase();
+	
+	UFUNCTION()
+	void Laser();
+protected:
+	FTimerHandle LaserTimerHandle;
+	
+	UPROPERTY()
+	TArray<AFZFLaserActor*> LaserPool;
+protected:
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UBoxComponent* TransferVolume;
+	
+	int32 MoveSpeed = 300.0f;
 };
