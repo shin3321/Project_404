@@ -9,10 +9,10 @@ UFZFMonsterSet::UFZFMonsterSet()
 	InitAttackRadius(50.0f);
 
 	// 공격 사거리 설정.
-	InitAttackRange(50.0f);
+	InitAttackRange(100.0f);
 
 	// 공격 속도 설정.
-	InitAttackSpeed(1.0f);
+	InitAttackSpeed(1.5f);
 
 	// 플레이어 감지 범위 설정.
 	InitDetectRange(400.0f);
