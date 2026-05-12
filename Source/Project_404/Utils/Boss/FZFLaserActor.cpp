@@ -59,6 +59,7 @@ void AFZFLaserActor::DeactivateLaser()
 {
 	CurrentMode = ELaserMode::Inactive;
 	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
 }
 
 ELaserMode AFZFLaserActor::GetLaserMode()
