@@ -34,6 +34,22 @@ void AFZFBossLevelManager::BeginPlay()
 	{
 		Boss->OnBossPhaseChanged.AddDynamic(this, &AFZFBossLevelManager::HandlePhaseChanged);
 	}	
+	
+	if (LaserClass != nullptr)
+	{
+		for (int32 i = 0; i < LaserCount; ++i)
+		{
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			AFZFLaserActor* SpawnedLaser = GetWorld()->SpawnActor<AFZFLaserActor>(LaserClass, MinWallLocation,FRotator::ZeroRotator, SpawnParams);
+			if (SpawnedLaser)
+			{
+				SpawnedLaser->DeactivateLaser();
+				LaserPool.Add(SpawnedLaser);
+			}
+		}
+	}	
+	FirstPhase();
 }
 
 // Called every frame
@@ -89,7 +105,7 @@ void AFZFBossLevelManager::Laser()
 	TArray<AFZFLaserActor*> AvailableLasers;
 	for (AFZFLaserActor* Laser : LaserPool)
 	{
-		if (Laser->GetLaserMode()() == ELaserMode::Inactive)
+		if (Laser->GetLaserMode() == ELaserMode::Inactive)
 		{
 			AvailableLasers.Add(Laser);
 		}
@@ -102,7 +118,7 @@ void AFZFBossLevelManager::Laser()
 		ELaserMode RandomMode = FMath::RandBool() ? ELaserMode::Moving : ELaserMode::Fixed;
 		ELaserType RandomType = FMath::RandBool() ? ELaserType::Virtical : ELaserType::Horizon;
 
-		// SelectedLaser->ActivateLaser(RandomMode);
+		SelectedLaser->ActivateLaser(MinWallLocation, RandomMode, RandomType, MoveSpeed);
 	}
 }
 

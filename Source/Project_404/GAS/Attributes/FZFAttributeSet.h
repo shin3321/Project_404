@@ -34,11 +34,21 @@ public:
 	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, MovementSpeed);
 	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, MaxMovementSpeed);
 
+	// 데미지 처리용 변수
+	// 공격력 (Attack)
+	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, Attack);
+	// 최대 공격력 (MaxAttack)
+	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, MaxAttack);
+	// 최종 데미지 (Damage)
+	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, Damage);
+
+	// 공격 처리용 변수
 	// 공격 사거리 (Attack Range)
 	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, AttackRange);
-
 	// 공격 반경 (Attack Radius)
 	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, AttackRadius);
+	// 공격 속도 (Attack Speed)
+	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, AttackSpeed);
 
 	// FGameplayAttributeData는 구조체로 BaseValue와	CurrentValue를 가지고 있다.
 	// BaseValue : 순수한 기본값
@@ -61,11 +71,25 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData MaxMovementSpeed;
+	
+	// 데미지 처리용 변수
+	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData Attack;
 
+	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData MaxAttack;
+
+	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData Damage;
+
+	// 공격 처리용 변수
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackRange;
 
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackRadius;
+	
+	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData AttackSpeed;
 
 };
