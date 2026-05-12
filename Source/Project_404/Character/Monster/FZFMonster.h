@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -29,36 +29,37 @@ protected:
 	virtual float GetAIPatrolRadius() override;
 	virtual float GetAIDetectRange() override;
 	virtual float GetAIAttackRange() override;
+	virtual float GetAIAttackDetectRange() override;
 	virtual float GetAITurnSpeed() override;
 
-	 // Task¿¡¼­ °ø°İ Ã³¸® È£Ãâ ÇÔ¼ö
+	 // Taskì—ì„œ ê³µê²© ì²˜ë¦¬ í˜¸ì¶œ í•¨ìˆ˜
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) override;
 	virtual void AttackByAI() override;
 
-	// °ø°İ ½ÇÇà ÇÔ¼ö.
-	// °ø°İÀ» Ã³À½ ½ÃÀÛÇÒ ¶§ ½ÇÇà.
+	// ê³µê²© ì‹¤í–‰ í•¨ìˆ˜.
+	// ê³µê²©ì„ ì²˜ìŒ ì‹œì‘í•  ë•Œ ì‹¤í–‰.
 	void ProcessAttack();
 
-	// °ø°İÀÌ ½ÃÀÛµÉ ¶§ ½ÇÇàÇÒ ÇÔ¼ö.
+	// ê³µê²©ì´ ì‹œì‘ë  ë•Œ ì‹¤í–‰í•  í•¨ìˆ˜.
 	void AttackActionBegin();
 
-	// ¸ùÅ¸ÁÖ Àç»ı Á¾·á ½Ã È£ÃâÇÒ ÇÔ¼ö (µ¨¸®°ÔÀÌÆ®¿Í ¿¬µ¿).
+	// ëª½íƒ€ì£¼ ì¬ìƒ ì¢…ë£Œ ì‹œ í˜¸ì¶œí•  í•¨ìˆ˜ (ë¸ë¦¬ê²Œì´íŠ¸ì™€ ì—°ë™).
 	void AttackActionEnd(UAnimMontage* TargetMontage, bool bInterrupted);
 
-	// °ø°İ ¸ğ¼ÇÀÌ ³¡³ª¸é È£ÃâµÇ´Â ÀÌº¥Æ® ÇÔ¼ö.
+	// ê³µê²© ëª¨ì…˜ì´ ëë‚˜ë©´ í˜¸ì¶œë˜ëŠ” ì´ë²¤íŠ¸ í•¨ìˆ˜.
 	void NotifyAttackActionEnd();
 
 
 protected:
 
-	// SetAIAttackDelegate ÇÔ¼ö·ÎºÎÅÍ Àü´Ş¹ŞÀº µ¨¸®°ÔÀÌÆ®¸¦ ÀúÀåÇÒ º¯¼ö.
+	// SetAIAttackDelegate í•¨ìˆ˜ë¡œë¶€í„° ì „ë‹¬ë°›ì€ ë¸ë¦¬ê²Œì´íŠ¸ë¥¼ ì €ì¥í•  ë³€ìˆ˜.
 	FAICharacterAttackFinished OnAttackFinished;
 
-	// ¸ó½ºÅÍ AttributeSet ÇÒ´ç
+	// ëª¬ìŠ¤í„° AttributeSet í• ë‹¹
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MonsterSet)
 	TObjectPtr<class UFZFMonsterSet> MonsterAttributeSet;
 
-	// °ø°İ ¸ùÅ¸ÁÖ ÇÒ´ç
+	// ê³µê²© ëª½íƒ€ì£¼ í• ë‹¹
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attack)
 	TObjectPtr<class UAnimMontage> AttackMontage;
 };
