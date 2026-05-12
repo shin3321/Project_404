@@ -130,7 +130,7 @@ void UFZFGA_Run::StartCostTickLoop()
     UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, CostTickInterval);
     if (DelayTask)
     {
-        DelayTask->OnFinish.AddDynamic(this, &UASCGA_Sprint::OnCostTick);
+        DelayTask->OnFinish.AddDynamic(this, &UFZFGA_Run::OnCostTick);
         DelayTask->ReadyForActivation();
     }
 }

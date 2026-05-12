@@ -47,8 +47,8 @@ bool UBTDecorator_AttackInRange::CalculateRawConditionValue(
 	float DistanceToTarget = FVector::Dist2D(ControllingPawn->GetActorLocation(), Target->GetActorLocation());
 
 	// 계산한 결과가 공격 범위 안에 있는지 확인.
-	float AttackRangeWithRadius = AIPawn->GetAIAttackDetectRange();
-	bResult = (DistanceToTarget <= AttackRangeWithRadius);
+	float AttackDetectRange = AIPawn->GetAIAttackDetectRange();
+	bResult = (DistanceToTarget <= AttackDetectRange);
 
 	return bResult;
 }
