@@ -24,5 +24,7 @@ namespace FZFGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(State_Stamina_NoRegen,"State.Stamina.NoRegen");
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_DroppingItem,"State.Action.DroppingItem");
+	UE_DEFINE_GAMEPLAY_TAG(State_Action_Attack,"State.Action.Attack");
+
 
 }

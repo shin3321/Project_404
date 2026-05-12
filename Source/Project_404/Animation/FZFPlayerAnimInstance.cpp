@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Animation/FZFPlayerAnimInstance.h"
@@ -27,6 +27,7 @@ void UFZFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         UFZFAbilitySystemComponent* ASC = Cast<UFZFAbilitySystemComponent>(ASCHolder->GetAbilitySystemComponent());
         if (ASC)
         {
+            // 변수값이 현재 플레이어의 ASC가 보유한 태그에 따라서 설정됨
             bIsRunning = ASC->HasMatchingGameplayTag(FZFGameplayTags::State_Movement_Run);
         }
     }

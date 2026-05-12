@@ -28,4 +28,6 @@ namespace FZFGameplayTags
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Stamina_NoRegen);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_Attack);
+
 }
