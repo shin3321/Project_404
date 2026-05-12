@@ -56,7 +56,7 @@ AFZFMonster::AFZFMonster()
 	}
 }
 
-void AFZFMonster::BeginPlay()
+void AFZFMonster::BeginPlay() 
 {
 	Super::BeginPlay();
 	InitAbilitySystem();

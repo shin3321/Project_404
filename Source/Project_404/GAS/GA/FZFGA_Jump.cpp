@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "GAS/GA/FZFGA_Jump.h"
@@ -6,10 +6,10 @@
 
 UFZFGA_Jump::UFZFGA_Jump()
 {
-	// ÀÎ½ºÅÏ½Ì Á¤Ã¥: ¾îºô¸®Æ¼°¡ ½ÇÇàµÉ ¶§¸¶´Ù ÀÎ½ºÅÏ½º¸¦ »ı¼º (µ¥ÀÌÅÍ °ü¸®°¡ ÆíÇÔ)
+	// ì¸ìŠ¤í„´ì‹± ì •ì±…: ì–´ë¹Œë¦¬í‹°ê°€ ì‹¤í–‰ë  ë•Œë§ˆë‹¤ ì¸ìŠ¤í„´ìŠ¤ë¥¼ ìƒì„± (ë°ì´í„° ê´€ë¦¬ê°€ í¸í•¨)
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 
-	// ½ÇÇà Á¤Ã¥ (¹İÀÀ¼º °­È­)
+	// ì‹¤í–‰ ì •ì±… (ë°˜ì‘ì„± ê°•í™”)
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
 }
@@ -21,10 +21,10 @@ void UFZFGA_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
     AFZFCharacterPlayer* Character = Cast<AFZFCharacterPlayer>(ActorInfo->AvatarActor.Get());
     if (Character)
     {
-        Character->Jump(); // ¹°¸® Á¡ÇÁ ½ÇÇà
+        Character->Jump(); // ë¬¼ë¦¬ ì í”„ ì‹¤í–‰
     }
 
-    // Áï½Ã Á¾·áÇÔ
+    // ì¦‰ì‹œ ì¢…ë£Œí•¨
     bool bReplicateEndAbility = true;
     bool bWasCancelled = false;
     EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
