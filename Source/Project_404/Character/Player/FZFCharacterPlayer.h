@@ -10,6 +10,7 @@ class UInputAction;
 class UInputMappingContext;
 class UFZFInventoryComponent;
 class UFZFHUD;
+class UFZFHeldItemComponent;
 
 UCLASS()
 class PROJECT_404_API AFZFCharacterPlayer : public AFZFCharacterBase
@@ -62,6 +63,10 @@ protected:
 	// 상호작용 함수
 	void Interact();
 
+
+	// 선택된 인벤토리 아이템을 버리는 입력 처리 함수
+	void DropSelectedItem();
+
 	// 달리기 함수
 	void RunStart();
 	void RunEnd();
@@ -69,6 +74,7 @@ protected:
 	// 점프 함수
 	void JumpStart();
 	void JumpEnd();
+
 
 // Camera Section
 	// 네트워크 상태 동기화 함수
@@ -104,7 +110,11 @@ protected:
 	TObjectPtr<UInputAction> InteractAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
+
+	TObjectPtr<UInputAction> DropItemAction;
+
 	TObjectPtr<UInputAction> RunAction;
+
 
 // Interact Section
 protected:
@@ -139,4 +149,8 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UFZFHUD> HUDWidget;
+
+	// 선택된 인벤토리 아이템을 손에 들게 처리하는 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UFZFHeldItemComponent> HeldItemComponent;
 };

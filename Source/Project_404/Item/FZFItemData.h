@@ -45,4 +45,5 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
     int32 MaxStackCount = 1;
+
 };
