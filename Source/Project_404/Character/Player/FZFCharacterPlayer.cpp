@@ -129,8 +129,6 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/ArenaBattle/Input/Actions/IA_Jump.IA_Jump"));
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Project404/Input/Actions/IA_Jump.IA_Jump"));
-
 	if (JumpActionRef.Succeeded())
 	{
 		// 점프 액션
@@ -396,13 +394,14 @@ void AFZFCharacterPlayer::Interact()
 void AFZFCharacterPlayer::DropSelectedItem()
 {
 	UE_LOG(LogTemp, Warning, TEXT("G Key DropSelectedItem Called"));
-    // ASC가 유효한지 확인
-    if (ASC)
-    {
+	// ASC가 유효한지 확인
+	if (ASC)
+	{
 		// Ability.Action.DropItem 태그를 가진 어빌리티 실행
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_DropItem)
 		);
-    }
+	}
+}
 
 void AFZFCharacterPlayer::RunStart()
 {

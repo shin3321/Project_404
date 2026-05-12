@@ -23,44 +23,34 @@ bool UFZFInventoryComponent::AddItem(UFZFItemData* InItemData)
         return false;
     }
 
+    int32 EmptySlotIndex = -1;
 
-    if (InventoryItems.Num() >= MaxItemCount)
-
-    // 인벤토리가 가득 찼으면 추가 실패
-    bool hasEmptySlot = false;
-    int index = -1;
-    for (auto slot : InventoryItems)
-
+    // 빈 슬롯 찾기
+    for (int32 i = 0; i < MaxItemCount; ++i)
     {
-        index++;
-
-        if (slot == nullptr)
+        if (InventoryItems[i] == nullptr)
         {
-            hasEmptySlot = true;
+            EmptySlotIndex = i;
             break;
         }
     }
 
-    // 아이템이 추가될 슬롯 번호
-    int32 AddedSlotIndex = InventoryItems.Num();
-
-    // 인벤토리에 아이템 추가
-    InventoryItems.Add(InItemData);
-
-    if (hasEmptySlot == false)
+    // 빈 슬롯 없으면 추가 실패
+    if (EmptySlotIndex == -1)
+    {
         return false;
+    }
 
-    // 인벤토리 배열에 아이템 데이터 추가
-    InventoryItems[index] = InItemData;
+    // 빈 슬롯에 아이템 넣기
+    InventoryItems[EmptySlotIndex] = InItemData;
 
-    // UI 갱신
     if (InventoryWidget)
     {
         InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
     }
 
-    // 이미 선택 중인 슬롯에 아이템이 들어온 경우 바로 장착
-    if (SelectedSlotIndex == AddedSlotIndex)
+    // 현재 선택된 슬롯에 아이템이 들어왔으면 바로 손에 들기
+    if (SelectedSlotIndex == EmptySlotIndex)
     {
         UpdateHeldItemBySelectedSlot();
     }
@@ -257,7 +247,8 @@ void UFZFInventoryComponent::DropSelectedItem()
     }
 
     // 인벤토리 배열에서 선택된 아이템 제거
-    InventoryItems.RemoveAt(SelectedSlotIndex);
+    // 배열 크기는 유지하고 해당 슬롯만 비움
+    InventoryItems[SelectedSlotIndex] = nullptr;
 
     // UI 갱신
     if (InventoryWidget)

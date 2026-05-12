@@ -61,13 +61,14 @@ public:
     void SelectSlot(int32 InSlotIndex);
 
     
+    UFUNCTION()
+    UFZFItemData* GetSelectedItemData() const;
     
 private:
     // 현재 선택된 슬롯의 아이템을 손에 들게 하는 함수
     // 빈 슬롯이면 손에 든 아이템을 제거함
     void UpdateHeldItemBySelectedSlot();
 
-    UFUNCTION()
-    UFZFItemData* GetSelectedItemData() const;
+
 
 };
