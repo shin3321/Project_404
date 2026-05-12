@@ -37,7 +37,7 @@ AFZFMonster::AFZFMonster()
 
 	// 애님 블루프린트 클래스 정보 지정.
 	static ConstructorHelpers::FClassFinder<UAnimInstance> MonsterAnim(
-		TEXT("/Game/Project404/Animation/ABP_M1.ABP_M1_C")
+		TEXT("/Game/Project404/Character/Monster/Animation/ABP_M1.ABP_M1_C")
 	);
 
 	if (MonsterAnim.Succeeded())
@@ -47,7 +47,7 @@ AFZFMonster::AFZFMonster()
 
 	// 몽타주 및 액션 데이터 기본 값 설정.
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackMontageRef(
-		TEXT("/Game/Project404/Animation/AM_AttackM1.AM_AttackM1")
+		TEXT("/Game/Project404/Character/Monster/Animation/AM_AttackM1.AM_AttackM1")
 	);
 	if (AttackMontageRef.Succeeded())
 	{
@@ -151,27 +151,27 @@ void AFZFMonster::ProcessAttack()
 
 void AFZFMonster::AttackActionBegin()
 {
-	// 몽타주 재생.
-	// 애님 인스턴스 가져오기.
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance)
-	{
-		// 몽타주 재생 속도.
-		const float AttackSpeedRate = Stat->GetTotalStat().AttackSpeed;
+	//// 몽타주 재생.
+	//// 애님 인스턴스 가져오기.
+	//UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	//if (AnimInstance)
+	//{
+	//	// 몽타주 재생 속도.
+	//	const float AttackSpeedRate = Stat->GetTotalStat().AttackSpeed;
 
-		// 몽타주 재생.
-		AnimInstance->Montage_Play(AttackMontage, AttackSpeedRate);
+	//	// 몽타주 재생.
+	//	AnimInstance->Montage_Play(AttackMontage, AttackSpeedRate);
 
-		// 몽타주 종료 이벤트에 등록할 델리게이트 설정.
-		FOnMontageEnded OnMontageEnded;
-		OnMontageEnded.BindUObject(this, &AABCharacterBase::ComboActionEnd);
+	//	// 몽타주 종료 이벤트에 등록할 델리게이트 설정.
+	//	FOnMontageEnded OnMontageEnded;
+	//	OnMontageEnded.BindUObject(this, &AABCharacterBase::ComboActionEnd);
 
-		// 몽타주 재생 종료 시 발행되는 이벤트에 등록.
-		AnimInstance->Montage_SetEndDelegate(OnMontageEnded, AttackMontage);
+	//	// 몽타주 재생 종료 시 발행되는 이벤트에 등록.
+	//	AnimInstance->Montage_SetEndDelegate(OnMontageEnded, AttackMontage);
 
-		// 몽타주 재생 시 이동 안하도록 설정.
-		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	}
+	//	// 몽타주 재생 시 이동 안하도록 설정.
+	//	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	//}
 }
 
 void AFZFMonster::AttackActionEnd(UAnimMontage* TargetMontage, bool bInterrupted)

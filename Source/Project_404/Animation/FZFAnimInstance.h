@@ -49,14 +49,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	float MovingThreshold;
 
-	// 점프 확인용 변수.
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
-	uint8 bIsFalling : 1;
+	//// 점프 확인용 변수.
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	//uint8 bIsFalling : 1;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
-	uint8 bIsJumping : 1;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	//uint8 bIsJumping : 1;
 
-	// 점프 여부를 판단할 때 사용할 문턱 값.
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
-	float JumpingThreshold;
+	//// 점프 여부를 판단할 때 사용할 문턱 값.
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	//float JumpingThreshold;
 };
