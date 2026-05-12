@@ -19,6 +19,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Game/FZFGameMode.h"
 #include "Inventory/FZFHUD.h"
+#include "Inventory/FZFHeldItemComponent.h"
 #include "Components/PrimitiveComponent.h"
 
 
@@ -115,6 +116,13 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 		InteractAction = InteractActionRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> DropItemActionRef(TEXT("/Game/Project404/Input/Actions/IA_DropItem.IA_DropItem"));
+	if (DropItemActionRef.Succeeded())
+	{
+		// 상호작용 변수에 할당
+		DropItemAction = InteractActionRef.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/ArenaBattle/Input/Actions/IA_Jump.IA_Jump"));
 	if (JumpActionRef.Succeeded())
 	{
@@ -158,6 +166,9 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	{
 		Slot5Action = Slot5ActionRef.Object;
 	}
+
+	// 손에 들 아이템을 관리하는 컴포넌트 생성
+	HeldItemComponent = CreateDefaultSubobject<UFZFHeldItemComponent>(TEXT("HeldItemComponent"));
 }
 
 
@@ -252,6 +263,9 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
+
+		// DropItem
+		EnhancedInputComponent->BindAction(DropItemAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::DropSelectedItem);
 
 		// 숫자키 입력과 슬롯 선택 함수 연결
 		EnhancedInputComponent->BindAction(Slot1Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot1);
@@ -356,6 +370,18 @@ void AFZFCharacterPlayer::Interact()
 		// Native Tag를 직접 전달
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Interact));
 	}
+}
+
+void AFZFCharacterPlayer::DropSelectedItem()
+{
+	UE_LOG(LogTemp, Warning, TEXT("G Key DropSelectedItem Called"));
+    // ASC가 유효한지 확인
+    if (ASC)
+    {
+		// Ability.Action.DropItem 태그를 가진 어빌리티 실행
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_DropItem)
+		);
+    }
 }
 
 void AFZFCharacterPlayer::OnRep_PlayerState()

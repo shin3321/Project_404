@@ -17,6 +17,11 @@ public:
     // 인벤토리 컴포넌트 생성자
     UFZFInventoryComponent();
 
+    // 현재 선택된 슬롯의 아이템을 버리는 함수
+    // 선택 슬롯에 아이템이 없으면 아무것도 하지 않음
+    void DropSelectedItem();
+
+
 public:
     // 생성할 인벤토리 위젯 블루프린트 클래스
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
@@ -54,4 +59,11 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     void SelectSlot(int32 InSlotIndex);
+
+    
+    
+private:
+    // 현재 선택된 슬롯의 아이템을 손에 들게 하는 함수
+    // 빈 슬롯이면 손에 든 아이템을 제거함
+    void UpdateHeldItemBySelectedSlot();
 };
