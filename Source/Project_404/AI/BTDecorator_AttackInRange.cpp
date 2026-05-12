@@ -42,8 +42,9 @@ bool UBTDecorator_AttackInRange::CalculateRawConditionValue(
 		return false;
 	}
 
-	// 거리 계산.
-	float DistanceToTarget = ControllingPawn->GetDistanceTo(Target);
+	// 거리 계산. 3차원에서 2차원 거리로 변경(감지 이슈 관련)
+	//float DistanceToTarget = ControllingPawn->GetDistanceTo(Target);
+	float DistanceToTarget = FVector::Dist2D(ControllingPawn->GetActorLocation(), Target->GetActorLocation());
 
 	// 계산한 결과가 공격 범위 안에 있는지 확인.
 	float AttackRangeWithRadius = AIPawn->GetAIAttackRange();

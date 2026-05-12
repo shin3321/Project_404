@@ -161,7 +161,17 @@ void AFZFMonster::AttackActionBegin()
 		const float AttackSpeedRate = MonsterAttributeSet->GetAttackSpeed();
 
 		// 몽타주 재생.
-		AnimInstance->Montage_Play(AttackMontage, AttackSpeedRate);
+		float played = AnimInstance->Montage_Play(AttackMontage, AttackSpeedRate);
+
+		// 예외 처리(재생 실패)
+		if (played <= 0.0f)
+		{
+			// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
+			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+
+			// 공격이 끝나면 NotifyComboActionEnd() 호출.
+			NotifyAttackActionEnd();
+		}
 
 		// 몽타주 종료 이벤트에 등록할 델리게이트 설정.
 		FOnMontageEnded OnMontageEnded;
