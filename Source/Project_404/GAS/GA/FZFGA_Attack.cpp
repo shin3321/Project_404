@@ -5,6 +5,10 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GAS/FZFAbilitySystemComponent.h"
 #include "GAS/Attributes/FZFAttributeSet.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Interface/FZFMonsterAIInterface.h"
+#include "Character/Monster/FZFMonster.h"
 
 UFZFGA_Attack::UFZFGA_Attack()
 {
@@ -20,6 +24,12 @@ void UFZFGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
+	}
+
+	// 공격 중 이동 금지
+	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+	{
+		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	}
 
 	// AttributeSet 정보 받아오기
@@ -56,5 +66,14 @@ void UFZFGA_Attack::OnMontageInterrupted()
 {
 	// 애니메이션이 끊겼으므로 어빌리티 종료
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UFZFGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (AFZFMonster* Monster = Cast<AFZFMonster>(ActorInfo->AvatarActor.Get()))
+	{
+		Monster->AttackActionEnd();
+	}
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

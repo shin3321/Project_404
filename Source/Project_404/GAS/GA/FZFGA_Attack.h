@@ -15,6 +15,7 @@ public:
 	// 태그로 실행되며 호출되는 핵심 함수
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled);
 protected:
     // 에디터에서 재생할 공격 애니메이션 몽타주를 지정
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
