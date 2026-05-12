@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "FZFHeldItemComponent.h"
 #include "Item/FZFItemData.h"
+#include "Item/FZFItemBase.h"
 #include "Inventory/FZFItemDataComponent.h"
 
 // 인벤토리 컴포넌트 생성자
@@ -190,12 +191,6 @@ void UFZFInventoryComponent::DropSelectedItem()
         return;
     }
 
-    // 버렸을 때 다시 생성할 BP 아이템 클래스가 없으면 Spawn 불가
-    if (!SelectedItemData->DroppedItemActorClass)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("DroppedItemActorClass is null"));
-        return;
-    }
 
     // 이 InventoryComponent를 가지고 있는 Owner 가져오기
     // 보통 플레이어 캐릭터 또는 플레이어 Pawn
@@ -218,8 +213,8 @@ void UFZFInventoryComponent::DropSelectedItem()
     FRotator DropRotation = OwnerActor->GetActorRotation();
 
     // 월드에 다시 BP 아이템 Actor 생성
-    AActor* DroppedActor = GetWorld()->SpawnActor<AActor>(
-        SelectedItemData->DroppedItemActorClass,
+    AFZFItemBase* DroppedActor = GetWorld()->SpawnActor<AFZFItemBase>(
+        AFZFItemBase::StaticClass(),
         DropLocation,
         DropRotation
     );
@@ -231,20 +226,7 @@ void UFZFInventoryComponent::DropSelectedItem()
         return;
     }
 
-    // 생성된 BP 아이템 Actor 안에 있는 ItemDataComponent를 찾음
-    // 이 컴포넌트가 있어야 다시 주울 때 어떤 아이템인지 알 수 있음
-    UFZFItemDataComponent* ItemDataComponent =
-        DroppedActor->FindComponentByClass<UFZFItemDataComponent>();
-
-    // ItemDataComponent가 있으면 방금 버린 ItemData를 다시 넣어줌
-    if (ItemDataComponent)
-    {
-        ItemDataComponent->ItemData = SelectedItemData;
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Dropped actor has no ItemDataComponent"));
-    }
+    DroppedActor->InitializeItem(SelectedItemData);
 
     // 인벤토리 배열에서 선택된 아이템 제거
     // 배열 크기는 유지하고 해당 슬롯만 비움
