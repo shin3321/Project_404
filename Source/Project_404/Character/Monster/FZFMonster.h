@@ -31,10 +31,11 @@ protected:
 	virtual float GetAIAttackRange() override;
 	virtual float GetAITurnSpeed() override;
 
-	virtual void AttackByAI() override; 
+	 // Task에서 공격 처리 호출 함수
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) override;
+	virtual void AttackByAI() override;
 
-	// 공격 처리 함수.
+	// 공격 실행 함수.
 	// 공격을 처음 시작할 때 실행.
 	void ProcessAttack();
 
@@ -44,8 +45,8 @@ protected:
 	// 몽타주 재생 종료 시 호출할 함수 (델리게이트와 연동).
 	void AttackActionEnd(UAnimMontage* TargetMontage, bool bInterrupted);
 
-	// 공격이 끝나는 지점을 알 수 있도록 함수 선언.
-	void NotifyComboActionEnd();
+	// 공격 모션이 끝나면 호출되는 이벤트 함수.
+	void NotifyAttackActionEnd();
 
 
 protected:
