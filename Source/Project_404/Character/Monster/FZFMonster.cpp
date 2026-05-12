@@ -6,6 +6,7 @@
 #include "GAS/Attributes/FZFMonsterSet.h"
 #include "AI/FZFAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameplayTag/FZFGameplayTags.h"
 
 AFZFMonster::AFZFMonster()
 {
@@ -155,34 +156,49 @@ void AFZFMonster::AttackActionBegin()
 	// 몽타주 재생.
 	// 애님 인스턴스 가져오기.
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance)
+
+	// 예외 처리
+	if (!AnimInstance || !AttackMontage || !MonsterAttributeSet)
 	{
-		// 몽타주 재생 속도.
-		const float AttackSpeedRate = MonsterAttributeSet->GetAttackSpeed();
+		// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
-		// 몽타주 재생.
-		float played = AnimInstance->Montage_Play(AttackMontage, AttackSpeedRate);
+		// 공격이 끝나면 NotifyComboActionEnd() 호출.
+		NotifyAttackActionEnd();
 
-		// 예외 처리(재생 실패)
-		if (played <= 0.0f)
-		{
-			// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
-			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-
-			// 공격이 끝나면 NotifyComboActionEnd() 호출.
-			NotifyAttackActionEnd();
-		}
-
-		// 몽타주 종료 이벤트에 등록할 델리게이트 설정.
-		FOnMontageEnded OnMontageEnded;
-		OnMontageEnded.BindUObject(this, &AFZFMonster::AttackActionEnd);
-
-		// 몽타주 재생 종료 시 발행되는 이벤트에 등록.
-		AnimInstance->Montage_SetEndDelegate(OnMontageEnded, AttackMontage);
-
-		// 몽타주 재생 시 이동 안하도록 설정.
-		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		return;
 	}
+
+
+	// 몽타주 재생 속도.
+	//const float AttackSpeedRate = MonsterAttributeSet->GetAttackSpeed();
+
+	// 몽타주 재생.
+	//float played = AnimInstance->Montage_Play(AttackMontage, AttackSpeedRate);
+	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Attack));
+
+	// 예외 처리(델리게이트 호출 안됨)
+	if (played <= 0.0f)
+	{
+		// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+
+		// 공격이 끝나면 NotifyComboActionEnd() 호출.
+		NotifyAttackActionEnd();
+
+		return;
+	}
+
+	// 몽타주 종료 이벤트에 등록할 델리게이트 설정.
+	FOnMontageEnded OnMontageEnded;
+	OnMontageEnded.BindUObject(this, &AFZFMonster::AttackActionEnd);
+
+	// 몽타주 재생 종료 시 발행되는 이벤트에 등록.
+	AnimInstance->Montage_SetEndDelegate(OnMontageEnded, AttackMontage);
+
+	// 몽타주 재생 시 이동 안하도록 설정.
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	
 }
 
 void AFZFMonster::AttackActionEnd(UAnimMontage* TargetMontage, bool bInterrupted)

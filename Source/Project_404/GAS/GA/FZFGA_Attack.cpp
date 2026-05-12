@@ -3,6 +3,8 @@
 
 #include "FZFGA_Attack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "GAS/FZFAbilitySystemComponent.h"
+#include "GAS/Attributes/FZFAttributeSet.h"
 
 UFZFGA_Attack::UFZFGA_Attack()
 {
@@ -20,12 +22,17 @@ void UFZFGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		return;
 	}
 
+	// AttributeSet 정보 받아오기
+	UFZFAbilitySystemComponent* ASC = Cast<UFZFAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get());
+
+	float AttackSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackSpeedAttribute());
+
 	// 애니메이션 몽타주 재생 태스크 생성
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this,
 		TEXT("AttackTask"),
 		AttackMontage,
-		1.f,
+		AttackSpeed,
 		NAME_None, // 일단 몽타주 처음을 재생
 		false
 	);
