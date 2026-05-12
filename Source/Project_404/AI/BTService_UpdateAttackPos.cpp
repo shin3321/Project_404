@@ -32,7 +32,7 @@ void UBTService_UpdateAttackPos::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 		return;
 	}
 
-	APawn* Target = Cast<APawn>(Blackboard->GetValueAsObject(BBKEY_ATTACKPOS));
+	APawn* Target = Cast<APawn>(Blackboard->GetValueAsObject(BBKEY_TARGET));
 	if (!Target)
 	{
 		return;
@@ -59,6 +59,11 @@ void UBTService_UpdateAttackPos::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 
 	// AttackPos 설정
 	FVector AttackPos = TargetLoc + DirFromTargetToMonster * DesiredDistance;
+
+	UE_LOG(LogTemp, Warning, TEXT("Desired: %.1f, CurrentDist: %.1f, AttackPos: %s"),
+		DesiredDistance,
+		FVector::Dist2D(MonsterLoc, TargetLoc),
+		*AttackPos.ToString());
 
 	// BB에 AttackPos 설정
 	Blackboard->SetValueAsVector(BBKEY_ATTACKPOS, AttackPos);

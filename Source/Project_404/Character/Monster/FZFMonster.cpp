@@ -77,6 +77,18 @@ void AFZFMonster::InitAbilitySystem()
 		{
 			UE_LOG(LogTemp, Error, TEXT("[%s] MonsterAttributeSet 로드 실패!"), *GetName());
 		}
+
+		if (HasAuthority())
+		{
+			for (const auto& StartupAbility : StartupAbilities)
+			{
+				if (StartupAbility)
+				{
+					FGameplayAbilitySpec StartSpec(StartupAbility);
+					ASC->GiveAbility(StartSpec);
+				}
+			}
+		}
 	}
 
 }
@@ -125,7 +137,7 @@ float AFZFMonster::GetAIAttackDetectRange()
 float AFZFMonster::GetAITurnSpeed()
 {
 	// GAS AttributeSet에서 수치 가져오기
-	return 0.0f;
+	return MonsterAttributeSet->GetTurnSpeed();
 }
 
 // 공격
@@ -167,4 +179,3 @@ void AFZFMonster::NotifyAttackActionEnd()
 		OnAttackFinished.Unbind(); // 실행 후 언바인드
 	}
 }
-
