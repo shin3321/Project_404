@@ -46,7 +46,4 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
     int32 MaxStackCount = 1;
 
-    // 이 아이템을 버렸을 때 월드에 다시 생성할 아이템 Actor 클래스
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
-    TSubclassOf<AActor> DroppedItemActorClass;
 };
