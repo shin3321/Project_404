@@ -13,7 +13,7 @@ AFZFMonster::AFZFMonster()
 	ASC->SetIsReplicated(true);
 
 	// MonsterAttributeSet 설정
-	CreateDefaultSubobject<UFZFMonsterSet>(TEXT("MonsterAttributeSet"));
+	MonsterAttributeSet = CreateDefaultSubobject<UFZFMonsterSet>(TEXT("MonsterAttributeSet"));
 	
 	// AIController 클래스 설정.
 	AIControllerClass = AFZFAIController::StaticClass();
@@ -23,11 +23,11 @@ AFZFMonster::AFZFMonster()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	// 몬스터 메시 위치 & 회전 변경
-	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
+	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 12.0f), FRotator(0.0f, -90.0f, 0.0f));
 
 	// 몬스터 메시 설정
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MonsterMesh(
-		TEXT("/Game/Jisung/Sci-FI_Troopers_Collection/SciFITrooper-02/SkeletalMesh/SK_SciFiTrooperV2.SK_SciFiTrooperV2")
+		TEXT("/Game/Assets/Monster/M1/SK_M1.SK_M1")
 	);
 
 	if (MonsterMesh.Succeeded())
@@ -63,22 +63,36 @@ void AFZFMonster::InitAbilitySystem()
 
 float AFZFMonster::GetAIPatrolRadius()
 {
-	// 인터페이스에서 작성
+	// 따로 데이터 에셋에서 받아오도록 수정 
+	// -> 지금은 하드코딩
 	return 800.0f;
 }
 
 float AFZFMonster::GetAIDetectRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
-	return 400.0f;
+	/*if (!MonsterAttributeSet)
+	{
+		UE_LOG(LogTemp, Error, TEXT("MonsterAttributeSet nullptr"));
+		return 400.0f;
+	}*/
+
+	return MonsterAttributeSet->GetDetectRange();
 }
 
 float AFZFMonster::GetAIAttackRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
+	/*if (!MonsterAttributeSet)
+	{
+		UE_LOG(LogTemp, Error, TEXT("MonsterAttributeSet nullptr"));
+		return 100.0f + (50.0f * 2);
+	}*/
+
 	// 공격 거리.
 	// 캡슐 형태 = 공격 거리 + (공격 반경 x 2).
-	return 0.0f;
+	return MonsterAttributeSet->GetAttackRange()
+		+ (MonsterAttributeSet->GetAttackRadius() * 2);
 }
 
 float AFZFMonster::GetAITurnSpeed()
@@ -89,6 +103,7 @@ float AFZFMonster::GetAITurnSpeed()
 
 void AFZFMonster::AttackByAI()
 {
+	// 공격 재생.
 	//if (ASC)
 	//{
 	//	// 공격 어빌리티 실행 (태그 기반)
@@ -113,3 +128,11 @@ void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAtta
 	// 몽타주 종료 섹션 등에 GameplayEvent를 날려 캐릭터가 받게 하거나, 
 	// OnAbilityEnded 델리게이트를 통해 OnAttackFinished.ExecuteIfBound()를 호출
 }
+
+//void AFZFMonster::NotifyComboActionEnd()
+//{
+//	Super::NotifyComboActionEnd();
+//
+//	// 앞서 전달받은 델리게이트 실행.
+//	OnAttackFinished.ExecuteIfBound();
+//}

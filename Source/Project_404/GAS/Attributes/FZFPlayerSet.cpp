@@ -3,3 +3,7 @@
 
 #include "GAS/Attributes/FZFPlayerSet.h"
 
+UFZFPlayerSet::UFZFPlayerSet()
+{
+	InitMovementSpeed(400.0f);
+}

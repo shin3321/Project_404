@@ -1,7 +1,6 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Utils/FZFGameLevelTeleport.h"
+﻿#include "Utils/FZFGameLevelTeleport.h"
+#include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
 #include "Character/FZFCharacterBase.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -18,13 +17,20 @@ AFZFGameLevelTeleport::AFZFGameLevelTeleport()
 	TransferVolume->InitBoxExtent(FVector(100.f, 200.f, 500.f));
 	// 충돌 설정
 	TransferVolume->SetCollisionProfileName(TEXT("Trigger"));
-	TransferVolume->OnComponentBeginOverlap.AddDynamic(this, &AFZFGameLevelTeleport::OnOverlapBegin);
 }
 
 // Called when the game starts or when spawned
 void AFZFGameLevelTeleport::BeginPlay()
 {
 	Super::BeginPlay();
+
+	TransferVolume->OnComponentBeginOverlap.AddDynamic(this, &AFZFGameLevelTeleport::OnOverlapBegin);
+	TransferVolume->OnComponentEndOverlap.AddDynamic(this, &AFZFGameLevelTeleport::OnOverlapEnd);
+
+	if (TeleportWidgetInstance == nullptr)
+	{
+		TeleportWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), TeleportWidgetClass);
+	}
 }
 
 // Called every frame
@@ -33,15 +39,49 @@ void AFZFGameLevelTeleport::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AFZFGameLevelTeleport::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AFZFGameLevelTeleport::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                           const FHitResult& SweepResult)
 {
 	if (!HasAuthority()) return;
 
 	if (Cast<AFZFCharacterBase>(OtherActor))
 	{
-		FString LevelPath = TEXT("/Game/Project404/Map/FZFGameLevel");
-
-		GetWorld()->ServerTravel(LevelPath);
-
+		if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			EnableInput(PlayerController);
+			if (TeleportWidgetInstance != nullptr && !TeleportWidgetInstance->IsInViewport())
+			{
+				TeleportWidgetInstance->AddToViewport();
+			}
+			if (InputComponent)
+			{
+				InputComponent->BindKey(EKeys::E, IE_Pressed, this, &AFZFGameLevelTeleport::OnTeleportKeyPressed);
+			}
+		}
 	}
+}
+
+void AFZFGameLevelTeleport::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (TeleportWidgetInstance != nullptr && TeleportWidgetInstance->IsInViewport())
+	{
+		TeleportWidgetInstance->RemoveFromParent();
+	}
+	if (AFZFCharacterBase* Character = Cast<AFZFCharacterBase>(OtherActor))
+	{
+		DisableInput(Cast<APlayerController>(Character->GetController()));
+	}
+}
+
+void AFZFGameLevelTeleport::OnTeleportKeyPressed()
+{
+	EnterLobbyLevel();
+}
+
+void AFZFGameLevelTeleport::EnterLobbyLevel()
+{
+	FString LevelPath = TEXT("/Game/Project404/Map/FZFGameLevel");
+	GetWorld()->ServerTravel(LevelPath);
 }

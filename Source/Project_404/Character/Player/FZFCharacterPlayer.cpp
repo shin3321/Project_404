@@ -80,6 +80,10 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 		ArmMesh->SetSkeletalMesh(ArmMeshRef.Object);
 	}
 
+	// 점프 관련 설정
+	GetCharacterMovement()->JumpZVelocity = 550.0f; // 점프 힘
+	GetCharacterMovement()->GravityScale = 1.6f; // 중력 배율
+
 	// ArmMesh ABP 설정
 	static ConstructorHelpers::FClassFinder<UAnimInstance> ArmABPRef(TEXT("/Game/Project404/Character/Player/Animation/ABP_Player.ABP_Player_C"));
 
@@ -124,9 +128,20 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/ArenaBattle/Input/Actions/IA_Jump.IA_Jump"));
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Project404/Input/Actions/IA_Jump.IA_Jump"));
+
 	if (JumpActionRef.Succeeded())
 	{
 		// 점프 액션
+		JumpAction = JumpActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(TEXT("/Game/Project404/Input/Actions/IA_Run.IA_Run"));
+	if (RunActionRef.Succeeded())
+	{
+		// 달리기 액션
+		RunAction = RunActionRef.Object;
 	}
 
 	// GAS
@@ -220,6 +235,7 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 {
 	Super::InitAbilitySystem();
 
+	int32 InputID = 0;
 	if (AFZFPlayerState* PS = GetPlayerState<AFZFPlayerState>())
 	{
 		/** * [GAS 핵심 설정]
@@ -236,6 +252,7 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 		for (const auto& StartupAbility : StartupAbilities)
 		{
 			FGameplayAbilitySpec StartSpec(StartupAbility);
+			StartSpec.InputID = InputID++;
 			ASC->GiveAbility(StartSpec);
 		}
 	}
@@ -258,8 +275,12 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFZFCharacterPlayer::Look);
 
 		// Jump
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::JumpStart);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AFZFCharacterPlayer::JumpEnd);
+
+		// Run
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::RunStart);
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFZFCharacterPlayer::RunEnd);
 
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
@@ -382,6 +403,41 @@ void AFZFCharacterPlayer::DropSelectedItem()
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_DropItem)
 		);
     }
+
+void AFZFCharacterPlayer::RunStart()
+{
+
+	if (ASC)
+	{
+		
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Run));
+	}
+}
+
+void AFZFCharacterPlayer::RunEnd()
+{
+	if (ASC)
+	{
+		// GameplayTagContainer를 단일 태그로 직접 초기화
+		const FGameplayTagContainer RunTag(FZFGameplayTags::Ability_Action_Run);
+		
+		// 해당 태그를 가진 어빌리티들을 취소(주소값을 전달하여 불필요한 복사 방지)
+		ASC->CancelAbilities(&RunTag);
+	}
+}
+
+void AFZFCharacterPlayer::JumpStart()
+{
+	if (ASC)
+	{
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Jump));
+	}
+}
+
+void AFZFCharacterPlayer::JumpEnd()
+{
+	StopJumping();
+
 }
 
 void AFZFCharacterPlayer::OnRep_PlayerState()

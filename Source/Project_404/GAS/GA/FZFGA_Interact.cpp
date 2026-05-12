@@ -10,6 +10,10 @@ UFZFGA_Interact::UFZFGA_Interact()
 {
 	// 인스턴싱 정책: 어빌리티가 실행될 때마다 인스턴스를 생성 (데이터 관리가 편함)
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+
+	// 실행 정책 (반응성 강화)
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+
 }
 
 void UFZFGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

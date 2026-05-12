@@ -63,8 +63,18 @@ protected:
 	// 상호작용 함수
 	void Interact();
 
+
 	// 선택된 인벤토리 아이템을 버리는 입력 처리 함수
 	void DropSelectedItem();
+
+	// 달리기 함수
+	void RunStart();
+	void RunEnd();
+
+	// 점프 함수
+	void JumpStart();
+	void JumpEnd();
+
 
 // Camera Section
 	// 네트워크 상태 동기화 함수
@@ -100,7 +110,11 @@ protected:
 	TObjectPtr<UInputAction> InteractAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
+
 	TObjectPtr<UInputAction> DropItemAction;
+
+	TObjectPtr<UInputAction> RunAction;
+
 
 // Interact Section
 protected:

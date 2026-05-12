@@ -15,7 +15,6 @@
 #include "Game/FZFGameState.h"
 #include "Project_404.h"
 
-
 AFZFGameMode::AFZFGameMode()
 {
 	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnClassRef(TEXT("/Game/Project404/Character/Player/BP_FZFPlayer.BP_FZFPlayer_C"));
@@ -30,6 +29,9 @@ AFZFGameMode::AFZFGameMode()
 	PlayerStateClass = AFZFPlayerState::StaticClass();
 
 	bDelayedStart = false;
+
+	// 레벨이 바뀌어도 정보 유지
+	bUseSeamlessTravel = true;
 
 	// 플레이어가 처음 접속할 때 관전자로 스폰될지 여부 (반드시 false)
 	bStartPlayersAsSpectators = false;
@@ -54,8 +56,7 @@ void AFZFGameMode::BeginPlay()
 	Super::BeginPlay();
 	GameState = Cast<AFZFGameState>(GetGameState<AFZFGameState>());
 
-	// Todo 레벨 선택 시 게임 레벨에서 시작하게 옮겨야 함
-	GetWorldTimerManager().SetTimer(DayTimerHandle, this, &AFZFGameMode::UpdateGameCLock, 1.0f, true);
+
 }
 
 void AFZFGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
@@ -129,25 +130,12 @@ void AFZFGameMode::UpdateGameCLock()
 	{
 		GameState->RemainingRimeSeconds--;
 	}
-	else
-	{
-		if (GameState->CurrentDay < 4)
-		{
-			GameState->CurrentPhase = EGamePhase::Gathering;
-			GameState->CurrentDay++;
-		}
-		else
-		{
-			// 4일이 모두 끝났을 때 로직
-			GetWorldTimerManager().ClearTimer(DayTimerHandle);
-		}
-	}
 }
 
-void AFZFGameMode::StartNewDay()
+void AFZFGameMode::StartNewDay_Implementation()
 {
+	UE_LOG(LogTemp, Warning, TEXT("A new day has started"));
 	GameState->CurrentPhase = EGamePhase::Exploration;
-	GameState->RemainingRimeSeconds = 420;
 	GetWorldTimerManager().SetTimer(DayTimerHandle, this, &AFZFGameMode::UpdateGameCLock, 1.0f, true);
 }
 

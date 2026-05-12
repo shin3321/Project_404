@@ -4,7 +4,7 @@
 #include "AI/BTTask_TurnToTarget.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "ABAI.h"
+#include "FZFAI.h"
 #include "Interface/FZFMonsterAIInterface.h"
 
 UBTTask_TurnToTarget::UBTTask_TurnToTarget()
