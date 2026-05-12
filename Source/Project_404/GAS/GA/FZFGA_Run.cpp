@@ -6,6 +6,9 @@
 #include "GAS/Attributes/FZFPlayerSet.h"
 #include "GAS/FZFAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Abilities/Tasks/AbilityTask_WaitAttributeChangeThreshold.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
+#include "GameplayTag/FZFGameplayTags.h"
 
 UFZFGA_Run::UFZFGA_Run()
 {
@@ -20,16 +23,40 @@ void UFZFGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-    AFZFCharacterBase* Character = Cast<AFZFCharacterBase>(ActorInfo->AvatarActor.Get());
     UFZFAbilitySystemComponent* ASC = Cast<UFZFAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get());
 
-    if (Character && ASC)
+    if (ASC && SprintBuffEffectClass)
     {
-        // AttributeSet에서 현재 속도를 가져옴
-        float TargetRunSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetMovementSpeedAttribute()) * 3.0f;
+        // SprintBuffEffect 적용 및 핸들 저장
+        FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+        FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(SprintBuffEffectClass, GetAbilityLevel(), EffectContext);
+      
+        if (SpecHandle.IsValid())
+        {
+            //ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+            // 위와 같이 쓰지말고 BP_버전으로 쓰면 SpecHandle 그대로 넘기면 됨
+            // 방식 : Infinite 로 MovementSpeed Attribute를 증가시켜야함
+            SprintBuffEffectHandle = ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+        }
+    
+        // 스테미나 0 이하 감시 테스크
+        UAbilityTask_WaitAttributeChangeThreshold* WaitTask =
+            UAbilityTask_WaitAttributeChangeThreshold::WaitForAttributeChangeThreshold(
+                this,
+                UFZFPlayerSet::GetStaminaAttribute(),
+                EWaitAttributeChangeComparison::LessThanOrEqualTo,
+                0.0f,
+                true
+            );
 
-        // 캐릭터 무브먼트에 적용
-        Character->GetCharacterMovement()->MaxWalkSpeed = TargetRunSpeed;
+        if (WaitTask)
+        {
+            WaitTask->OnChange.AddDynamic(this, &UFZFGA_Run::OnStaminaThresholdChanged);
+            WaitTask->ReadyForActivation();
+        }
+
+        // 주기적 소모 루프 시작
+        StartCostTickLoop();
     }
 }
 
@@ -46,4 +73,64 @@ void UFZFGA_Run::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGame
     }
 
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UFZFGA_Run::OnStaminaEmpty(const FGameplayAttribute& Attribute, float NewValue, float OldValue)
+{
+    const FGameplayAbilityActorInfo* Info = GetCurrentActorInfo();
+    EndAbility(CurrentSpecHandle, Info, CurrentActivationInfo, true, false);
+}
+
+void UFZFGA_Run::OnStaminaThresholdChanged(bool bMatchesComparison, float CurrentValue)
+{
+}
+
+void UFZFGA_Run::OnCostTick()
+{
+    // 인자 없이 현재 이 능력을 실행 중인 주체의 ASC를 가지고 오고 싶을 때, GetAbilitySystemComponentFromActorInfo();
+    UFZFAbilitySystemComponent* ASC = Cast<UFZFAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
+
+    // ASC가 없고 CostGameplayEffectClass가 없으면 return
+    if (!ASC)
+    {
+        return;
+    }
+
+    if (!CostGameplayEffectClass)
+    {
+        return;
+    }
+
+    // 현재 달리는 상태가 아니면 return
+    if (!ASC->HasMatchingGameplayTag(FZFGameplayTags::State_Movement_Run))
+    {
+        return;
+    }
+
+    // AttributeSet 포인터가 없어서 스테미나 수치를 찾기위한 함수 GetNumericAttribute
+    const float CurrentStamina = ASC->GetNumericAttribute(UFZFPlayerSet::GetStaminaAttribute());
+    if (CurrentStamina <= 0.0f)
+    {
+        const FGameplayAbilityActorInfo* Info = GetCurrentActorInfo();
+        EndAbility(CurrentSpecHandle, Info, CurrentActivationInfo, true, false);
+        return;
+    }
+
+    FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+    
+}
+
+void UFZFGA_Run::StartCostTickLoop()
+{
+    if (!IsActive())
+    {
+        return;
+    }
+
+    UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, CostTickInterval);
+    if (DelayTask)
+    {
+        DelayTask->OnFinish.AddDynamic(this, &UASCGA_Sprint::OnCostTick);
+        DelayTask->ReadyForActivation();
+    }
 }
