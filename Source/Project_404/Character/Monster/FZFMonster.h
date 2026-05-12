@@ -36,18 +36,12 @@ protected:
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) override;
 	virtual void AttackByAI() override;
 
-	// 공격 실행 함수.
-	// 공격을 처음 시작할 때 실행.
-	void ProcessAttack();
-
-	// 공격이 시작될 때 실행할 함수.
-	void AttackActionBegin();
-
-	// 몽타주 재생 종료 시 호출할 함수 (델리게이트와 연동).
-	void AttackActionEnd(UAnimMontage* TargetMontage, bool bInterrupted);
-
 	// 공격 모션이 끝나면 호출되는 이벤트 함수.
 	void NotifyAttackActionEnd();
+
+public:
+	// 몽타주 재생 종료 시 호출할 함수
+	void AttackActionEnd();
 
 
 protected:
