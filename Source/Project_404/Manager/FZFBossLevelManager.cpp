@@ -100,7 +100,7 @@ GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
 
 void AFZFBossLevelManager::Laser()
 {
-	int32 LaserCount = FMath::RandRange(2, 6);
+	LaserCount = FMath::RandRange(2, 6);
 	
 	TArray<AFZFLaserActor*> AvailableLasers;
 	for (AFZFLaserActor* Laser : LaserPool)
