@@ -45,16 +45,21 @@ void UBTService_UpdateAttackPos::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 		return;
 	}
 
+	// 벡터 구하기
 	FVector MonsterLoc = ControllingPawn->GetActorLocation();
 	FVector TargetLoc = Target->GetActorLocation();
 
+	// 방향 벡터 구하기
 	FVector DirFromTargetToMonster = MonsterLoc - TargetLoc;
 	DirFromTargetToMonster.Z = 0.0f;
 	DirFromTargetToMonster.Normalize();
 
-	float DesiredDistance = AIPawn
+	// 공격 사거리 불러오기
+	float DesiredDistance = AIPawn->GetAIAttackRange();
 
+	// AttackPos 설정
+	FVector AttackPos = TargetLoc + DirFromTargetToMonster * DesiredDistance;
 
-
-
+	// BB에 AttackPos 설정
+	Blackboard->SetValueAsVector(BBKEY_ATTACKPOS, AttackPos);
 }

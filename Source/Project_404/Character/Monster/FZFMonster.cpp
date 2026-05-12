@@ -81,6 +81,9 @@ void AFZFMonster::InitAbilitySystem()
 
 }
 
+/* 인터페이스 구현 */
+
+// 정찰 범위
 float AFZFMonster::GetAIPatrolRadius()
 {
 	// 따로 데이터 에셋에서 받아오도록 수정 
@@ -88,6 +91,7 @@ float AFZFMonster::GetAIPatrolRadius()
 	return 800.0f;
 }
 
+// 플레이어 감지 범위
 float AFZFMonster::GetAIDetectRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
@@ -100,14 +104,16 @@ float AFZFMonster::GetAIDetectRange()
 	return MonsterAttributeSet->GetDetectRange();
 }
 
+// 공격 사거리
 float AFZFMonster::GetAIAttackRange()
 {
+	return MonsterAttributeSet->GetAttackRange();
+}
+
+// 공격 감지 범위
+float AFZFMonster::GetAIAttackDetectRange()
+{
 	// GAS AttributeSet에서 수치 가져오기
-	/*if (!MonsterAttributeSet)
-	{
-		UE_LOG(LogTemp, Error, TEXT("MonsterAttributeSet nullptr"));
-		return 100.0f + (50.0f * 2);
-	}*/
 
 	// 공격 거리.
 	// 캡슐 형태 = 공격 거리 + (공격 반경 x 2).
@@ -115,12 +121,14 @@ float AFZFMonster::GetAIAttackRange()
 		+ (MonsterAttributeSet->GetAttackRadius() * 2);
 }
 
+// 회전 스피드
 float AFZFMonster::GetAITurnSpeed()
 {
 	// GAS AttributeSet에서 수치 가져오기
 	return 0.0f;
 }
 
+// 공격
 void AFZFMonster::AttackByAI()
 {
 	// GAS 어빌리티 실행 (태그 기반)

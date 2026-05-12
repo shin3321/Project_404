@@ -29,6 +29,8 @@ public:
 	virtual float GetAIPatrolRadius() = 0;
 	virtual float GetAIDetectRange() = 0;
 	virtual float GetAIAttackRange() = 0;
+	virtual float GetAIAttackDetectRange() = 0;
+
 	virtual float GetAITurnSpeed() = 0;
 
 	// Task에서 공격 명령을 전달할 때 사용하는 함수.

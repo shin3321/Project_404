@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AI/BTDecorator_AttackInRange.h"
 #include "Interface/FZFMonsterAIInterface.h"
@@ -18,36 +18,36 @@ bool UBTDecorator_AttackInRange::CalculateRawConditionValue(
 	bool bResult
 		= Super::CalculateRawConditionValue(OwnerComp, NodeMemory);
 
-	// ±¸ÇöÇÏ°í ½ÍÀº ±â´É: °ø°İ ¹üÀ§ ¾È¿¡ ÀÖ´ÂÁö ÆÇ´Ü.
+	// êµ¬í˜„í•˜ê³  ì‹¶ì€ ê¸°ëŠ¥: ê³µê²© ë²”ìœ„ ì•ˆì— ìˆëŠ”ì§€ íŒë‹¨.
 
-	// 1. Æù Á¤º¸ °¡Á®¿À±â.
+	// 1. í° ì •ë³´ ê°€ì ¸ì˜¤ê¸°.
 	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
 	if (!ControllingPawn)
 	{
 		return false;
 	}
 
-	// ÀÎÅÍÆäÀÌ½º·Î Çüº¯È¯.
+	// ì¸í„°í˜ì´ìŠ¤ë¡œ í˜•ë³€í™˜.
 	IFZFMonsterAIInterface* AIPawn = Cast<IFZFMonsterAIInterface>(ControllingPawn);
 	if (!AIPawn)
 	{
 		return false;
 	}
 
-	// 2. °Å¸® °è»ê(Ä³¸¯ÅÍ¿ÍÀÇ °Å¸® °è»ê).
-	// 2.1 Ä³¸¯ÅÍ À§Ä¡ °¡Á®¿À±â (ºí·¢º¸µå¿¡ ÀÖÀ½).
+	// 2. ê±°ë¦¬ ê³„ì‚°(ìºë¦­í„°ì™€ì˜ ê±°ë¦¬ ê³„ì‚°).
+	// 2.1 ìºë¦­í„° ìœ„ì¹˜ ê°€ì ¸ì˜¤ê¸° (ë¸”ë™ë³´ë“œì— ìˆìŒ).
 	APawn* Target = Cast<APawn>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(BBKEY_TARGET));
 	if (!Target)
 	{
 		return false;
 	}
 
-	// °Å¸® °è»ê. 3Â÷¿ø¿¡¼­ 2Â÷¿ø °Å¸®·Î º¯°æ(°¨Áö ÀÌ½´ °ü·Ã)
+	// ê±°ë¦¬ ê³„ì‚°. 3ì°¨ì›ì—ì„œ 2ì°¨ì› ê±°ë¦¬ë¡œ ë³€ê²½(ê°ì§€ ì´ìŠˆ ê´€ë ¨)
 	//float DistanceToTarget = ControllingPawn->GetDistanceTo(Target);
 	float DistanceToTarget = FVector::Dist2D(ControllingPawn->GetActorLocation(), Target->GetActorLocation());
 
-	// °è»êÇÑ °á°ú°¡ °ø°İ ¹üÀ§ ¾È¿¡ ÀÖ´ÂÁö È®ÀÎ.
-	float AttackRangeWithRadius = AIPawn->GetAIAttackRange();
+	// ê³„ì‚°í•œ ê²°ê³¼ê°€ ê³µê²© ë²”ìœ„ ì•ˆì— ìˆëŠ”ì§€ í™•ì¸.
+	float AttackRangeWithRadius = AIPawn->GetAIAttackDetectRange();
 	bResult = (DistanceToTarget <= AttackRangeWithRadius);
 
 	return bResult;

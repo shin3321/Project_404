@@ -29,6 +29,7 @@ protected:
 	virtual float GetAIPatrolRadius() override;
 	virtual float GetAIDetectRange() override;
 	virtual float GetAIAttackRange() override;
+	virtual float GetAIAttackDetectRange() override;
 	virtual float GetAITurnSpeed() override;
 
 	 // Task에서 공격 처리 호출 함수
