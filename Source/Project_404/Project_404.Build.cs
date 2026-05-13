@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -26,6 +26,7 @@ public class Project_404 : ModuleRules
             "UMG",
             "NavigationSystem",
             "AIModule",
+            "Niagara"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
