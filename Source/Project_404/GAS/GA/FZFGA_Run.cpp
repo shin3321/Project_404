@@ -62,14 +62,27 @@ void UFZFGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 void UFZFGA_Run::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-    AFZFCharacterBase* Character = Cast<AFZFCharacterBase>(ActorInfo->AvatarActor.Get());
     UFZFAbilitySystemComponent* ASC = Cast<UFZFAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get());
 
-    if (Character && ASC)
+    if (SprintBuffEffectHandle.IsValid() && ASC)
     {
-        // 다시 기본 이동 속도(WalkSpeed) 어트리뷰트 값을 가져와서 원복
-        float DefaultWalkSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetMovementSpeedAttribute());
-        Character->GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
+        // 적용했던 버프를 제거합니다. 
+        ASC->RemoveActiveGameplayEffect(SprintBuffEffectHandle);
+        SprintBuffEffectHandle.Invalidate();
+    }
+
+    // 2초간 회복 지연 이펙트 적용
+    if (NoRegenEffectClass && ASC)
+    {
+        FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+        Context.AddSourceObject(ActorInfo->AvatarActor.Get());
+
+        FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(NoRegenEffectClass, 1.0f, Context);
+        if (SpecHandle.IsValid())
+        {
+            // 2초 뒤 자동으로 사라지는 GE 적용
+            ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+        }
     }
 
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

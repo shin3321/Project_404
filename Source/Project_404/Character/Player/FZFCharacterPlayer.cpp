@@ -48,7 +48,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	Camera->bUsePawnControlRotation = true;
 
 	// 캡슐 컴포넌트에 맞춰 스켈레탈 메시의 위치(바닥)와 방향(정면) 정렬
-	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -108.0f), FRotator(0.0f, -90.0f, 0.0f));
+	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -86.8f), FRotator(0.0f, -90.0f, 0.0f));
 
 	// 메시 에셋 지정
 
@@ -81,7 +81,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	}
 
 	// 점프 관련 설정
-	GetCharacterMovement()->JumpZVelocity = 550.0f; // 점프 힘
+	GetCharacterMovement()->JumpZVelocity = 800.0f; // 점프 힘
 	GetCharacterMovement()->GravityScale = 1.6f; // 중력 배율
 
 	// ArmMesh ABP 설정
@@ -251,6 +251,19 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 		{
 			FGameplayAbilitySpec StartSpec(StartupAbility);
 			ASC->GiveAbility(StartSpec);
+		}
+
+		if (PassiveRegenEffectClass)
+		{
+			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(PassiveRegenEffectClass, 1.0f, EffectContext);
+			if (SpecHandle.IsValid())
+			{
+				// 서버에서 적용 시 클라이언트로 자동 복제됨
+				ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+			}
 		}
 	}
 }
