@@ -2,6 +2,8 @@
 
 
 #include "AI/BTTask_ChangeMoveSpeed.h"
+#include "AIController.h"
+#include "Interface/FZFMonsterAIInterface.h"
 
 UBTTask_ChangeMoveSpeed::UBTTask_ChangeMoveSpeed()
 {
@@ -13,7 +15,19 @@ EBTNodeResult::Type UBTTask_ChangeMoveSpeed::ExecuteTask(UBehaviorTreeComponent&
 {
 	Super::ExecuteTask(OwnerComp, NodeMemory);
 
+	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
+	if (!ControllingPawn)
+	{
+		return EBTNodeResult::Failed;;
+	}
 
+	IFZFMonsterAIInterface* AIPawn = Cast<IFZFMonsterAIInterface>(ControllingPawn);
+	if (!AIPawn)
+	{
+		return EBTNodeResult::Failed;;
+	}
 
-	return EBTNodeResult::Type();
+	AIPawn->SetAIMoveSpeedMode(MoveSpeedMode);
+
+	return EBTNodeResult::Succeeded;
 }

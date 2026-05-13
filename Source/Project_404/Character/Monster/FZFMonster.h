@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Character/FZFCharacterBase.h"
 #include "Interface/FZFMonsterAIInterface.h"
+#include "GameplayEffectTypes.h"
 #include "FZFMonster.generated.h"
 
 /**
@@ -36,14 +37,13 @@ protected:
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) override;
 	virtual void AttackByAI() override;
 
+	// Task에서 MoveSpeed Change 함수
+	virtual void SetAIMoveSpeedMode(EFZFAIMoveSpeedMode MoveSpeedMode) override;
 	
 
 public:
 	// 공격 모션(몽타주 재생) 종료 시 호출되는 이벤트 함수.
 	void NotifyAttackActionEnd();
-
-	// 몽타주 재생 종료 시 호출할 함수
-	//void AttackActionEnd();
 
 
 protected:
@@ -58,4 +58,11 @@ protected:
 	// 공격 몽타주 할당
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attack)
 	TObjectPtr<class UAnimMontage> AttackMontage;
+
+	// 이동속도 전환 버프용 GE(Infinite Duration)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
+	TSubclassOf<class UGameplayEffect> ChaseSpeedEffectClass;
+
+	// 스프린트 버프 GE 핸들 (끝낼 때 제거용)
+	FActiveGameplayEffectHandle ChaseSpeedEffectHandle;
 };

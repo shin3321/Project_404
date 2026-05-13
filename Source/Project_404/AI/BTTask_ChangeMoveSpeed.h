@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
+#include "Interface/FZFMonsterAIInterface.h"
 #include "BTTask_ChangeMoveSpeed.generated.h"
 
 /**
@@ -20,6 +21,8 @@ public:
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
-
+protected:
+	UPROPERTY(EditAnywhere, Category = "MoveType")
+	EFZFAIMoveSpeedMode MoveSpeedMode = EFZFAIMoveSpeedMode::Patrol;
 	
 };
