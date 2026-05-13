@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Manager/FZFBossLevelManager.h"
@@ -45,6 +45,7 @@ void AFZFBossLevelManager::BeginPlay()
 			if (SpawnedLaser)
 			{
 				SpawnedLaser->DeactivateLaser();
+				SpawnedLaser->OnLaserDeactive.AddDynamic(this, &AFZFBossLevelManager::DeactivateLaser);
 				LaserPool.Add(SpawnedLaser);
 			}
 		}
@@ -102,7 +103,6 @@ void AFZFBossLevelManager::Laser()
 {
 	LaserCount = FMath::RandRange(2, 6);
 	
-	TArray<AFZFLaserActor*> AvailableLasers;
 	for (AFZFLaserActor* Laser : LaserPool)
 	{
 		if (Laser->GetLaserMode() == ELaserMode::Inactive)
@@ -110,15 +110,23 @@ void AFZFBossLevelManager::Laser()
 			AvailableLasers.Add(Laser);
 		}
 	}
+
 	Algo::RandomShuffle(AvailableLasers);
 	for (int32 i = 0; i < LaserCount; ++i)
 	{
 		AFZFLaserActor* SelectedLaser = AvailableLasers[i];
+		if(SelectedLaser)
+		{
+			ELaserMode RandomMode = FMath::RandBool() ? ELaserMode::Moving : ELaserMode::Fixed;
+			ELaserType RandomType = FMath::RandBool() ? ELaserType::Vertical : ELaserType::Horizon;
 
-		ELaserMode RandomMode = FMath::RandBool() ? ELaserMode::Moving : ELaserMode::Fixed;
-		ELaserType RandomType = FMath::RandBool() ? ELaserType::Virtical : ELaserType::Horizon;
-
-		SelectedLaser->ActivateLaser(MinWallLocation, RandomMode, RandomType, MoveSpeed);
+			SelectedLaser->ActivateLaser(MinWallLocation, RandomMode, RandomType, MoveSpeed);
+		}
 	}
+}
+
+void AFZFBossLevelManager::DeactivateLaser(AFZFLaserActor* Laser)
+{
+	AvailableLasers.Remove(Laser);
 }
 
