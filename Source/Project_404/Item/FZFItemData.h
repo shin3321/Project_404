@@ -46,4 +46,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
     int32 MaxStackCount = 1;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    TObjectPtr<class UFZFItemAnimSetData> AnimSet;
+
 };

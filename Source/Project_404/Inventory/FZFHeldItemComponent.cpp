@@ -1,42 +1,44 @@
-#include "FZFHeldItemComponent.h"
+ï»¿#include "FZFHeldItemComponent.h"
 #include "FZFHeldItemActor.h"
 #include "Item/FZFItemData.h"
+#include "Character/Player/FZFCharacterPlayer.h"
+#include "Item/FZFItemAnimSetData.h"
 
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 
 UFZFHeldItemComponent::UFZFHeldItemComponent()
 {
-    // Tick ÇÊ¿ä ¾øÀ¸¸é ²û
+    // Tick í•„ìš” ì—†ìœ¼ë©´ ë”
     PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
 {
-    // ±âÁ¸¿¡ ¼Õ¿¡ µé°í ÀÖ´ø ¾ÆÀÌÅÛÀÌ ÀÖÀ¸¸é ¸ÕÀú Á¦°Å
+    // ê¸°ì¡´ì— ì†ì— ë“¤ê³  ìˆë˜ ì•„ì´í…œì´ ìˆìœ¼ë©´ ë¨¼ì € ì œê±°
     ClearHeldItem();
 
-    // ¼±ÅÃµÈ ½½·ÔÀÌ ºñ¾îÀÖ°Å³ª ItemData°¡ ¾øÀ¸¸é Á¾·á
+    // ì„ íƒëœ ìŠ¬ë¡¯ì´ ë¹„ì–´ìˆê±°ë‚˜ ItemDataê°€ ì—†ìœ¼ë©´ ì¢…ë£Œ
     if (!ItemData)
     {
         return;
     }
 
-    // ItemData¿¡ Mesh°¡ ¾øÀ¸¸é ¼Õ¿¡ º¸¿©ÁÙ ¼ö ¾øÀ¸¹Ç·Î Á¾·á
+    // ItemDataì— Meshê°€ ì—†ìœ¼ë©´ ì†ì— ë³´ì—¬ì¤„ ìˆ˜ ì—†ìœ¼ë¯€ë¡œ ì¢…ë£Œ
     if (!ItemData->Mesh)
     {
         UE_LOG(LogTemp, Warning, TEXT("ItemData Mesh is null"));
         return;
     }
 
-    // ¼Õ¿¡ µé ¾ÆÀÌÅÛ Actor Å¬·¡½º°¡ ¼³Á¤µÇ¾î ÀÖÁö ¾ÊÀ¸¸é »ı¼º ºÒ°¡
+    // ì†ì— ë“¤ ì•„ì´í…œ Actor í´ë˜ìŠ¤ê°€ ì„¤ì •ë˜ì–´ ìˆì§€ ì•Šìœ¼ë©´ ìƒì„± ë¶ˆê°€
     if (!HeldItemClass)
     {
         UE_LOG(LogTemp, Warning, TEXT("HeldItemClass is null"));
         return;
     }
 
-    // ÀÌ ÄÄÆ÷³ÍÆ®¸¦ °¡Áö°í ÀÖ´Â Owner¸¦ Character·Î Ä³½ºÆÃ
+    // ì´ ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì§€ê³  ìˆëŠ” Ownerë¥¼ Characterë¡œ ìºìŠ¤íŒ…
     ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
     if (!OwnerCharacter)
     {
@@ -44,16 +46,16 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
         return;
     }
 
-    // Ä³¸¯ÅÍ°¡ °¡Áø ¸ğµç SkeletalMeshComponent¸¦ °¡Á®¿È
-    // ¸ö ¸Ş½Ã, ¼Õ ¸Ş½Ã°¡ µÑ ´Ù ÀÖÀ» ¼ö ÀÖ±â ¶§¹®
+    // ìºë¦­í„°ê°€ ê°€ì§„ ëª¨ë“  SkeletalMeshComponentë¥¼ ê°€ì ¸ì˜´
+    // ëª¸ ë©”ì‹œ, ì† ë©”ì‹œê°€ ë‘˜ ë‹¤ ìˆì„ ìˆ˜ ìˆê¸° ë•Œë¬¸
     TArray<USkeletalMeshComponent*> MeshComponents;
     OwnerCharacter->GetComponents<USkeletalMeshComponent>(MeshComponents);
 
-    // È­¸é¿¡ º¸ÀÌ´Â ¼Õ SkeletalMeshComponent¸¦ ÀúÀåÇÒ º¯¼ö
+    // í™”ë©´ì— ë³´ì´ëŠ” ì† SkeletalMeshComponentë¥¼ ì €ì¥í•  ë³€ìˆ˜
     USkeletalMeshComponent* ArmsMeshComponent = nullptr;
 
-    // ÀÌ¸§ÀÌ "2_Hand"ÀÎ ¼Õ ¸Ş½Ã ÄÄÆ÷³ÍÆ®¸¦ Ã£À½
-    // ÁÖÀÇ: "2_Hand"´Â BP_FZFPlayerÀÇ Components ÆĞ³Î¿¡ ÀÖ´Â ÄÄÆ÷³ÍÆ® ÀÌ¸§°ú °°¾Æ¾ß ÇÔ
+    // ì´ë¦„ì´ "2_Hand"ì¸ ì† ë©”ì‹œ ì»´í¬ë„ŒíŠ¸ë¥¼ ì°¾ìŒ
+    // ì£¼ì˜: "2_Hand"ëŠ” BP_FZFPlayerì˜ Components íŒ¨ë„ì— ìˆëŠ” ì»´í¬ë„ŒíŠ¸ ì´ë¦„ê³¼ ê°™ì•„ì•¼ í•¨
     for (USkeletalMeshComponent* MeshComp : MeshComponents)
     {
         if (MeshComp && MeshComp->GetName() == TEXT("CharacterArmMesh"))
@@ -63,21 +65,21 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
         }
     }
 
-    // ¼Õ ¸Ş½Ã ÄÄÆ÷³ÍÆ®¸¦ ¸ø Ã£À¸¸é ¾ÆÀÌÅÛÀ» ºÙÀÏ ¼ö ¾øÀ¸¹Ç·Î Á¾·á
+    // ì† ë©”ì‹œ ì»´í¬ë„ŒíŠ¸ë¥¼ ëª» ì°¾ìœ¼ë©´ ì•„ì´í…œì„ ë¶™ì¼ ìˆ˜ ì—†ìœ¼ë¯€ë¡œ ì¢…ë£Œ
     if (!ArmsMeshComponent)
     {
         UE_LOG(LogTemp, Warning, TEXT("2_Hand SkeletalMeshComponent not found"));
         return;
     }
 
-    // ¼Õ ¸Ş½Ã ¾È¿¡ hand_r_Socket ¼ÒÄÏÀÌ ½ÇÁ¦·Î ÀÖ´ÂÁö È®ÀÎ
+    // ì† ë©”ì‹œ ì•ˆì— hand_r_Socket ì†Œì¼“ì´ ì‹¤ì œë¡œ ìˆëŠ”ì§€ í™•ì¸
     if (!ArmsMeshComponent->DoesSocketExist(TEXT("hand_r_Socket")))
     {
         UE_LOG(LogTemp, Warning, TEXT("hand_r_Socket does not exist on 2_Hand"));
         return;
     }
 
-    // ¼Õ¿¡ µé ¾ÆÀÌÅÛ Actor »ı¼º
+    // ì†ì— ë“¤ ì•„ì´í…œ Actor ìƒì„±
     CurrentHeldItem = GetWorld()->SpawnActor<AFZFHeldItemActor>(HeldItemClass);
     if (!CurrentHeldItem)
     {
@@ -85,21 +87,28 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
         return;
     }
 
-    // ItemData¿¡ µî·ÏµÈ Mesh¸¦ ¼Õ ¾ÆÀÌÅÛ Actor¿¡ Àû¿ë
+    // ItemDataì— ë“±ë¡ëœ Meshë¥¼ ì† ì•„ì´í…œ Actorì— ì ìš©
     CurrentHeldItem->SetHeldMesh(ItemData->Mesh);
 
-    // ¼Õ ¸Ş½ÃÀÇ hand_r_Socket ¼ÒÄÏ¿¡ ¾ÆÀÌÅÛ Actor¸¦ ºÙÀÓ
-    // SnapToTargetIncludingScaleÀ» ¾²¸é ¼ÒÄÏÀÇ Location / Rotation / ScaleÀÌ Àû¿ëµÊ
+    // ì† ë©”ì‹œì˜ hand_r_Socket ì†Œì¼“ì— ì•„ì´í…œ Actorë¥¼ ë¶™ì„
+    // SnapToTargetIncludingScaleì„ ì“°ë©´ ì†Œì¼“ì˜ Location / Rotation / Scaleì´ ì ìš©ë¨
     CurrentHeldItem->AttachToComponent(
         ArmsMeshComponent,
         FAttachmentTransformRules::SnapToTargetIncludingScale,
         TEXT("hand_r_Socket")
     );
+
+
+    AFZFCharacterPlayer* PlayerCharacter = Cast<AFZFCharacterPlayer>(GetOwner());
+    if (IsValid(PlayerCharacter) && IsValid(ItemData->AnimSet))
+    {
+        PlayerCharacter->ApplyAnimationsByItemAnimType(ItemData->AnimSet->ThirdPersonIdle, ItemData->AnimSet->FirstPersonIdle);
+    }
 }
 
 void UFZFHeldItemComponent::ClearHeldItem()
 {
-    // ÇöÀç ¼Õ¿¡ µç ¾ÆÀÌÅÛÀÌ ÀÖÀ¸¸é Á¦°Å
+    // í˜„ì¬ ì†ì— ë“  ì•„ì´í…œì´ ìˆìœ¼ë©´ ì œê±°
     if (CurrentHeldItem)
     {
         CurrentHeldItem->Destroy();
