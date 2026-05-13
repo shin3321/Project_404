@@ -91,12 +91,7 @@ void UFZFGA_Run::OnCostTick()
     UFZFAbilitySystemComponent* ASC = Cast<UFZFAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
 
     // ASC가 없고 CostGameplayEffectClass가 없으면 return
-    if (!ASC)
-    {
-        return;
-    }
-
-    if (!CostGameplayEffectClass)
+    if (!ASC || !CostGameplayEffectClass)
     {
         return;
     }
@@ -107,17 +102,15 @@ void UFZFGA_Run::OnCostTick()
         return;
     }
 
-    // AttributeSet 포인터가 없어서 스테미나 수치를 찾기위한 함수 GetNumericAttribute
-    const float CurrentStamina = ASC->GetNumericAttribute(UFZFPlayerSet::GetStaminaAttribute());
-    if (CurrentStamina <= 0.0f)
+    if(!CommitAbilityCost(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo))
     {
-        const FGameplayAbilityActorInfo* Info = GetCurrentActorInfo();
-        EndAbility(CurrentSpecHandle, Info, CurrentActivationInfo, true, false);
+        // 스테미나가 부족하면 알아서 종료
+        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
         return;
     }
 
-    FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
-    
+    // 소모에 성공하면 다음 틱 예약
+    StartCostTickLoop();
 }
 
 void UFZFGA_Run::StartCostTickLoop()
