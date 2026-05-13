@@ -1,10 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "FZFLaserActor.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLaserDeactive, AFZFLaserActor*, Laser);
+
+class UBoxComponent;
+class UStaticMeshComponent;
+class UNiagaraComponent;
 
 UENUM(BlueprintType)
 enum class ELaserMode : uint8
@@ -18,7 +24,7 @@ UENUM(BlueprintType)
 enum class ELaserType : uint8
 {
 	Horizon,
-	Virtical
+	Vertical
 };
 UCLASS()
 class PROJECT_404_API AFZFLaserActor : public AActor
@@ -46,7 +52,26 @@ public:
 	
 	// Getter
 	ELaserMode GetLaserMode();
-	
+
+	UPROPERTY(BlueprintAssignable, BlueprintReadWrite, Category = "Laser")
+	FOnLaserDeactive OnLaserDeactive;
+
+protected:	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USceneComponent* RootComp;
+
+	// 레이저 충돌 판정을 위한 박스 콜리전
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UBoxComponent* CollisionComp;
+
+	// 레이저 빔 시각 효과 (나이아가라 이펙트 사용 권장)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UNiagaraComponent* LaserEffectComp;
+
+
+
+	// UFUNCTION()
+	// void OnLaserOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 private:
 	ELaserMode CurrentMode;
 	ELaserType CurrentType;
