@@ -32,17 +32,21 @@ public:
 	
 	UFUNCTION()
 	void Laser();
+	
+	UFUNCTION()
+	void DeactivateLaser(AFZFLaserActor* Laser);
 protected:
 	FTimerHandle LaserTimerHandle;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Laser")
+	UPROPERTY(EditAnywhere, Category = "Gimmick|Laser")
 	TSubclassOf<class AFZFLaserActor> LaserClass;
 	
 	UPROPERTY()
 	TArray<TObjectPtr<AFZFLaserActor>> LaserPool;
 	
 	int32 LaserCount = 20;
-	
+
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class UBoxComponent* TransferVolume;
@@ -50,5 +54,7 @@ protected:
 	int32 MoveSpeed = 300.0f;
 	
 	FVector MinWallLocation = FVector(0.0f, 0.0f, 0.0f);
-	
+
+	UPROPERTY()
+	TArray<AFZFLaserActor*> AvailableLasers;
 };

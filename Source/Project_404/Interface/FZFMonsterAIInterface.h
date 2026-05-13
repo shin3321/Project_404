@@ -37,5 +37,5 @@ public:
 	virtual void AttackByAI() = 0;
 
 	// 캐릭터에서 델리게이트를 넘길 때 사용할 함수.
-	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) = 0
+	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) = 0;
 };

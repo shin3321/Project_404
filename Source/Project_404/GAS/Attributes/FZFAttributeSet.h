@@ -57,6 +57,10 @@ public:
 	// GAS의 설계 철학은 "영구적인 변화가 아니면 BaseValue를 직접 건드리지 않는다"
 	// If) 저주로 최대체력이 깎이는 디버프가 걸린다 -> MaxHp의 CurrentValue를 수정하는게 옳은 방향
 
+protected:
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+
 private:
 	// private : 직접 접근해서 값을 수정하는 것을 방지
 	// AllowPrivateAccess : 에디터에서는 값을 확인하고 초기값 설정 허용
