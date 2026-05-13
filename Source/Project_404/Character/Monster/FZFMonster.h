@@ -36,12 +36,14 @@ protected:
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) override;
 	virtual void AttackByAI() override;
 
-	// 공격 모션이 끝나면 호출되는 이벤트 함수.
-	void NotifyAttackActionEnd();
+	
 
 public:
+	// 공격 모션(몽타주 재생) 종료 시 호출되는 이벤트 함수.
+	void NotifyAttackActionEnd();
+
 	// 몽타주 재생 종료 시 호출할 함수
-	void AttackActionEnd();
+	//void AttackActionEnd();
 
 
 protected:

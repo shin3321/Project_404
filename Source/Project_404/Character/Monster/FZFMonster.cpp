@@ -63,6 +63,8 @@ void AFZFMonster::BeginPlay()
 	InitAbilitySystem();
 }
 
+/* GAS 초기세팅 */
+
 void AFZFMonster::InitAbilitySystem()
 {
 	Super::InitAbilitySystem();
@@ -107,18 +109,13 @@ float AFZFMonster::GetAIPatrolRadius()
 float AFZFMonster::GetAIDetectRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
-	/*if (!MonsterAttributeSet)
-	{
-		UE_LOG(LogTemp, Error, TEXT("MonsterAttributeSet nullptr"));
-		return 400.0f;
-	}*/
-
 	return MonsterAttributeSet->GetDetectRange();
 }
 
 // 공격 사거리
 float AFZFMonster::GetAIAttackRange()
 {
+	// GAS AttributeSet에서 수치 가져오기
 	return MonsterAttributeSet->GetAttackRange();
 }
 
@@ -160,15 +157,7 @@ void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAtta
 	// OnAbilityEnded 델리게이트를 통해 OnAttackFinished.ExecuteIfBound()를 호출
 }
 
-void AFZFMonster::AttackActionEnd()
-{
-	// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-
-	// 공격이 끝나면 NotifyComboActionEnd() 호출.
-	NotifyAttackActionEnd();
-}
-
+/* 클래스 멤버 함수 구현 */
 void AFZFMonster::NotifyAttackActionEnd()
 {
 	// 앞서 전달받은 델리게이트 실행.

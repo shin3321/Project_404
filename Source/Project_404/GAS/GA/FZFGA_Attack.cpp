@@ -26,7 +26,7 @@ void UFZFGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		return;
 	}
 
-	// 공격 중 이동 금지
+	// 몽타주 재생하면 캐릭터 이동을 멈춤
 	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
@@ -70,9 +70,15 @@ void UFZFGA_Attack::OnMontageInterrupted()
 
 void UFZFGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
+	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+	{
+		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	}
+
 	if (AFZFMonster* Monster = Cast<AFZFMonster>(ActorInfo->AvatarActor.Get()))
 	{
-		Monster->AttackActionEnd();
+		Monster->NotifyAttackActionEnd();
 	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
