@@ -63,6 +63,8 @@ void AFZFMonster::BeginPlay()
 	InitAbilitySystem();
 }
 
+/* GAS 초기세팅 */
+
 void AFZFMonster::InitAbilitySystem()
 {
 	Super::InitAbilitySystem();
@@ -107,18 +109,13 @@ float AFZFMonster::GetAIPatrolRadius()
 float AFZFMonster::GetAIDetectRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
-	/*if (!MonsterAttributeSet)
-	{
-		UE_LOG(LogTemp, Error, TEXT("MonsterAttributeSet nullptr"));
-		return 400.0f;
-	}*/
-
 	return MonsterAttributeSet->GetDetectRange();
 }
 
 // 공격 사거리
 float AFZFMonster::GetAIAttackRange()
 {
+	// GAS AttributeSet에서 수치 가져오기
 	return MonsterAttributeSet->GetAttackRange();
 }
 
@@ -140,7 +137,17 @@ float AFZFMonster::GetAITurnSpeed()
 	return MonsterAttributeSet->GetTurnSpeed();
 }
 
-// 공격
+// 공격 여부 델리게이트 저장
+void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)
+{
+	// 델리게이트를 변수에 저장.
+	OnAttackFinished = InOnAttackFinished;
+
+	// 실제 공격 종료 시점은 Gameplay Ability(GA) 내부에서 
+	// OnAbilityEnded 델리게이트를 통해 OnAttackFinished.ExecuteIfBound()를 호출
+}
+
+// 공격 실행
 void AFZFMonster::AttackByAI()
 {
 	// GAS 어빌리티 실행 (태그 기반)
@@ -150,25 +157,39 @@ void AFZFMonster::AttackByAI()
 	}
 }
 
-void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)
+void AFZFMonster::SetAIMoveSpeedMode(EFZFAIMoveSpeedMode MoveSpeedMode)
 {
-	// 델리게이트를 변수에 저장.
-	OnAttackFinished = InOnAttackFinished;
+	if (!ASC || !MonsterAttributeSet)
+	{
+		return;
+	}
 
-	// 실제 공격 종료 시점은 Gameplay Ability(GA) 내부에서
-	// 몽타주 종료 섹션 등에 GameplayEvent를 날려 캐릭터가 받게 하거나, 
-	// OnAbilityEnded 델리게이트를 통해 OnAttackFinished.ExecuteIfBound()를 호출
+	// 기존 속도 버프 제거
+	if (ChaseSpeedEffectHandle.IsValid())
+	{
+		ASC->RemoveActiveGameplayEffect(ChaseSpeedEffectHandle);
+		ChaseSpeedEffectHandle.Invalidate();
+	}
+
+	// 추격(Chase)상태 일 때만 이동속도 GE 적용
+	if (MoveSpeedMode == EFZFAIMoveSpeedMode::Chase && ChaseSpeedEffectClass)
+	{
+		FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+		Context.AddSourceObject(this);
+
+		FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(ChaseSpeedEffectClass, 1.0f, Context);
+
+		if (SpecHandle.IsValid())
+		{
+			ChaseSpeedEffectHandle = ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+		}
+	}
+
+	// GE 적용/제거 후 최종 MovementSpeed를 CharacterMovement에 반영
+	GetCharacterMovement()->MaxWalkSpeed = MonsterAttributeSet->GetMovementSpeed();
 }
 
-void AFZFMonster::AttackActionEnd()
-{
-	// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-
-	// 공격이 끝나면 NotifyComboActionEnd() 호출.
-	NotifyAttackActionEnd();
-}
-
+/* 클래스 멤버 함수 구현 */
 void AFZFMonster::NotifyAttackActionEnd()
 {
 	// 앞서 전달받은 델리게이트 실행.
@@ -179,3 +200,4 @@ void AFZFMonster::NotifyAttackActionEnd()
 		OnAttackFinished.Unbind(); // 실행 후 언바인드
 	}
 }
+
