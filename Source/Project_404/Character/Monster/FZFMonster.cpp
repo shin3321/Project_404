@@ -6,6 +6,7 @@
 #include "GAS/Attributes/FZFMonsterSet.h"
 #include "AI/FZFAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameplayTag/FZFGameplayTags.h"
 
 AFZFMonster::AFZFMonster()
 {
@@ -56,7 +57,7 @@ AFZFMonster::AFZFMonster()
 	}
 }
 
-void AFZFMonster::BeginPlay()
+void AFZFMonster::BeginPlay() 
 {
 	Super::BeginPlay();
 	InitAbilitySystem();
@@ -76,10 +77,25 @@ void AFZFMonster::InitAbilitySystem()
 		{
 			UE_LOG(LogTemp, Error, TEXT("[%s] MonsterAttributeSet 로드 실패!"), *GetName());
 		}
+
+		if (HasAuthority())
+		{
+			for (const auto& StartupAbility : StartupAbilities)
+			{
+				if (StartupAbility)
+				{
+					FGameplayAbilitySpec StartSpec(StartupAbility);
+					ASC->GiveAbility(StartSpec);
+				}
+			}
+		}
 	}
 
 }
 
+/* 인터페이스 구현 */
+
+// 정찰 범위
 float AFZFMonster::GetAIPatrolRadius()
 {
 	// 따로 데이터 에셋에서 받아오도록 수정 
@@ -87,6 +103,7 @@ float AFZFMonster::GetAIPatrolRadius()
 	return 800.0f;
 }
 
+// 플레이어 감지 범위
 float AFZFMonster::GetAIDetectRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
@@ -99,14 +116,16 @@ float AFZFMonster::GetAIDetectRange()
 	return MonsterAttributeSet->GetDetectRange();
 }
 
+// 공격 사거리
 float AFZFMonster::GetAIAttackRange()
 {
+	return MonsterAttributeSet->GetAttackRange();
+}
+
+// 공격 감지 범위
+float AFZFMonster::GetAIAttackDetectRange()
+{
 	// GAS AttributeSet에서 수치 가져오기
-	/*if (!MonsterAttributeSet)
-	{
-		UE_LOG(LogTemp, Error, TEXT("MonsterAttributeSet nullptr"));
-		return 100.0f + (50.0f * 2);
-	}*/
 
 	// 공격 거리.
 	// 캡슐 형태 = 공격 거리 + (공격 반경 x 2).
@@ -114,25 +133,21 @@ float AFZFMonster::GetAIAttackRange()
 		+ (MonsterAttributeSet->GetAttackRadius() * 2);
 }
 
+// 회전 스피드
 float AFZFMonster::GetAITurnSpeed()
 {
 	// GAS AttributeSet에서 수치 가져오기
-	return 0.0f;
+	return MonsterAttributeSet->GetTurnSpeed();
 }
 
+// 공격
 void AFZFMonster::AttackByAI()
 {
-	// 공격 재생.
-	//if (ASC)
-	//{
-	//	// 공격 어빌리티 실행 (태그 기반)
-	//	// "Character.Action.Attack" 등의 태그를 미리 지정해두거나 변수로 관리
-	//	FGameplayTag AttackTag = FGameplayTag::RequestGameplayTag(FName("Character.Action.Attack"));
-	//	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
-	//}
-	
-	// 공격 재생.
-	ProcessAttack();
+	// GAS 어빌리티 실행 (태그 기반)
+	if (ASC)
+	{
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Attack));
+	}
 }
 
 void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)
@@ -145,37 +160,7 @@ void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAtta
 	// OnAbilityEnded 델리게이트를 통해 OnAttackFinished.ExecuteIfBound()를 호출
 }
 
-void AFZFMonster::ProcessAttack()
-{
-	AttackActionBegin();
-}
-
-void AFZFMonster::AttackActionBegin()
-{
-	// 몽타주 재생.
-	// 애님 인스턴스 가져오기.
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance)
-	{
-		// 몽타주 재생 속도.
-		const float AttackSpeedRate = MonsterAttributeSet->GetAttackSpeed();
-
-		// 몽타주 재생.
-		AnimInstance->Montage_Play(AttackMontage, AttackSpeedRate);
-
-		// 몽타주 종료 이벤트에 등록할 델리게이트 설정.
-		FOnMontageEnded OnMontageEnded;
-		OnMontageEnded.BindUObject(this, &AFZFMonster::AttackActionEnd);
-
-		// 몽타주 재생 종료 시 발행되는 이벤트에 등록.
-		AnimInstance->Montage_SetEndDelegate(OnMontageEnded, AttackMontage);
-
-		// 몽타주 재생 시 이동 안하도록 설정.
-		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	}
-}
-
-void AFZFMonster::AttackActionEnd(UAnimMontage* TargetMontage, bool bInterrupted)
+void AFZFMonster::AttackActionEnd()
 {
 	// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
@@ -187,5 +172,10 @@ void AFZFMonster::AttackActionEnd(UAnimMontage* TargetMontage, bool bInterrupted
 void AFZFMonster::NotifyAttackActionEnd()
 {
 	// 앞서 전달받은 델리게이트 실행.
-	OnAttackFinished.ExecuteIfBound();
+
+	if (OnAttackFinished.IsBound())
+	{
+		OnAttackFinished.Execute();
+		OnAttackFinished.Unbind(); // 실행 후 언바인드
+	}
 }

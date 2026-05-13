@@ -9,12 +9,22 @@ namespace FZFGameplayTags
 	//아이템 버리기
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_DropItem, "Ability.Action.DropItem");
 
+	// 달리기 / 점프
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Run,"Ability.Action.Run");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Jump, "Ability.Action.Jump");
+	
+	// 공격
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack, "Ability.Action.Attack");
 
 
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Idle,"State.Movement.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Walk,"State.Movement.Walk");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Run,"State.Movement.Run");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Jump,"State.Movement.Jump");
+	
+	UE_DEFINE_GAMEPLAY_TAG(State_Stamina_NoRegen,"State.Stamina.NoRegen");
+	UE_DEFINE_GAMEPLAY_TAG(State_Action_DroppingItem,"State.Action.DroppingItem");
+	UE_DEFINE_GAMEPLAY_TAG(State_Action_Attack,"State.Action.Attack");
+
+
 }

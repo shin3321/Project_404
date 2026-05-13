@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -6,7 +6,7 @@
 #include "UObject/Interface.h"
 #include "FZFMonsterAIInterface.generated.h"
 
-// °ø°İ Á¾·á µ¨¸®°ÔÀÌÆ® ¼±¾ğ.
+// ê³µê²© ì¢…ë£Œ ë¸ë¦¬ê²Œì´íŠ¸ ì„ ì–¸.
 DECLARE_DELEGATE(FAICharacterAttackFinished);
 
 // This class does not need to be modified.
@@ -25,15 +25,17 @@ class PROJECT_404_API IFZFMonsterAIInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	// NPC Ä³¸¯ÅÍ°¡ ±¸ÇöÇØ¾ßÇÏ´Â ÇÔ¼ö.
+	// NPC ìºë¦­í„°ê°€ êµ¬í˜„í•´ì•¼í•˜ëŠ” í•¨ìˆ˜.
 	virtual float GetAIPatrolRadius() = 0;
 	virtual float GetAIDetectRange() = 0;
 	virtual float GetAIAttackRange() = 0;
+	virtual float GetAIAttackDetectRange() = 0;
+
 	virtual float GetAITurnSpeed() = 0;
 
-	// Task¿¡¼­ °ø°İ ¸í·ÉÀ» Àü´ŞÇÒ ¶§ »ç¿ëÇÏ´Â ÇÔ¼ö.
+	// Taskì—ì„œ ê³µê²© ëª…ë ¹ì„ ì „ë‹¬í•  ë•Œ ì‚¬ìš©í•˜ëŠ” í•¨ìˆ˜.
 	virtual void AttackByAI() = 0;
 
-	// Ä³¸¯ÅÍ¿¡¼­ µ¨¸®°ÔÀÌÆ®¸¦ ³Ñ±æ ¶§ »ç¿ëÇÒ ÇÔ¼ö.
+	// ìºë¦­í„°ì—ì„œ ë¸ë¦¬ê²Œì´íŠ¸ë¥¼ ë„˜ê¸¸ ë•Œ ì‚¬ìš©í•  í•¨ìˆ˜.
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) = 0;
 };

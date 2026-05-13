@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "GAS/GA/FZFGA_Run.h"
@@ -6,13 +6,16 @@
 #include "GAS/Attributes/FZFPlayerSet.h"
 #include "GAS/FZFAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Abilities/Tasks/AbilityTask_WaitAttributeChangeThreshold.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
+#include "GameplayTag/FZFGameplayTags.h"
 
 UFZFGA_Run::UFZFGA_Run()
 {
-    // ÀÎ½ºÅÏ½Ì Á¤Ã¥: ¾îºô¸®Æ¼°¡ ½ÇÇàµÉ ¶§¸¶´Ù ÀÎ½ºÅÏ½º¸¦ »ı¼º (µ¥ÀÌÅÍ °ü¸®°¡ ÆíÇÔ)
+    // ì¸ìŠ¤í„´ì‹± ì •ì±…: ì–´ë¹Œë¦¬í‹°ê°€ ì‹¤í–‰ë  ë•Œë§ˆë‹¤ ì¸ìŠ¤í„´ìŠ¤ë¥¼ ìƒì„± (ë°ì´í„° ê´€ë¦¬ê°€ í¸í•¨)
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 
-    // ½ÇÇà Á¤Ã¥ (¹İÀÀ¼º °­È­)
+    // ì‹¤í–‰ ì •ì±… (ë°˜ì‘ì„± ê°•í™”)
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
 
@@ -20,16 +23,40 @@ void UFZFGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-    AFZFCharacterBase* Character = Cast<AFZFCharacterBase>(ActorInfo->AvatarActor.Get());
     UFZFAbilitySystemComponent* ASC = Cast<UFZFAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get());
 
-    if (Character && ASC)
+    if (ASC && SprintBuffEffectClass)
     {
-        // AttributeSet¿¡¼­ ÇöÀç ¼Óµµ¸¦ °¡Á®¿È
-        float TargetRunSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetMovementSpeedAttribute()) * 3.0f;
+        // SprintBuffEffect ì ìš© ë° í•¸ë“¤ ì €ì¥
+        FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+        FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(SprintBuffEffectClass, GetAbilityLevel(), EffectContext);
+      
+        if (SpecHandle.IsValid())
+        {
+            //ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+            // ìœ„ì™€ ê°™ì´ ì“°ì§€ë§ê³  BP_ë²„ì „ìœ¼ë¡œ ì“°ë©´ SpecHandle ê·¸ëŒ€ë¡œ ë„˜ê¸°ë©´ ë¨
+            // ë°©ì‹ : Infinite ë¡œ MovementSpeed Attributeë¥¼ ì¦ê°€ì‹œì¼œì•¼í•¨
+            SprintBuffEffectHandle = ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+        }
+    
+        // ìŠ¤í…Œë¯¸ë‚˜ 0 ì´í•˜ ê°ì‹œ í…ŒìŠ¤í¬
+        UAbilityTask_WaitAttributeChangeThreshold* WaitTask =
+            UAbilityTask_WaitAttributeChangeThreshold::WaitForAttributeChangeThreshold(
+                this,
+                UFZFPlayerSet::GetStaminaAttribute(),
+                EWaitAttributeChangeComparison::LessThanOrEqualTo,
+                0.0f,
+                true
+            );
 
-        // Ä³¸¯ÅÍ ¹«ºê¸ÕÆ®¿¡ Àû¿ë
-        Character->GetCharacterMovement()->MaxWalkSpeed = TargetRunSpeed;
+        if (WaitTask)
+        {
+            WaitTask->OnChange.AddDynamic(this, &UFZFGA_Run::OnStaminaThresholdChanged);
+            WaitTask->ReadyForActivation();
+        }
+
+        // ì£¼ê¸°ì  ì†Œëª¨ ë£¨í”„ ì‹œì‘
+        StartCostTickLoop();
     }
 }
 
@@ -40,10 +67,63 @@ void UFZFGA_Run::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 
     if (Character && ASC)
     {
-        // ´Ù½Ã ±âº» ÀÌµ¿ ¼Óµµ(WalkSpeed) ¾îÆ®¸®ºäÆ® °ªÀ» °¡Á®¿Í¼­ ¿øº¹
+        // ë‹¤ì‹œ ê¸°ë³¸ ì´ë™ ì†ë„(WalkSpeed) ì–´íŠ¸ë¦¬ë·°íŠ¸ ê°’ì„ ê°€ì ¸ì™€ì„œ ì›ë³µ
         float DefaultWalkSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetMovementSpeedAttribute());
         Character->GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
     }
 
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UFZFGA_Run::OnStaminaEmpty(const FGameplayAttribute& Attribute, float NewValue, float OldValue)
+{
+    const FGameplayAbilityActorInfo* Info = GetCurrentActorInfo();
+    EndAbility(CurrentSpecHandle, Info, CurrentActivationInfo, true, false);
+}
+
+void UFZFGA_Run::OnStaminaThresholdChanged(bool bMatchesComparison, float CurrentValue)
+{
+}
+
+void UFZFGA_Run::OnCostTick()
+{
+    // ì¸ì ì—†ì´ í˜„ì¬ ì´ ëŠ¥ë ¥ì„ ì‹¤í–‰ ì¤‘ì¸ ì£¼ì²´ì˜ ASCë¥¼ ê°€ì§€ê³  ì˜¤ê³  ì‹¶ì„ ë•Œ, GetAbilitySystemComponentFromActorInfo();
+    UFZFAbilitySystemComponent* ASC = Cast<UFZFAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
+
+    // ASCê°€ ì—†ê³  CostGameplayEffectClassê°€ ì—†ìœ¼ë©´ return
+    if (!ASC || !CostGameplayEffectClass)
+    {
+        return;
+    }
+
+    // í˜„ì¬ ë‹¬ë¦¬ëŠ” ìƒíƒœê°€ ì•„ë‹ˆë©´ return
+    if (!ASC->HasMatchingGameplayTag(FZFGameplayTags::State_Movement_Run))
+    {
+        return;
+    }
+
+    if(!CommitAbilityCost(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo))
+    {
+        // ìŠ¤í…Œë¯¸ë‚˜ê°€ ë¶€ì¡±í•˜ë©´ ì•Œì•„ì„œ ì¢…ë£Œ
+        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+        return;
+    }
+
+    // ì†Œëª¨ì— ì„±ê³µí•˜ë©´ ë‹¤ìŒ í‹± ì˜ˆì•½
+    StartCostTickLoop();
+}
+
+void UFZFGA_Run::StartCostTickLoop()
+{
+    if (!IsActive())
+    {
+        return;
+    }
+
+    UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, CostTickInterval);
+    if (DelayTask)
+    {
+        DelayTask->OnFinish.AddDynamic(this, &UFZFGA_Run::OnCostTick);
+        DelayTask->ReadyForActivation();
+    }
 }

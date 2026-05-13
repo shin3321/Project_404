@@ -6,4 +6,5 @@
 UFZFPlayerSet::UFZFPlayerSet()
 {
 	InitMovementSpeed(400.0f);
+	InitStamina(100.0f);
 }

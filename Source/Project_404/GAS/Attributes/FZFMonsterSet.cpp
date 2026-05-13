@@ -1,19 +1,22 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "GAS/Attributes/FZFMonsterSet.h"
 
 UFZFMonsterSet::UFZFMonsterSet()
 {
-	// °ø°İ ¹İ°æ ¼³Á¤.
+	// ê³µê²© ë°˜ê²½ ì„¤ì •.
 	InitAttackRadius(50.0f);
 
-	// °ø°İ »ç°Å¸® ¼³Á¤.
-	InitAttackRange(50.0f);
+	// ê³µê²© ì‚¬ê±°ë¦¬ ì„¤ì •.
+	InitAttackRange(500.0f);
 
-	// °ø°İ ¼Óµµ ¼³Á¤.
-	InitAttackSpeed(1.0f);
+	// ê³µê²© ì†ë„ ì„¤ì •.
+	InitAttackSpeed(1.5f);
 
-	// ÇÃ·¹ÀÌ¾î °¨Áö ¹üÀ§ ¼³Á¤.
+	// í”Œë ˆì´ì–´ ê°ì§€ ë²”ìœ„ ì„¤ì •.
 	InitDetectRange(400.0f);
+
+	// íšŒì „ ìŠ¤í”¼ë“œ ì„¤ì •.
+	InitTurnSpeed(2.0f);
 }
