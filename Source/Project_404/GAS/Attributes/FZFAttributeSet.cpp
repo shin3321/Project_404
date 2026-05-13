@@ -8,6 +8,12 @@ UFZFAttributeSet::UFZFAttributeSet()
 	InitMaxHP(100.0f);
 }
 
+void UFZFAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+{
+	Super::PreAttributeChange(Attribute, NewValue);
+
+}
+
 void UFZFAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	Super::PostAttributeBaseChange(Attribute, OldValue, NewValue);

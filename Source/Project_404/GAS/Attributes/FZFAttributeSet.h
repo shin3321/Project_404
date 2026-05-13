@@ -58,6 +58,7 @@ public:
 	// If) 저주로 최대체력이 깎이는 디버프가 걸린다 -> MaxHp의 CurrentValue를 수정하는게 옳은 방향
 
 protected:
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 
 private:
