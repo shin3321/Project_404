@@ -15,6 +15,7 @@
 #include "Inventory/FZFInventoryComponent.h"
 #include "GameplayTag/FZFGameplayTags.h"
 #include "Interface/FZFInteractableInterface.h"
+#include "Animation/FZFPlayerAnimInstance.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Game/FZFGameMode.h"
@@ -356,6 +357,29 @@ void AFZFCharacterPlayer::PawnClientRestart()
 	UE_LOG(LogTemp, Log, TEXT("PawnClientRestart"));
 
 	ApplyMappingContext(DefaultMappingContext);
+}
+
+void AFZFCharacterPlayer::ApplyAnimationsByItemAnimType(UAnimSequence* ThirdPersonIdle, UAnimSequence* FirstPersonIdle)
+{
+	if (GetMesh())
+	{
+		UFZFPlayerAnimInstance* TPAnim = Cast<UFZFPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+
+		if (TPAnim)
+		{
+			TPAnim->SetCurrentIdleAnim(ThirdPersonIdle);
+		}
+	}
+
+	if (ArmMesh)
+	{
+		UFZFPlayerAnimInstance* FPAnim = Cast<UFZFPlayerAnimInstance>(ArmMesh->GetAnimInstance());
+
+		if (FPAnim)
+		{
+			FPAnim->SetCurrentIdleAnim(FirstPersonIdle);
+		}
+	}
 }
 
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)

@@ -38,6 +38,9 @@ public:
 	// 카메라에 안전하게 접근할 수 있도록 Getter 추가 (GA에서 사용)
 	FORCEINLINE class UCameraComponent* GetCamera() const { return Camera; }
 
+	// 아이템 변경 시 Idle 애니메이션 수정.
+	void ApplyAnimationsByItemAnimType(UAnimSequence* ThirdPersonIdle, UAnimSequence* FirstPersonIdle);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float deltaTime)override;

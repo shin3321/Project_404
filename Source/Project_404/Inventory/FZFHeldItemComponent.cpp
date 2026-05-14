@@ -4,6 +4,7 @@
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Item/FZFItemAnimSetData.h"
 
+#include "GameFramework/Pawn.h"
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 
@@ -38,6 +39,7 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
         return;
     }
 
+
     // 이 컴포넌트를 가지고 있는 Owner를 Character로 캐스팅
     ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
     if (!OwnerCharacter)
@@ -51,29 +53,33 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
     TArray<USkeletalMeshComponent*> MeshComponents;
     OwnerCharacter->GetComponents<USkeletalMeshComponent>(MeshComponents);
 
-    // 화면에 보이는 손 SkeletalMeshComponent를 저장할 변수
-    USkeletalMeshComponent* ArmsMeshComponent = nullptr;
-
-    // 이름이 "2_Hand"인 손 메시 컴포넌트를 찾음
-    // 주의: "2_Hand"는 BP_FZFPlayer의 Components 패널에 있는 컴포넌트 이름과 같아야 함
+    USkeletalMeshComponent* TargetMesh = nullptr;
     for (USkeletalMeshComponent* MeshComp : MeshComponents)
     {
         if (MeshComp && MeshComp->GetName() == TEXT("CharacterArmMesh"))
         {
-            ArmsMeshComponent = MeshComp;
-            break;
+            if (OwnerCharacter->IsLocallyControlled())
+            {
+                TargetMesh = MeshComp;
+                break;
+            }
+            else
+            {
+                TargetMesh = OwnerCharacter->GetMesh();
+                break;
+            }
         }
     }
 
     // 손 메시 컴포넌트를 못 찾으면 아이템을 붙일 수 없으므로 종료
-    if (!ArmsMeshComponent)
+    if (!TargetMesh)
     {
         UE_LOG(LogTemp, Warning, TEXT("2_Hand SkeletalMeshComponent not found"));
         return;
     }
 
-    // 손 메시 안에 hand_r_Socket 소켓이 실제로 있는지 확인
-    if (!ArmsMeshComponent->DoesSocketExist(TEXT("hand_r_Socket")))
+    // 메시 안에 hand_r_Socket 소켓이 실제로 있는지 확인
+    if (!TargetMesh->DoesSocketExist(TEXT("hand_r_Socket")))
     {
         UE_LOG(LogTemp, Warning, TEXT("hand_r_Socket does not exist on 2_Hand"));
         return;
@@ -93,7 +99,7 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
     // 손 메시의 hand_r_Socket 소켓에 아이템 Actor를 붙임
     // SnapToTargetIncludingScale을 쓰면 소켓의 Location / Rotation / Scale이 적용됨
     CurrentHeldItem->AttachToComponent(
-        ArmsMeshComponent,
+        TargetMesh,
         FAttachmentTransformRules::SnapToTargetIncludingScale,
         TEXT("hand_r_Socket")
     );
