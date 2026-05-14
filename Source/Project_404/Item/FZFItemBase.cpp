@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+Ôªø// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Item/FZFItemBase.h"
@@ -13,7 +13,7 @@ AFZFItemBase::AFZFItemBase()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = false;
 
-    // ≥◊∆Æøˆ≈© ∫π¡¶ º≥¡§
+    // ÎÑ§Ìä∏ÏõåÌÅ¨ Î≥µÏ†ú ÏÑ§Ï†ï
     bReplicates = true;
 
     Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));

@@ -143,6 +143,13 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 		RunAction = RunActionRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionRef(TEXT("/Game/Project404/Input/Actions/IA_Attack.IA_Attack"));
+	if (AttackActionRef.Succeeded())
+	{
+		// 공격 액션
+		AttackAction = AttackActionRef.Object;
+	}
+
 	// GAS
 	// 의도적으로 nullptr로 밀어줌 -> PlayerState의 ASC값을 대입할거라서 혼선방지용
 	ASC = nullptr;
@@ -292,6 +299,8 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		// Run
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::RunStart);
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFZFCharacterPlayer::RunEnd);
+
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Attack);
 
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
@@ -473,6 +482,18 @@ void AFZFCharacterPlayer::JumpEnd()
 {
 	StopJumping();
 
+}
+
+void AFZFCharacterPlayer::Attack()
+{
+	//if (IsLocallyControlled)
+
+	FGameplayTag AttackTag = HeldItemComponent->GetCurrentAttackTag();
+
+	if (ASC)
+	{
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
+	}
 }
 
 void AFZFCharacterPlayer::OnRep_PlayerState()

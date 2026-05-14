@@ -9,6 +9,7 @@ UFZFPlayerSet::UFZFPlayerSet()
 	InitMovementSpeed(300.0f);
 	InitStamina(100.0f);
 	InitMaxStamina(GetStamina());
+	InitAttackSpeed(1.0f);
 }
 
 void UFZFPlayerSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
