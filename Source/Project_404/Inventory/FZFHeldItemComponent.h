@@ -1,9 +1,11 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayTagContainer.h"
 #include "FZFHeldItemComponent.generated.h"
 
+//struct FGameplayTag;
 class AFZFHeldItemActor;
 class UFZFItemData;
 
@@ -13,26 +15,31 @@ class PROJECT_404_API UFZFHeldItemComponent : public UActorComponent
     GENERATED_BODY()
 
 public:
-    // »ı¼ºÀÚ
+    // ìƒì„±ì
     UFZFHeldItemComponent();
 
-    // ¼±ÅÃµÈ ¾ÆÀÌÅÛÀ» ¼Õ¿¡ µé°Ô ÇÏ´Â ÇÔ¼ö
+    // ì„ íƒëœ ì•„ì´í…œì„ ì†ì— ë“¤ê²Œ í•˜ëŠ” í•¨ìˆ˜
     void HoldItem(UFZFItemData* ItemData);
 
-    // ÇöÀç ¼Õ¿¡ µç ¾ÆÀÌÅÛÀ» Á¦°ÅÇÏ´Â ÇÔ¼ö
+    // í˜„ì¬ ì†ì— ë“  ì•„ì´í…œì„ ì œê±°í•˜ëŠ” í•¨ìˆ˜
     void ClearHeldItem();
 
+    FGameplayTag GetCurrentAttackTag() { return  CurrentEquippedTag; }
+
 private:
-    // ¼Õ¿¡ »ı¼ºÇÒ HeldItem Actor Å¬·¡½º
-    // BP_HeldItem °°Àº ºí·çÇÁ¸°Æ® Å¬·¡½º¸¦ ³ÖÀ» ¼ö ÀÖ°Ô ÇÔ
+    // ì†ì— ìƒì„±í•  HeldItem Actor í´ë˜ìŠ¤
+    // BP_HeldItem ê°™ì€ ë¸”ë£¨í”„ë¦°íŠ¸ í´ë˜ìŠ¤ë¥¼ ë„£ì„ ìˆ˜ ìˆê²Œ í•¨
     UPROPERTY(EditAnywhere, Category = "Held Item")
     TSubclassOf<AFZFHeldItemActor> HeldItemClass;
 
-    // ÇöÀç ¼Õ¿¡ µé°í ÀÖ´Â ¾ÆÀÌÅÛ Actor
+    // í˜„ì¬ ì†ì— ë“¤ê³  ìˆëŠ” ì•„ì´í…œ Actor
     UPROPERTY()
     TObjectPtr<AFZFHeldItemActor> CurrentHeldItem;
 
-    // Ä³¸¯ÅÍ ¼Õ¿¡ ¸¸µç ¼ÒÄÏ ÀÌ¸§
+    // ìºë¦­í„° ì†ì— ë§Œë“  ì†Œì¼“ ì´ë¦„
     UPROPERTY(EditAnywhere, Category = "Held Item")
     FName HandSocketName = TEXT("hand_r_Socket");
+
+    UPROPERTY(EditAnywhere, Category = "GAS")
+    FGameplayTag CurrentEquippedTag;
 };

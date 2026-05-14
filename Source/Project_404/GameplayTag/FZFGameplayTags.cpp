@@ -16,6 +16,11 @@ namespace FZFGameplayTags
 	// 공격
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack, "Ability.Action.Attack");
 
+	// 아이템에 맞는 공격 방식
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Rifle, "Ability.Action.Attack.Rifle");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Sword, "Ability.Action.Attack.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Pistol, "Ability.Action.Attack.Pistol");
+
 
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Idle,"State.Movement.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Walk,"State.Movement.Walk");
@@ -26,7 +31,13 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_DroppingItem,"State.Action.DroppingItem");
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_Attack,"State.Action.Attack");
 
-	// 어트리뷰트 데이터 초기화용 태그
+	// 내가 현재 착용하고 있는 무기에 따른 상태
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Pickaxe,"State.Equip.Pickaxe");
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Rifle,"State.Equip.Rifle");
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Pistol,"State.Equip.Pistol");
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Swrod,"State.Equip.Sword");
+  
+  	// 어트리뷰트 데이터 초기화용 태그
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_MaxHp, "Data.Stat.MaxHp");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_Hp, "Data.Stat.Hp");
 

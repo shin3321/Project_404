@@ -8,6 +8,8 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Interface/FZFMonsterAIInterface.h"
+#include "Character/Player/FZFCharacterPlayer.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Character/Monster/FZFMonster.h"
 
 UFZFGA_Attack::UFZFGA_Attack()
@@ -26,16 +28,40 @@ void UFZFGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		return;
 	}
 
-	// 몽타주 재생하면 캐릭터 이동을 멈춤
-	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
-	{
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	}
-
 	// AttributeSet 정보 받아오기
 	UFZFAbilitySystemComponent* ASC = Cast<UFZFAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get());
 
 	float AttackSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackSpeedAttribute());
+
+	USkeletalMeshComponent* TargetMesh = nullptr;
+
+	if (AFZFCharacterPlayer* CharacterPlayer = Cast<AFZFCharacterPlayer>(ActorInfo->AvatarActor.Get()))
+	{
+		TargetMesh = CharacterPlayer->GetArmMesh();
+
+		float Duration = 0.f;
+		if (TargetMesh && TargetMesh->GetAnimInstance())
+		{
+			Duration = TargetMesh->GetAnimInstance()->Montage_Play(AttackMontage, AttackSpeed);
+		}
+
+		if (Duration > 0.f)
+		{
+			// 몽타주가 끝날 때까지 기다리는 Task 생성
+			UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(this, Duration);
+			WaitTask->OnFinish.AddDynamic(this, &UFZFGA_Attack::OnMontageCompleted);
+		}
+		else
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		}
+	}
+
+	// 몽타주 재생하면 캐릭터 이동을 멈춤
+	if (AFZFMonster* Character = Cast<AFZFMonster>(ActorInfo->AvatarActor.Get()))
+	{
+		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	}
 
 	// 애니메이션 몽타주 재생 태스크 생성
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(

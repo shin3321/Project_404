@@ -38,6 +38,9 @@ public:
 	// 카메라에 안전하게 접근할 수 있도록 Getter 추가 (GA에서 사용)
 	FORCEINLINE class UCameraComponent* GetCamera() const { return Camera; }
 
+	// 아이템 변경 시 Idle 애니메이션 수정.
+	void ApplyAnimationsByItemAnimType(UAnimSequence* ThirdPersonIdle, UAnimSequence* FirstPersonIdle);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float deltaTime)override;
@@ -75,6 +78,9 @@ protected:
 	void JumpStart();
 	void JumpEnd();
 
+	// 공격 함수
+	void Attack();
+
 
 // Camera Section
 	// 네트워크 상태 동기화 함수
@@ -110,10 +116,13 @@ protected:
 	TObjectPtr<UInputAction> InteractAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
-
 	TObjectPtr<UInputAction> DropItemAction;
 
+	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
 	TObjectPtr<UInputAction> RunAction;
+
+	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
+	TObjectPtr<UInputAction> AttackAction;
 
 
 // Interact Section

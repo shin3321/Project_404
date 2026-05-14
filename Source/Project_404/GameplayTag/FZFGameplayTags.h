@@ -20,6 +20,12 @@ namespace FZFGameplayTags
 	// 공격
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack);
 
+	// 아이템에 맞는 공격 방식
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Rifle);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Sword);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Pistol);
+	
+	
 	// 움직임 상태 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Idle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Walk);
@@ -45,5 +51,11 @@ namespace FZFGameplayTags
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_DetectRange);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_TurnSpeed);
+	// 내가 현재 착용하고 있는 무기에 따른 상태
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Pickaxe);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Rifle);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Pistol);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Swrod);
+
 
 }

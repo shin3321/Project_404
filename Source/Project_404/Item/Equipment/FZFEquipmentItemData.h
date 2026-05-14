@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -15,17 +15,13 @@ class PROJECT_404_API UFZFEquipmentItemData : public UFZFItemData
 {
 	GENERATED_BODY()
 
-
 protected:
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    EEquipmentType EquipmentType;
-
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    TObjectPtr<UAnimMontage> AttackMontage = nullptr;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    float AttackPower = 0.0f;
+    EEquipmentType EquipmentType;
+    
+    UPROPERTY(EditAnywhere, Category = "Stats")
+    float BaseDamage;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     float Range = 0.0f;
