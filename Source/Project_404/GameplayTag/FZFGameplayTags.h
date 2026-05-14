@@ -30,4 +30,20 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_Attack);
 
+	// 어트리뷰트 데이터 초기화용 태그
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_MaxHp);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_Hp);
+
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Move_MovementSpeed);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Move_MaxMovementSpeed);
+
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_Attack);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_MaxAttack);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackRange);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackRadius);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackSpeed);
+
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_DetectRange);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_TurnSpeed);
+
 }

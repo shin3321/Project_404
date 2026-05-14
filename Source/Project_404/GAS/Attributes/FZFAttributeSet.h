@@ -84,7 +84,7 @@ private:
 	FGameplayAttributeData MaxAttack;
 
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
-	FGameplayAttributeData Damage;
+	FGameplayAttributeData Damage; /*이건 필요한지 검토!*/
 
 	// 공격 처리용 변수
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))

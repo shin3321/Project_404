@@ -26,5 +26,19 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_DroppingItem,"State.Action.DroppingItem");
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_Attack,"State.Action.Attack");
 
+	// 어트리뷰트 데이터 초기화용 태그
+	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_MaxHp, "Data.Stat.MaxHp");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_Hp, "Data.Stat.Hp");
 
+	UE_DEFINE_GAMEPLAY_TAG(Data_Move_MovementSpeed, "Data.Move.MovementSpeed");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Move_MaxMovementSpeed, "Data.Move.MaxMovementSpeed");
+
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_Attack, "Data.Attack.Attack");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_MaxAttack, "Data.Attack.MaxAttack");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackRange, "Data.Attack.AttackRange");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackRadius, "Data.Attack.AttackRadius");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackSpeed, "Data.Attack.AttackSpeed");
+
+	UE_DEFINE_GAMEPLAY_TAG(Data_BT_DetectRange, "Data.BT.DetectRange");
+	UE_DEFINE_GAMEPLAY_TAG(Data_BT_TurnSpeed, "Data.BT.TurnSpeed");
 }
