@@ -9,6 +9,14 @@
 // 공격 종료 델리게이트 선언.
 DECLARE_DELEGATE(FAICharacterAttackFinished);
 
+// MoveSpeed Enum
+UENUM(BlueprintType)
+enum class EFZFAIMoveSpeedMode : uint8
+{
+	Patrol,
+	Chase
+};
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UFZFMonsterAIInterface : public UInterface
@@ -25,7 +33,7 @@ class PROJECT_404_API IFZFMonsterAIInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	// NPC 캐릭터가 구현해야하는 함수.
+	// 몬스터가 구현해야하는 함수.
 	virtual float GetAIPatrolRadius() = 0;
 	virtual float GetAIDetectRange() = 0;
 	virtual float GetAIAttackRange() = 0;
@@ -38,4 +46,7 @@ public:
 
 	// 캐릭터에서 델리게이트를 넘길 때 사용할 함수.
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) = 0;
+
+	// MoveSpeed 설정 함수.
+	virtual void SetAIMoveSpeedMode(EFZFAIMoveSpeedMode MoveSpeedMode) = 0;
 };
