@@ -71,7 +71,7 @@ void UFZFGA_Run::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGame
         SprintBuffEffectHandle.Invalidate();
     }
 
-    // 2초간 회복 지연 이펙트 적용
+    // 2초간 회복 지연 이펙트 적용 -> 사실상 태그 + 지속시간 적용
     if (NoRegenEffectClass && ASC)
     {
         FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
@@ -96,6 +96,14 @@ void UFZFGA_Run::OnStaminaEmpty(const FGameplayAttribute& Attribute, float NewVa
 
 void UFZFGA_Run::OnStaminaThresholdChanged(bool bMatchesComparison, float CurrentValue)
 {
+    // 스태미나가 0 이하인지 확인
+    if (bMatchesComparison)
+    {
+        // 달리기 중단
+        EndAbility(CurrentSpecHandle, GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
+    }
+
+    // TODO : 스테미나바 화면 테두리 붉게 변해도 좋을듯?
 }
 
 void UFZFGA_Run::OnCostTick()
