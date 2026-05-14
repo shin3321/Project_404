@@ -78,6 +78,9 @@ protected:
 	void JumpStart();
 	void JumpEnd();
 
+	// 공격 함수
+	void Attack();
+
 
 // Camera Section
 	// 네트워크 상태 동기화 함수
@@ -113,10 +116,13 @@ protected:
 	TObjectPtr<UInputAction> InteractAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
-
 	TObjectPtr<UInputAction> DropItemAction;
 
+	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
 	TObjectPtr<UInputAction> RunAction;
+
+	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
+	TObjectPtr<UInputAction> AttackAction;
 
 
 // Interact Section

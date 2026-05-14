@@ -8,6 +8,11 @@
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 
+// GAS
+#include "AbilitySystemInterface.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayTagContainer.h"
+
 UFZFHeldItemComponent::UFZFHeldItemComponent()
 {
     // Tick 필요 없으면 끔
@@ -109,6 +114,23 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
     if (IsValid(PlayerCharacter) && IsValid(ItemData->AnimSet))
     {
         PlayerCharacter->ApplyAnimationsByItemAnimType(ItemData->AnimSet->ThirdPersonIdle, ItemData->AnimSet->FirstPersonIdle);
+    }
+
+    if (OwnerCharacter && ItemData && ItemData->ItemAbilityTag.IsValid())
+    { 
+        // 캐릭터로부터 ASC를 가져옴 (IAbilitySystemInterface 구현 가정)
+        if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(OwnerCharacter)) 
+        { 
+            UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
+            if (ASC)
+            { 
+                // 아이템 장착 시 태그 부여.
+                ASC->AddLooseGameplayTag(ItemData->ItemAbilityTag);
+                
+                // 나중에 지우기 위해 현재 태그 저장 
+                CurrentEquippedTag = ItemData->ItemAbilityTag;
+            }
+        }
     }
 }
 
