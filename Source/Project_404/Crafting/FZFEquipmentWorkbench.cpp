@@ -13,32 +13,8 @@
 
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Inventory/FZFInventoryComponent.h"
+#include "Utils/FZFUtils.h"
 
-
-namespace
-{
-	template <typename T>
-	T* FindComponentByName(AActor* Owner, const FString& ComponentName)
-	{
-		if (Owner == nullptr)
-		{
-			return nullptr;
-		}
-
-		TArray<T*> Components;
-		Owner->GetComponents<T>(Components);
-
-		for (T* Component : Components)
-		{
-			if (Component && Component->GetName() == ComponentName)
-			{
-				return Component;
-			}
-		}
-
-		return nullptr;
-	}
-}
 
 AFZFEquipmentWorkbench::AFZFEquipmentWorkbench()
 {
@@ -62,14 +38,14 @@ void AFZFEquipmentWorkbench::BeginPlay()
 	TArray<UActorComponent*> Components;
 	GetComponents(Components);
 
-	BasePartInteractionBoxRef = FindComponentByName<UBoxComponent>(this, TEXT("BasePartInteractionBox"));
-	CorePartInteractionBoxRef = FindComponentByName<UBoxComponent>(this, TEXT("CorePartInteractionBox"));
-	CombineButtonBoxRef = FindComponentByName<UBoxComponent>(this, TEXT("CombineButtonBox"));
-	ResultInteractionBoxRef = FindComponentByName<UBoxComponent>(this, TEXT("ResultInteractionBox"));
+	BasePartInteractionBoxRef = FZFFindComponentByName<UBoxComponent>(this, TEXT("BasePartInteractionBox"));
+	CorePartInteractionBoxRef = FZFFindComponentByName<UBoxComponent>(this, TEXT("CorePartInteractionBox"));
+	CombineButtonBoxRef = FZFFindComponentByName<UBoxComponent>(this, TEXT("CombineButtonBox"));
+	ResultInteractionBoxRef = FZFFindComponentByName<UBoxComponent>(this, TEXT("ResultInteractionBox"));
 
-	BasePartMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("BasePartPreviewMesh"));
-	CorePartMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("CorePartPreviewMesh"));
-	ResultMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("ResultPreviewMesh"));
+	BasePartMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("BasePartPreviewMesh"));
+	CorePartMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("CorePartPreviewMesh"));
+	ResultMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("ResultPreviewMesh"));
 
 	auto SetupInteractionBox = [](UBoxComponent* Box)
 	{
