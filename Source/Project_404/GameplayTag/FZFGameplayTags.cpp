@@ -40,6 +40,7 @@ namespace FZFGameplayTags
   	// 어트리뷰트 데이터 초기화용 태그
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_MaxHp, "Data.Stat.MaxHp");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_Hp, "Data.Stat.Hp");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_AttackRange, "Data.Stat.AttackRange");
 
 	UE_DEFINE_GAMEPLAY_TAG(Data_Move_MovementSpeed, "Data.Move.MovementSpeed");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Move_MaxMovementSpeed, "Data.Move.MaxMovementSpeed");
@@ -52,4 +53,8 @@ namespace FZFGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Data_BT_DetectRange, "Data.BT.DetectRange");
 	UE_DEFINE_GAMEPLAY_TAG(Data_BT_TurnSpeed, "Data.BT.TurnSpeed");
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Sword,"State.Equip.Sword");
+
+	// 공격 판정 체크
+	UE_DEFINE_GAMEPLAY_TAG(Event_Character_AttackHitCheck, "Event.Character.AttackHitCheck");
 }

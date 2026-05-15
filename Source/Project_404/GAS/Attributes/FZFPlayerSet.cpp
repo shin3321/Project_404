@@ -1,7 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "GAS/Attributes/FZFPlayerSet.h"
+﻿#include "GAS/Attributes/FZFPlayerSet.h"
 #include "GameplayEffectExtension.h"
 
 UFZFPlayerSet::UFZFPlayerSet()

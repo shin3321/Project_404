@@ -39,6 +39,7 @@ namespace FZFGameplayTags
 	// 어트리뷰트 데이터 초기화용 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_MaxHp);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_Hp);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_AttackRange);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Move_MovementSpeed);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Move_MaxMovementSpeed);
@@ -55,7 +56,9 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Pickaxe);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Rifle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Pistol);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Swrod);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Sword);
 
+	// 공격 판정 체크
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_AttackHitCheck);
 
 }
