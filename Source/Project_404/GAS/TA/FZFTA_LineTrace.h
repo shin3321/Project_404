@@ -19,7 +19,6 @@ public:
 
 	void SetShowDebug(bool InShowDebug) { bShowDebug = InShowDebug; }
 	
-protected:
 	// FGameplayAbilityTargetDataHandle을 리턴 (타겟데이터의 묶음)
 	virtual FGameplayAbilityTargetDataHandle MakeTargetData() const;
 
