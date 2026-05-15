@@ -20,11 +20,4 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FirstPerson")
     TObjectPtr<UAnimSequence> FirstPersonIdle;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ThirdPerson")
-    TObjectPtr<UAnimMontage> ThirdPersonAttackMontage;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FirstPerson")
-    TObjectPtr<UAnimMontage> FirstPersonAttackMontage;
-
 };
