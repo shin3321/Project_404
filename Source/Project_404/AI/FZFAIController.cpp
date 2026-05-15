@@ -8,6 +8,7 @@
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "FZFAI.h"
+#include "Interface/FZFMonsterAIInterface.h"
 
 AFZFAIController::AFZFAIController()
 {
@@ -22,14 +23,14 @@ AFZFAIController::AFZFAIController()
 	}
 
 	// 사용할 비헤이비어 트리 애셋 로드.
-	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAssetRef(
-		TEXT("/Game/Project404/AI/BT_FZFMonster.BT_FZFMonster")
-	);
+	//static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAssetRef(
+	//	TEXT("/Game/Project404/AI/BT_FZFMonster.BT_FZFMonster")
+	//);
 
-	if (BTAssetRef.Succeeded())
-	{
-		BTAsset = BTAssetRef.Object;
-	}
+	//if (BTAssetRef.Succeeded())
+	//{
+	//	BTAsset = BTAssetRef.Object;
+	//}
 }
 
 void AFZFAIController::RunAI()
@@ -46,6 +47,15 @@ void AFZFAIController::RunAI()
 			BBKEY_HOMEPOS,
 			GetPawn()->GetActorLocation()
 		);
+
+		// 비헤이비어 트리 할당하기.
+		IFZFMonsterAIInterface* AIPawn = Cast<IFZFMonsterAIInterface>(GetPawn());
+		if (!AIPawn)
+		{
+			return;
+		}
+		BTAsset = AIPawn->GetBT();
+
 
 		// 비헤이비어 트리 실행.
 		bool Result = RunBehaviorTree(BTAsset);
@@ -70,5 +80,5 @@ void AFZFAIController::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 
 	// 폰에 빙의하면 AI 로직 실행.
-	RunAI();
+	// RunAI();
 }

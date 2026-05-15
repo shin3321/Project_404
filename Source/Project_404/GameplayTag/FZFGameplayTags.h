@@ -20,6 +20,12 @@ namespace FZFGameplayTags
 	// 공격
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack);
 
+	// 아이템에 맞는 공격 방식
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Rifle);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Sword);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Pistol);
+	
+	
 	// 움직임 상태 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Idle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Walk);
@@ -29,5 +35,30 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Stamina_NoRegen);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_Attack);
+
+	// 어트리뷰트 데이터 초기화용 태그
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_MaxHp);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_Hp);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_AttackRange);
+
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Move_MovementSpeed);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Move_MaxMovementSpeed);
+
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_Attack);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_MaxAttack);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackRange);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackRadius);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackSpeed);
+
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_DetectRange);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_TurnSpeed);
+	// 내가 현재 착용하고 있는 무기에 따른 상태
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Pickaxe);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Rifle);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Pistol);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Sword);
+
+	// 공격 판정 체크
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_AttackHitCheck);
 
 }

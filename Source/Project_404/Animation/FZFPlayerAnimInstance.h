@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -17,15 +17,20 @@ class PROJECT_404_API UFZFPlayerAnimInstance : public UFZFAnimInstance
 public:
 	UFZFPlayerAnimInstance();
 
+	void SetCurrentIdleAnim(UAnimSequence* ThirdPersonIdle) { CurrentIdleAnim = ThirdPersonIdle; }
+
 protected:
-	// ¾Ö´Ï¸ŞÀÌ¼Ç ÃÊ±âÈ­ µÉ ¶§ È£ÃâµÇ´Â ÇÔ¼ö.
+	// ì• ë‹ˆë©”ì´ì…˜ ì´ˆê¸°í™” ë  ë•Œ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜.
 	virtual void NativeInitializeAnimation() override;
 
-	// ¾Ö´Ï¸ŞÀÌ¼ÇÀ» ¾÷µ¥ÀÌÆ® ÇÒ ¶§¸¶´Ù(Æ½ ¸¶´Ù) ½ÇÇàµÇ´Â ÇÔ¼ö.
+	// ì• ë‹ˆë©”ì´ì…˜ì„ ì—…ë°ì´íŠ¸ í•  ë•Œë§ˆë‹¤(í‹± ë§ˆë‹¤) ì‹¤í–‰ë˜ëŠ” í•¨ìˆ˜.
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	
 protected:
-	// °È´ÂÁö ¶Ù´ÂÁö È®ÀÎÇÏ´Â º¯¼ö
+	// ê±·ëŠ”ì§€ ë›°ëŠ”ì§€ í™•ì¸í•˜ëŠ” ë³€ìˆ˜
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	uint8 bIsRunning : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	TObjectPtr<UAnimSequence> CurrentIdleAnim;
 };

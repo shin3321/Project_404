@@ -7,6 +7,7 @@
 #include "AI/FZFAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayTag/FZFGameplayTags.h"
+#include "Character/Monster/MonsterData/FZFMonsterData.h"
 
 AFZFMonster::AFZFMonster()
 {
@@ -24,44 +25,102 @@ AFZFMonster::AFZFMonster()
 	// 미리 지정한 AIController에 빙의되도록 설정.
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	// 몬스터 메시 위치 & 회전 변경
-	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 27.0f), FRotator(0.0f, -90.0f, 0.0f));
+	//// 몬스터 메시 위치 & 회전 변경
+	//GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 27.0f), FRotator(0.0f, -90.0f, 0.0f));
 
-	// 몬스터 메시 설정
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MonsterMesh(
-		TEXT("/Game/Assets/Monster/M1/SK_M1.SK_M1")
-	);
+	//// 몬스터 메시 설정
+	//static ConstructorHelpers::FObjectFinder<USkeletalMesh> MonsterMesh(
+	//	TEXT("/Game/Assets/Monster/M1/SK_M1.SK_M1")
+	//);
 
-	if (MonsterMesh.Succeeded())
-	{
-		GetMesh()->SetSkeletalMesh(MonsterMesh.Object);
-	}
+	//if (MonsterMesh.Succeeded())
+	//{
+	//	GetMesh()->SetSkeletalMesh(MonsterMesh.Object);
+	//}
 
-	// 애님 블루프린트 클래스 정보 지정.
-	static ConstructorHelpers::FClassFinder<UAnimInstance> MonsterAnim(
-		TEXT("/Game/Project404/Character/Monster/Animation/ABP_M1.ABP_M1_C")
-	);
+	//// 애님 블루프린트 클래스 정보 지정.
+	//static ConstructorHelpers::FClassFinder<UAnimInstance> MonsterAnim(
+	//	TEXT("/Game/Project404/Character/Monster/Animation/ABP_M1.ABP_M1_C")
+	//);
 
-	if (MonsterAnim.Succeeded())
-	{
-		GetMesh()->SetAnimInstanceClass(MonsterAnim.Class);
-	}
-
-	// 몽타주 및 액션 데이터 기본 값 설정.
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackMontageRef(
-		TEXT("/Game/Project404/Character/Monster/Animation/AM_AttackM1.AM_AttackM1")
-	);
-	if (AttackMontageRef.Succeeded())
-	{
-		AttackMontage = AttackMontageRef.Object;
-	}
+	//if (MonsterAnim.Succeeded())
+	//{
+	//	GetMesh()->SetAnimInstanceClass(MonsterAnim.Class);
+	//}
 }
 
 void AFZFMonster::BeginPlay() 
 {
 	Super::BeginPlay();
-	InitAbilitySystem();
+
+	bBeginPlayReady = true;
+	InitializeMonster();
 }
+
+void AFZFMonster::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	bPossessedReady = true;
+	InitializeMonster();
+}
+
+void AFZFMonster::InitializeMonster()
+{
+	// 한번 초기화 후 다시 호출되면 return
+	if (bMonsterInitialized)
+	{
+		return;
+	}
+
+	// BeginPlay()와 Possess상태 체크 후 몬스터 세팅
+	if (!bBeginPlayReady || !bPossessedReady)
+	{
+		return;
+	}
+
+	/* 순서대로 초기화 */
+
+	// 1. GAS 데이터 주입
+	// Attribute 할당(Init_GE 할당)
+	InitMonsterEffectClass = MonsterData->InitAttributeEffect;
+
+	// 나머지 GE 할당
+	ChaseSpeedEffectClass = MonsterData->ChaseSpeedEffect;
+
+	// Ability들 할당
+	StartupAbilities = MonsterData->Abilities;
+
+	// 2. GAS 초기화
+	InitAbilitySystem();
+
+	// 3. AttributeSet 값 초기화
+	InitAttributesFromData();
+
+	// 4. 외형 세팅
+	// Mesh Transform 지정
+	GetMesh()->SetRelativeLocationAndRotation(MonsterData->MeshLocation, MonsterData->MeshRotation);
+
+	// Seletal Mesh 할당
+	GetMesh()->SetSkeletalMesh(MonsterData->SkeletalMesh);
+	
+	// Anim Class 할당
+	GetMesh()->SetAnimInstanceClass(MonsterData->AnimClass);
+
+	
+	// 5. BT 할당과 실행(마지막 순서 필수)
+	AFZFAIController* AIController = Cast<AFZFAIController>(GetController());
+	if (!AIController || !MonsterData || !MonsterData->BehaviorTree)
+	{
+		return;
+	}
+	AIController->RunAI();
+
+	// 처음만 초기화 설정 True
+	bMonsterInitialized = true;
+}
+
+/* GAS 초기세팅 */
 
 void AFZFMonster::InitAbilitySystem()
 {
@@ -93,6 +152,54 @@ void AFZFMonster::InitAbilitySystem()
 
 }
 
+void AFZFMonster::InitAttributesFromData()
+{
+	if (!ASC || !MonsterData || !InitMonsterEffectClass)
+	{
+		return;
+	}
+
+	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+	Context.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle SpecHandle =
+		ASC->MakeOutgoingSpec(InitMonsterEffectClass, 1.f, Context);
+
+	if (!SpecHandle.IsValid())
+	{
+		return;
+	}
+
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+
+	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Stat.MaxHp")), MonsterData->MaxHp);
+	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Move.MaxMovementSpeed")), MonsterData->MaxMovementSpeed);
+	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Attack.MaxAttack")), MonsterData->MaxAttack);
+	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Attack.AttackRange")), MonsterData->AttackRange);
+	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Attack.AttackRadius")), MonsterData->AttackRadius);
+	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Attack.AttackSpeed")), MonsterData->AttackSpeed);
+	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.BT.DetectRange")), MonsterData->DetectRange);
+	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.BT.TurnSpeed")), MonsterData->TurnSpeed);
+
+	FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
+
+	UE_LOG(LogTemp, Warning, TEXT("InitGE Handle Valid: %s"), Handle.IsValid() ? TEXT("true") : TEXT("false"));
+
+	UE_LOG(LogTemp, Warning, TEXT("Data MaxMove: %f / Attr Move: %f / Attr MaxMove: %f"),
+		MonsterData->MaxMovementSpeed,
+		MonsterAttributeSet->GetMovementSpeed(),
+		MonsterAttributeSet->GetMaxMovementSpeed()
+	);
+	UE_LOG(LogTemp, Warning, TEXT("ASC: %s"), *GetNameSafe(ASC));
+	UE_LOG(LogTemp, Warning, TEXT("InitGE Class: %s"), *GetNameSafe(InitMonsterEffectClass));
+	UE_LOG(LogTemp, Warning, TEXT("MonsterData: %s"), *GetNameSafe(MonsterData));
+	UE_LOG(LogTemp, Warning, TEXT("MonsterSet: %s"), *GetNameSafe(MonsterAttributeSet));
+	UE_LOG(LogTemp, Warning, TEXT("OwnerActor: %s / AvatarActor: %s"),
+		*GetNameSafe(ASC->AbilityActorInfo.IsValid() ? ASC->AbilityActorInfo->OwnerActor.Get() : nullptr),
+		*GetNameSafe(ASC->AbilityActorInfo.IsValid() ? ASC->AbilityActorInfo->AvatarActor.Get() : nullptr)
+	);
+}
+
 /* 인터페이스 구현 */
 
 // 정찰 범위
@@ -107,18 +214,13 @@ float AFZFMonster::GetAIPatrolRadius()
 float AFZFMonster::GetAIDetectRange()
 {
 	// GAS AttributeSet에서 수치 가져오기
-	/*if (!MonsterAttributeSet)
-	{
-		UE_LOG(LogTemp, Error, TEXT("MonsterAttributeSet nullptr"));
-		return 400.0f;
-	}*/
-
 	return MonsterAttributeSet->GetDetectRange();
 }
 
 // 공격 사거리
 float AFZFMonster::GetAIAttackRange()
 {
+	// GAS AttributeSet에서 수치 가져오기
 	return MonsterAttributeSet->GetAttackRange();
 }
 
@@ -140,7 +242,24 @@ float AFZFMonster::GetAITurnSpeed()
 	return MonsterAttributeSet->GetTurnSpeed();
 }
 
-// 공격
+// BT 전달 함수
+UBehaviorTree* AFZFMonster::GetBT()
+{
+	return MonsterData ? MonsterData->BehaviorTree : nullptr;
+}
+
+
+// 공격 여부 델리게이트 저장
+void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)
+{
+	// 델리게이트를 변수에 저장.
+	OnAttackFinished = InOnAttackFinished;
+
+	// 실제 공격 종료 시점은 Gameplay Ability(GA) 내부에서 
+	// OnAbilityEnded 델리게이트를 통해 OnAttackFinished.ExecuteIfBound()를 호출
+}
+
+// 공격 실행
 void AFZFMonster::AttackByAI()
 {
 	// GAS 어빌리티 실행 (태그 기반)
@@ -150,25 +269,39 @@ void AFZFMonster::AttackByAI()
 	}
 }
 
-void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)
+void AFZFMonster::SetAIMoveSpeedMode(EFZFAIMoveSpeedMode MoveSpeedMode)
 {
-	// 델리게이트를 변수에 저장.
-	OnAttackFinished = InOnAttackFinished;
+	if (!ASC || !MonsterAttributeSet)
+	{
+		return;
+	}
 
-	// 실제 공격 종료 시점은 Gameplay Ability(GA) 내부에서
-	// 몽타주 종료 섹션 등에 GameplayEvent를 날려 캐릭터가 받게 하거나, 
-	// OnAbilityEnded 델리게이트를 통해 OnAttackFinished.ExecuteIfBound()를 호출
+	// 기존 속도 버프 제거
+	if (ChaseSpeedEffectHandle.IsValid())
+	{
+		ASC->RemoveActiveGameplayEffect(ChaseSpeedEffectHandle);
+		ChaseSpeedEffectHandle.Invalidate();
+	}
+
+	// 추격(Chase)상태 일 때만 이동속도 GE 적용
+	if (MoveSpeedMode == EFZFAIMoveSpeedMode::Chase && ChaseSpeedEffectClass)
+	{
+		FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+		Context.AddSourceObject(this);
+
+		FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(ChaseSpeedEffectClass, 1.0f, Context);
+
+		if (SpecHandle.IsValid())
+		{
+			ChaseSpeedEffectHandle = ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+		}
+	}
+
+	// GE 적용/제거 후 최종 MovementSpeed를 CharacterMovement에 반영
+	GetCharacterMovement()->MaxWalkSpeed = MonsterAttributeSet->GetMovementSpeed();
 }
 
-void AFZFMonster::AttackActionEnd()
-{
-	// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-
-	// 공격이 끝나면 NotifyComboActionEnd() 호출.
-	NotifyAttackActionEnd();
-}
-
+/* 클래스 멤버 함수 구현 */
 void AFZFMonster::NotifyAttackActionEnd()
 {
 	// 앞서 전달받은 델리게이트 실행.

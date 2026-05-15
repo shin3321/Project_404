@@ -16,6 +16,11 @@ namespace FZFGameplayTags
 	// 공격
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack, "Ability.Action.Attack");
 
+	// 아이템에 맞는 공격 방식
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Rifle, "Ability.Action.Attack.Rifle");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Sword, "Ability.Action.Attack.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Pistol, "Ability.Action.Attack.Pistol");
+
 
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Idle,"State.Movement.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Walk,"State.Movement.Walk");
@@ -26,5 +31,30 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_DroppingItem,"State.Action.DroppingItem");
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_Attack,"State.Action.Attack");
 
+	// 내가 현재 착용하고 있는 무기에 따른 상태
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Pickaxe,"State.Equip.Pickaxe");
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Rifle,"State.Equip.Rifle");
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Pistol,"State.Equip.Pistol");
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Swrod,"State.Equip.Sword");
+  
+  	// 어트리뷰트 데이터 초기화용 태그
+	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_MaxHp, "Data.Stat.MaxHp");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_Hp, "Data.Stat.Hp");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_AttackRange, "Data.Stat.AttackRange");
 
+	UE_DEFINE_GAMEPLAY_TAG(Data_Move_MovementSpeed, "Data.Move.MovementSpeed");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Move_MaxMovementSpeed, "Data.Move.MaxMovementSpeed");
+
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_Attack, "Data.Attack.Attack");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_MaxAttack, "Data.Attack.MaxAttack");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackRange, "Data.Attack.AttackRange");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackRadius, "Data.Attack.AttackRadius");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackSpeed, "Data.Attack.AttackSpeed");
+
+	UE_DEFINE_GAMEPLAY_TAG(Data_BT_DetectRange, "Data.BT.DetectRange");
+	UE_DEFINE_GAMEPLAY_TAG(Data_BT_TurnSpeed, "Data.BT.TurnSpeed");
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Sword,"State.Equip.Sword");
+
+	// 공격 판정 체크
+	UE_DEFINE_GAMEPLAY_TAG(Event_Character_AttackHitCheck, "Event.Character.AttackHitCheck");
 }
