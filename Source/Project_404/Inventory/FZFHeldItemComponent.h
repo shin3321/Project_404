@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
+#include "GameplayEffectTypes.h" // ActivateHandle 사용을 위해 필요
 #include "FZFHeldItemComponent.generated.h"
 
 //struct FGameplayTag;
@@ -42,4 +43,15 @@ private:
 
     UPROPERTY(EditAnywhere, Category = "GAS")
     FGameplayTag CurrentEquippedTag;
+
+    // 장착 시 적용된 사거리 GE를 추적하기 위한 핸들
+    FActiveGameplayEffectHandle RangeEffectHandle;
+
+    // SetByCaller에서 사용할 데이터 태그
+    UPROPERTY(EditDefaultsOnly, Category = "GAS")
+    FGameplayTag RangeDataTag;
+
+    // 무기 사거리를 보정해줄 GE 클래스 (에디터에서 설정)
+    UPROPERTY(EditDefaultsOnly, Category = "GAS")
+    TSubclassOf<class UGameplayEffect> RangeModifierGE;
 };

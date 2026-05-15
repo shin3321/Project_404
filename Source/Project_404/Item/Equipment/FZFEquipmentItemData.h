@@ -7,13 +7,13 @@
 #include "Item/ItemTypes.h"
 #include "FZFEquipmentItemData.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class PROJECT_404_API UFZFEquipmentItemData : public UFZFItemData
 {
 	GENERATED_BODY()
+
+public:
+    float GetRange() { return Range; }
 
 protected:
 

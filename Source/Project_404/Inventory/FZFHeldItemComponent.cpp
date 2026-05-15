@@ -4,6 +4,11 @@
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Item/FZFItemAnimSetData.h"
 
+// Item의 능력치
+#include "Item/Equipment/FZFRangedItemData.h"
+#include "Item/Equipment/FZFMeleeItemData.h"
+#include "Item/Equipment/FZFThrowableItemData.h"
+
 #include "GameFramework/Pawn.h"
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -129,13 +134,61 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
                 
                 // 나중에 지우기 위해 현재 태그 저장 
                 CurrentEquippedTag = ItemData->ItemAbilityTag;
+
+                // 사거리 GE 처리
+                if (UFZFEquipmentItemData* EquipData = Cast<UFZFEquipmentItemData>(ItemData))
+                {
+                    if (RangeModifierGE.Get() && RangeDataTag.IsValid())
+                    {
+                        // 이 효과가 "어디서, 누구에 의해" 발생했는지에 대한 부가정보(Context)를 담을 바구니 제작
+                        FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+
+                        // 효과를 일으킨 주체(Instingator)와 원인 제공자(EffectCauser)를 설정
+                        EffectContext.AddInstigator(OwnerCharacter, OwnerCharacter);
+
+                        // 설정된 GE 클래스와 컨텍스트를 바탕으로, 실제 적용 가능한 실행 데이터 객체(Spec)를 생성함, 1.0f는 효과의 레벨
+                        FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(RangeModifierGE, 1.0f, EffectContext);
+                        if (SpecHandle.IsValid())
+                        {
+                            // SetByCaller로 사거리 전달
+                            // GE 내부에 미리 정의된 RangeDataTag 위치에 데이터 에셋에서 가져온 실제 사거리 수치를 동적으로 넣음
+                            SpecHandle.Data.Get()->SetSetByCallerMagnitude(RangeDataTag, EquipData->GetRange());
+
+                            // GE 적용 및 핸들 저장 (나중에 해제할 때, 사용)
+                            // RangeEffectHandle = ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get()); 이거와 같음
+                            RangeEffectHandle = ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+                        }
+                    }
+                }
             }
         }
     }
+
 }
 
 void UFZFHeldItemComponent::ClearHeldItem()
 {
+    // GAS 관련 자원 해제
+    if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(GetOwner()))
+    {
+        if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent())
+        {
+            // 사거리 GE 제거 : 핸들이 유효하다면 적용 중인 GE를 제거하여 사거리 복구
+            if (RangeEffectHandle.IsValid())
+            {
+                ASC->RemoveActiveGameplayEffect(RangeEffectHandle);
+                RangeEffectHandle.Invalidate(); // 핸들 초기화
+            }
+
+            // 아이템 태그 제거 : 장착 시 부여했던 LooseTag 제거
+            if (CurrentEquippedTag.IsValid())
+            {
+                ASC->RemoveLooseGameplayTag(CurrentEquippedTag);
+                CurrentEquippedTag = FGameplayTag::EmptyTag; // 태그 초기화
+            }
+        }
+    }
+
     // 현재 손에 든 아이템이 있으면 제거
     if (CurrentHeldItem)
     {
