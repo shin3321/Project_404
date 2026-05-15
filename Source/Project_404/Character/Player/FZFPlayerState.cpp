@@ -7,6 +7,7 @@
 AFZFPlayerState::AFZFPlayerState(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+
 	ASC = CreateDefaultSubobject<UFZFAbilitySystemComponent>("ASC");
 
 	// ASC 자체가 네트워크를 통해 동기화되도록 켬

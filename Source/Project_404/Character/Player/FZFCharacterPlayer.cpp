@@ -226,7 +226,8 @@ void AFZFCharacterPlayer::PossessedBy(AController* NewController)
 	 * 이 시점에는 PlayerState가 유효함이 보장되므로, 서버 측 ASC에
 	 * Owner(PlayerState)와 Avatar(Character) 정보를 등록합니다.
 	 */
-	InitAbilitySystem();
+	if (HasAuthority())
+		InitAbilitySystem();
 }
 
 void AFZFCharacterPlayer::InitAbilitySystem()
