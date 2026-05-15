@@ -58,6 +58,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
 	TArray<TSubclassOf<UGameplayAbility>> Abilities;
 
+	// 판정의 시작점으로 사용할 소켓 이름 (예: Hand_R_Socket, Muzzle_Socket)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Socket")
+	FName AttackSocket;
+
+	// 소켓 사용 여부
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Socket")
+	bool bUseSocketTargeting = true;
+
 	// Attribute 초기화용 데이터들
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Stat")
 	float MaxHp;

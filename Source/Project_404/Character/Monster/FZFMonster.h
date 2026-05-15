@@ -6,6 +6,7 @@
 #include "Character/FZFCharacterBase.h"
 #include "Interface/FZFMonsterAIInterface.h"
 #include "GameplayEffectTypes.h"
+#include "Character/Monster/MonsterData/FZFMonsterData.h"
 #include "FZFMonster.generated.h"
 
 /**
@@ -18,6 +19,9 @@ class PROJECT_404_API AFZFMonster : public AFZFCharacterBase, public IFZFMonster
 
 public:
 	AFZFMonster();
+
+	// MonsterData Getter
+	FORCEINLINE UFZFMonsterData* GetMonsterData() const { return MonsterData; }
 
 protected:
 	/* 클래스 멤버 함수(초기화) */
@@ -85,5 +89,5 @@ protected:
 
 	// 몬스터 데이터 에셋 저장 변수.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data)
-	TObjectPtr<class UFZFMonsterData> MonsterData;
+	TObjectPtr<UFZFMonsterData> MonsterData;
 };
