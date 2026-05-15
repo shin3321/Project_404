@@ -61,4 +61,12 @@ public:
     // 사용 이유 : 애셋들의 모든 사이즈를 Trigger Collision의 사이즈에 맞게 일일이 수동으로 해주기보다는 자동으로 맞춰주도록 해주기 위해.
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World")
     bool bAutoFitMeshToTrigger = true;
+
+    // 이 체크박스를 켜면 소켓 위치에서 판정을 시작
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Socket")
+    bool bUseSocketTargeting = true;
+
+    // 판정의 시작점으로 사용할 소켓 이름 (예: Hand_R_Socket, Muzzle_Socket)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Socket")
+    FName StartSocketName;
 };
