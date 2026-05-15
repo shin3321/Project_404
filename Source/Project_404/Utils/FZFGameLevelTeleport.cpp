@@ -40,8 +40,8 @@ void AFZFGameLevelTeleport::Tick(float DeltaTime)
 }
 
 void AFZFGameLevelTeleport::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-                                           const FHitResult& SweepResult)
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+	const FHitResult& SweepResult)
 {
 	if (!HasAuthority()) return;
 
@@ -63,7 +63,7 @@ void AFZFGameLevelTeleport::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, 
 }
 
 void AFZFGameLevelTeleport::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (TeleportWidgetInstance != nullptr && TeleportWidgetInstance->IsInViewport())
 	{
@@ -77,11 +77,23 @@ void AFZFGameLevelTeleport::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AA
 
 void AFZFGameLevelTeleport::OnTeleportKeyPressed()
 {
+	UE_LOG(LogTemp, Warning, TEXT("=== OnTeleportKeyPressed Called ==="));
 	EnterLobbyLevel();
 }
 
 void AFZFGameLevelTeleport::EnterLobbyLevel()
 {
-	FString LevelPath = TEXT("/Game/Project404/Map/FZFGameLevel");
-	GetWorld()->ServerTravel(LevelPath);
+	if (!HasAuthority())
+	{
+		UE_LOG(LogTemp, Error, TEXT("클라이언트는 포탈을 탈 수 없습니다! 서버(첫 번째 창)에서 누르세요."));
+		return;
+	}
+
+	FString LevelPath = TEXT("FZFGameLevel?listen");
+
+	if (GetWorld())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("=== Traveling to: %s ==="), *LevelPath);
+		GetWorld()->ServerTravel(LevelPath);
+	}
 }

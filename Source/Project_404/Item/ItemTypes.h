@@ -9,7 +9,7 @@ enum class EItemType : uint8
     Equipment      UMETA(DisplayName = "Equipment"),
     Consumable     UMETA(DisplayName = "Consumable"),
     CraftMaterial  UMETA(DisplayName = "Craft Material"),
-    Crystal         UMETA(DisplayName = "Crystal")
+    Crystal        UMETA(DisplayName = "Crystal")
 };
 
 // 애니메이션 재생을 위한 세분화된 타입 분기.
@@ -20,6 +20,7 @@ enum class EEquipmentType : uint8
     Pistol  UMETA(DisplayName = "Pistol"),
     Rifle   UMETA(DisplayName = "Rifle"),
     Sword   UMETA(DisplayName = "Sword"),
+    Pickaxe UMETA(DisplayName = "Pickaxe"),
     Throwable UMETA(DisplayName = "Throwable")
 };
 

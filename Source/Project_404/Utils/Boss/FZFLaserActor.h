@@ -78,10 +78,10 @@ private:
 	float Speed;
 	FVector MoveDirection;
 	
-	float MinZ;
-	float MaxZ;
-	float MinY;
-	float MaxY;
-	float MinX;
-	float MaxX;
+	float MinZ = 0.0f;
+	float MaxZ = 800.f;
+	float MinY = 0.0f;;
+	float MaxY = 5800.f;;
+	float MinX = 0.0f;;
+	float MaxX = 800.f;;
 };

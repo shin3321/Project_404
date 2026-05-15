@@ -22,7 +22,7 @@ void UFZFGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	// 유효성 검사: 어빌리티가 정상적으로 시작 가능한지, 몽타주가 할당되어 있는지 확인
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || AttackMontage == nullptr)
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || FirstPersonAttackMontage == nullptr || ThirdPersonAttackMontage == nullptr)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -34,10 +34,19 @@ void UFZFGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	float AttackSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackSpeedAttribute());
 
 	USkeletalMeshComponent* TargetMesh = nullptr;
-
+	TObjectPtr<UAnimMontage> AttackMontage = nullptr;
 	if (AFZFCharacterPlayer* CharacterPlayer = Cast<AFZFCharacterPlayer>(ActorInfo->AvatarActor.Get()))
 	{
-		TargetMesh = CharacterPlayer->GetArmMesh();
+		if (CharacterPlayer->IsLocallyControlled())
+		{
+			TargetMesh = CharacterPlayer->GetArmMesh();
+			AttackMontage = FirstPersonAttackMontage;
+		}
+		else
+		{
+			TargetMesh = CharacterPlayer->GetMesh();
+			AttackMontage = ThirdPersonAttackMontage;
+		}
 
 		float Duration = 0.f;
 		if (TargetMesh && TargetMesh->GetAnimInstance())

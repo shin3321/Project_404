@@ -30,6 +30,11 @@ protected:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 	virtual void RestartPlayer(AController* NewPlayer) override;
+
+	virtual bool ReadyToStartMatch_Implementation() override;
+	//void LoadLevelAsync();
+	//void OnLevelLoaded();
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "Network")
 	void OnAllPlayersReady();

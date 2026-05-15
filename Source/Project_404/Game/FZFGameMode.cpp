@@ -21,7 +21,6 @@ AFZFGameMode::AFZFGameMode()
 	if (DefaultPawnClassRef.Succeeded())
 	{
 		DefaultPawnClass = DefaultPawnClassRef.Class;
-		SpectatorClass = DefaultPawnClassRef.Class;
 	}
 
 	PlayerControllerClass = AFZFPlayerController::StaticClass();
@@ -33,7 +32,7 @@ AFZFGameMode::AFZFGameMode()
 	// 레벨이 바뀌어도 정보 유지
 	bUseSeamlessTravel = true;
 
-	// 플레이어가 처음 접속할 때 관전자로 스폰될지 여부 (반드시 false)
+	// 플레이어가 처음 접속할 때 관전자로 스폰될지 여부
 	bStartPlayersAsSpectators = false;
 }
 
@@ -46,7 +45,6 @@ void AFZFGameMode::StartPlay()
 		UE_LOG(LogTemp, Warning, TEXT("World says BeginPlay is DONE. But why no log?"));
 	}
 	Super::StartPlay();
-	BeginPlay();
 	UE_LOG(LogTemp, Warning, TEXT("GameMode StartPlay Called End!"));
 }
 
@@ -55,8 +53,6 @@ void AFZFGameMode::BeginPlay()
 	UE_LOG(LogTemp, Log, TEXT("GameMode BeginPlay"));
 	Super::BeginPlay();
 	GameState = Cast<AFZFGameState>(GetGameState<AFZFGameState>());
-
-
 }
 
 void AFZFGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
@@ -72,10 +68,15 @@ void AFZFGameMode::PreLogin(const FString& Options, const FString& Address, cons
 
 void AFZFGameMode::PostLogin(APlayerController* NewPlayer)
 {
-	++CurrentPlayerCount;
-
 	Super::PostLogin(NewPlayer);
 
+	if (NewPlayer && NewPlayer->GetPawn() == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Pawn이 없습니다. 강제 재시작 시도: %s"), *NewPlayer->GetName());
+		RestartPlayer(NewPlayer);
+	}
+
+	++CurrentPlayerCount;
 	UE_LOG(LogTemp, Log, TEXT("Player Logged In. Total: %d"),
 		CurrentPlayerCount);
 }
@@ -110,6 +111,33 @@ void AFZFGameMode::RestartPlayer(AController* NewPlayer)
 	Super::RestartPlayer(NewPlayer);
 
 	UE_LOG(LogTemp, Warning, TEXT("Pawn: %s"), *GetNameSafe(NewPlayer->GetPawn()));
+}
+
+bool AFZFGameMode::ReadyToStartMatch_Implementation()
+{
+	if (!Super::ReadyToStartMatch_Implementation()) return false;
+	TArray<AActor*> FoundActors;
+
+	// 1. 현재 월드(레벨)의 이름을 가져옵니다.
+	FString CurrentLevelName = GetWorld()->GetName();
+
+	// [디버그용] 출력창에 현재 레벨 이름을 찍어봅니다.
+	// 주의: FString을 %s로 출력할 때는 반드시 앞에 *를 붙여야 합니다.
+	UE_LOG(LogTemp, Warning, TEXT("ReadyToStartMatch 실행 중... 현재 레벨: %s"), *CurrentLevelName);
+
+	// 2. 만약 특정 레벨(예: 전투가 일어나는 메인 게임 레벨)에서만 이 대기 로직을 쓰고 싶다면:
+	if (CurrentLevelName.Contains(TEXT("Lobby")))
+	{
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundActors);
+
+		if (FoundActors.Num() > 0)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	return true;
 }
 
 void AFZFGameMode::OnAllPlayersReady()
