@@ -53,14 +53,15 @@ public:
 
 	UFUNCTION()
 	void CreateTrigger();
-
-protected:
-	// 트리거 오버랩 시 실행될 함수 (매개변수 형태를 반드시 이렇게 맞춰야 합니다)
+	
 	UFUNCTION()
-	void OnBombTriggerOverlap(AActor* OverlappedActor, AActor* OtherActor);
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	TArray<TObjectPtr<class ATriggerBox>> BombTriggers;
+	void CreateBomb(FVector SpawnLocation);
+	
+protected:
+	UFUNCTION()
+	void OnBombTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
+						  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
+						  bool bFromSweep, const FHitResult& SweepResult);
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")

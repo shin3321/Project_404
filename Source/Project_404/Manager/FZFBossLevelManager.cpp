@@ -5,7 +5,8 @@
 #include "Character/Monster/Boss/FZFTestBoss.h"
 #include "Kismet/GameplayStatics.h"
 #include "Utils/Boss/FZFLaserActor.h"
-#include "Engine/TriggerBox.h"
+#include "Utils/Boss/FZFBossTrigger.h"
+#include "Utils/Boss/FZFBossBombActor.h"
 #include "Components/BoxComponent.h"
 #include "Algo/RandomShuffle.h"
 #include "Engine/TargetPoint.h"
@@ -45,7 +46,8 @@ void AFZFBossLevelManager::BeginPlay()
 		{
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
-			AFZFLaserActor* SpawnedLaser = GetWorld()->SpawnActor<AFZFLaserActor>(LaserClass, MinWallLocation, FRotator::ZeroRotator, SpawnParams);
+			AFZFLaserActor* SpawnedLaser = GetWorld()->SpawnActor<AFZFLaserActor>(
+				LaserClass, MinWallLocation, FRotator::ZeroRotator, SpawnParams);
 			if (SpawnedLaser)
 			{
 				SpawnedLaser->DeactivateLaser();
@@ -54,14 +56,13 @@ void AFZFBossLevelManager::BeginPlay()
 			}
 		}
 	}
-	FirstPhase();
+	SecondPhase();
 }
 
 // Called every frame
 void AFZFBossLevelManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AFZFBossLevelManager::HandlePhaseChanged(EBossPhase NewPhase)
@@ -69,21 +70,20 @@ void AFZFBossLevelManager::HandlePhaseChanged(EBossPhase NewPhase)
 	switch (NewPhase)
 	{
 	case EBossPhase::Phase1:
-	{
-		FirstPhase();
-		break;
-	}
+		{
+			FirstPhase();
+			break;
+		}
 
 	case EBossPhase::Phase2:
-	{
-
-		break;
-	}
+		{
+			SecondPhase();
+			break;
+		}
 	case EBossPhase::Phase3:
-	{
-
-		break;
-	}
+		{
+			break;
+		}
 	}
 }
 
@@ -137,8 +137,6 @@ void AFZFBossLevelManager::DeactivateLaser(AFZFLaserActor* Laser)
 void AFZFBossLevelManager::SecondPhase()
 {
 	CreateTrigger();
-
-
 }
 
 void AFZFBossLevelManager::CreateTrigger()
@@ -150,32 +148,44 @@ void AFZFBossLevelManager::CreateTrigger()
 	{
 		for (AActor* BossTrigger : BossTriggers)
 		{
-			FVector SpawnLocation = BossTrigger->GetActorLocation();
+			FVector SpawnLocation = BossTrigger->GetActorLocation() + FVector(0.0f, 0.0f, 30.0f);
 			FRotator SpawnRotation = BossTrigger->GetActorRotation();
 			FActorSpawnParameters SpawnParams;
 
-			ATriggerBox* SpawnedTrigger = GetWorld()->SpawnActor<ATriggerBox>(ATriggerBox::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
-
+			AFZFBossTrigger* SpawnedTrigger = GetWorld()->SpawnActor<AFZFBossTrigger>(
+				AFZFBossTrigger::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
+			
+			UE_LOG(LogTemp, Warning, TEXT("보스 트리거 스폰 지역을 찾았습니다"));			
 			if (SpawnedTrigger)
 			{
-				UBoxComponent* BoxComp = Cast<UBoxComponent>(SpawnedTrigger->GetCollisionComponent());
-				if (BoxComp)
-				{
-					// 2. 크기를 조절합니다. 
-					// 원하는 X, Y, Z 크기를 넣으세요.
-					BoxComp->SetBoxExtent(FVector(200.f, 200.f, 200.f));
-				}
-				SpawnedTrigger->OnActorBeginOverlap.AddDynamic(this, &AFZFBossLevelManager::OnBombTriggerOverlap);
-				BombTriggers.Add(SpawnedTrigger);
+				SpawnedTrigger->CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFZFBossLevelManager::OnBombTriggerOverlap);
+				UE_LOG(LogTemp, Warning, TEXT("보스 트리거 스폰 성공: %s"), *SpawnLocation.ToString());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("보스 트리거 스폰 실패!"));
 			}
 		}
 	}
 }
 
-void AFZFBossLevelManager::OnBombTriggerOverlap(AActor* OverlappedActor, AActor* OtherActor)
+void AFZFBossLevelManager::CreateBomb(FVector SpawnLocation)
 {
-	if (OtherActor && OtherActor != OverlappedActor)
+	FVector BombLocation = SpawnLocation + FVector(0.0f, 0.0f, 250.0f);
+	FActorSpawnParameters SpawnParams;
+
+	AFZFBossBombActor* Bomb = GetWorld()->SpawnActor<AFZFBossBombActor>(
+		AFZFBossBombActor::StaticClass(), SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+			
+	UE_LOG(LogTemp, Warning, TEXT("보스 폭탄 설치됨"));		
+	
+	// Todo 보스에게 신호 주기
+}
+
+void AFZFBossLevelManager::OnBombTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (Cast<AFZFCharacterBase>(OtherActor))
 	{
-		//AFZFCharacterPlayer* PlayerCharacter  
-	}
+		UE_LOG(LogTemp, Warning, TEXT("컴포넌트 트리거 겹침!"));
+	}	
 }
