@@ -51,6 +51,7 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 				TargetActor->StartSocketName = MData->AttackSocket;
 			}
 		}
+		UE_LOG(LogTemp, Display, TEXT("TargetActor!!!!"));
 	}
 
 	// WaitTargetData 태스크 생성 및 실행

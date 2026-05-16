@@ -1,5 +1,5 @@
 ﻿#include "GAS/TA/FZFTA_LineTrace.h"
-#include "GAS/Attributes/FZFPlayerSet.h" // 본인의 AttributeSet 헤더
+#include "GAS/Attributes/FZFAttributeSet.h" // 본인의 AttributeSet 헤더
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameFramework/Character.h"
@@ -34,8 +34,8 @@ FGameplayAbilityTargetDataHandle AFZFTA_LineTrace::MakeTargetData() const
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
 
 	// AttributeSet의 속성 대입
-	float AttackRange = ASC->GetNumericAttribute(UFZFPlayerSet::GetAttackRangeAttribute());
-	float AttackRadius = ASC->GetNumericAttribute(UFZFPlayerSet::GetAttackRadiusAttribute());
+	float AttackRange = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackRangeAttribute());
+	float AttackRadius = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackRadiusAttribute());
 
 	// 시작 위치(Start)와 방향(Forward) 결정
 	FVector Start;
