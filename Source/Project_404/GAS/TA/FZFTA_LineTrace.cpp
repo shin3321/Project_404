@@ -13,6 +13,7 @@ AFZFTA_LineTrace::AFZFTA_LineTrace()
 
 void AFZFTA_LineTrace::ConfirmTargetingAndContinue()
 {
+	UE_LOG(LogTemp, Warning, TEXT("TA ConfirmTargetingAndContinue"));
 	if (SourceActor)
 	{
 		FGameplayAbilityTargetDataHandle DataHandle = MakeTargetData();
