@@ -1,4 +1,4 @@
-﻿#include "GAS/TA/FZFTA_LineTrace.h"
+﻿#include "GAS/TA/FZFTA_SphereSweep.h"
 #include "GAS/Attributes/FZFAttributeSet.h" // 본인의 AttributeSet 헤더
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -6,14 +6,13 @@
 #include "Physics/FZFCollision.h"
 #include "Components/CapsuleComponent.h"
 
-AFZFTA_LineTrace::AFZFTA_LineTrace()
+AFZFTA_SphereSweep::AFZFTA_SphereSweep()
 {
 	StartSocketName = NAME_None;
 }
 
-void AFZFTA_LineTrace::ConfirmTargetingAndContinue()
+void AFZFTA_SphereSweep::ConfirmTargetingAndContinue()
 {
-	UE_LOG(LogTemp, Warning, TEXT("TA ConfirmTargetingAndContinue"));
 	if (SourceActor)
 	{
 		FGameplayAbilityTargetDataHandle DataHandle = MakeTargetData();
@@ -21,7 +20,7 @@ void AFZFTA_LineTrace::ConfirmTargetingAndContinue()
 	}
 }
 
-void AFZFTA_LineTrace::StartTargeting(UGameplayAbility* Ability)
+void AFZFTA_SphereSweep::StartTargeting(UGameplayAbility* Ability)
 {
 	Super::StartTargeting(Ability);
 
@@ -29,7 +28,7 @@ void AFZFTA_LineTrace::StartTargeting(UGameplayAbility* Ability)
 	SourceActor = Ability->GetCurrentActorInfo()->AvatarActor.Get();
 }
 
-FGameplayAbilityTargetDataHandle AFZFTA_LineTrace::MakeTargetData() const
+FGameplayAbilityTargetDataHandle AFZFTA_SphereSweep::MakeTargetData() const
 {
 	ACharacter* Character = Cast<ACharacter>(SourceActor);
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
