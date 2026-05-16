@@ -35,7 +35,9 @@ void AFZFTestBoss::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void AFZFTestBoss::CheckBossPhase()
 {
 	EBossPhase NextBossPhase = EBossPhase::Phase1;
+
 	// if(보스의 약점이 꺠지면)
+
 	NextBossPhase = EBossPhase::Phase2;
 	
 	if (NextBossPhase != CurrentBossPhase)
