@@ -24,6 +24,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ThirdPerson")
     TObjectPtr<UAnimMontage> ThirdPersonAttackMontage;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Monster")
+    TObjectPtr<UAnimMontage> MonsterAttackMontage;
 
     // 애니메이션이 끝났을 때 호출될 함수
     UFUNCTION()
@@ -32,4 +34,20 @@ protected:
     // 애니메이션이 재생도중에 끊겼을 때, 호출될 함수
     UFUNCTION()
     void OnMontageInterrupted();
+
+private:
+
+    void PlayPlayerAttack(class AFZFCharacterPlayer* CharacterPlayer,
+        float AttackSpeed,
+        const FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        const FGameplayAbilityActivationInfo ActivationInfo);
+
+    void PlayMonsterAttack(
+        class AFZFMonster* Monster,
+        float AttackSpeed,
+        const FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        const FGameplayAbilityActivationInfo ActivationInfo
+    );
 };

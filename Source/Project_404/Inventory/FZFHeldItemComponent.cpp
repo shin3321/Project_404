@@ -29,6 +29,9 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
     // 기존에 손에 들고 있던 아이템이 있으면 먼저 제거
     ClearHeldItem();
 
+    // 현재 아이템 데이터 저장
+    CurrentItemData = ItemData;
+
     // 선택된 슬롯이 비어있거나 ItemData가 없으면 종료
     if (!ItemData)
     {
@@ -188,6 +191,9 @@ void UFZFHeldItemComponent::ClearHeldItem()
             }
         }
     }
+
+    // 데이터 포인터도 초기화
+    CurrentItemData = nullptr;
 
     // 현재 손에 든 아이템이 있으면 제거
     if (CurrentHeldItem)
