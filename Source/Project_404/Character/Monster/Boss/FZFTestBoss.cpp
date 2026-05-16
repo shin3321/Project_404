@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/Monster/Boss/FZFTestBoss.h"
@@ -35,7 +35,7 @@ void AFZFTestBoss::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void AFZFTestBoss::CheckBossPhase()
 {
 	EBossPhase NextBossPhase = EBossPhase::Phase1;
-	if(보스의 약점이 꺠지면)
+	// if(보스의 약점이 꺠지면)
 	NextBossPhase = EBossPhase::Phase2;
 	
 	if (NextBossPhase != CurrentBossPhase)

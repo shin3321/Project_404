@@ -2,7 +2,7 @@
 
 
 #include "GAS/GA/FZFGA_AttackHitCheck.h"
-#include "GAS/TA/FZFTA_LineTrace.h"
+#include "GAS/TA/FZFTA_SphereSweep.h"
 #include "Abilities/GameplayAbilityTargetActor.h"
 #include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
 #include "Inventory/FZFHeldItemComponent.h"
@@ -26,7 +26,7 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 
 	AActor* Avatar = GetAvatarActorFromActorInfo();
 	// TargetActor 생성 및 설정
-	AFZFTA_LineTrace* TargetActor = GetWorld()->SpawnActor<AFZFTA_LineTrace>(TargetActorClass);
+	AFZFTA_SphereSweep* TargetActor = GetWorld()->SpawnActor<AFZFTA_SphereSweep>(TargetActorClass);
 	if (TargetActor)
 	{
 		TargetActor->SourceActor = Avatar;

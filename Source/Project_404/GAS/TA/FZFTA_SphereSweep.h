@@ -2,14 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbilityTargetActor.h"
-#include "FZFTA_LineTrace.generated.h"
+#include "FZFTA_SphereSweep.generated.h"
 
 UCLASS()
-class PROJECT_404_API AFZFTA_LineTrace : public AGameplayAbilityTargetActor
+class PROJECT_404_API AFZFTA_SphereSweep : public AGameplayAbilityTargetActor
 {
 	GENERATED_BODY()
 public:
-	AFZFTA_LineTrace();
+	AFZFTA_SphereSweep();
 
 	// 상위 Ability애서 Confirm을 눌렀을 때, 실행되는 함수
 	virtual void ConfirmTargetingAndContinue() override;
