@@ -3,7 +3,9 @@
 
 AFZFCharacterBase::AFZFCharacterBase()
 {
-
+    // 네트워크 설정
+    bReplicates = true;
+    //SetReplicates(true);
 }
 
 UAbilitySystemComponent* AFZFCharacterBase::GetAbilitySystemComponent() const

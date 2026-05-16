@@ -82,7 +82,6 @@ void AFZFLaserActor::ActivateLaser(FVector StartLocation, ELaserMode Mode, ELase
 	if (CurrentType == ELaserType::Horizon)
 	{
 		// 가로 방향 설정 로직
-		SetActorRotation(FRotator(0.f, 0.f, 0.f));
 	}
 	else if (CurrentType == ELaserType::Vertical)
 	{

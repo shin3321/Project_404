@@ -22,6 +22,7 @@ UFZFHeldItemComponent::UFZFHeldItemComponent()
 {
     // Tick 필요 없으면 끔
     PrimaryComponentTick.bCanEverTick = false;
+    SetIsReplicatedByDefault(true);
 }
 
 void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)

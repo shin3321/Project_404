@@ -1,9 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Utils/Boss/FZFBossBombActor.h"
 #include "Components/BoxComponent.h"
 #include "Character/Monster/Boss/FZFTestBoss.h"
+#include "Character/Player/FZFCharacterPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "NiagaraFunctionLibrary.h"
@@ -34,7 +35,12 @@ AFZFBossBombActor::AFZFBossBombActor()
 void AFZFBossBombActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFZFBossBombActor::OnComponentBeginOverlap);
+
+	if (ExplosionFX)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionFX, GetActorLocation());
+	}
 }
 
 // Called every frame
@@ -47,26 +53,39 @@ void AFZFBossBombActor::Tick(float DeltaTime)
 void AFZFBossBombActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor && OtherActor->IsA(AFZFTestBoss::StaticClass()))
+	//if (OtherActor && OtherActor->IsA(AFZFTestBoss::StaticClass()))
+	//{
+	//	BossActor = Cast<AFZFTestBoss>(OtherActor);
+	//	GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AFZFBossBombActor::Explode, 2.0f, false);
+	//}
+
+	if (OtherActor && OtherActor->IsA(AFZFCharacterPlayer::StaticClass()))
 	{
-		BossActor = Cast<AFZFTestBoss>(OtherActor);
+		AFZFCharacterPlayer* Player = Cast<AFZFCharacterPlayer>(OtherActor);
 		GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AFZFBossBombActor::Explode, 2.0f, false);
+		//Explode();
 	}
 }
 
 void AFZFBossBombActor::Explode()
 {
-	if (BossActor)
+	//if (BossActor)
+	//{
+	//	if (ExplosionFX)
+	//	{
+	//		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionFX, GetActorLocation());
+	//		
+	//		//Todo boss 데미지 설정
+	//		UGameplayStatics::ApplyDamage(BossActor, 50.0f, GetInstigatorController(), this, UDamageType::StaticClass());
+	//	}
+	//}	
+
+	if (ExplosionFX)
 	{
-		if (ExplosionFX)
-		{
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionFX, GetActorLocation());
-			
-			//Todo boss 데미지 설정
-			UGameplayStatics::ApplyDamage(BossActor, 50.0f, GetInstigatorController(), this, UDamageType::StaticClass());
-		}
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionFX, GetActorLocation());
 	}
+	
 	// 폭발물 자신 제거
-	Destroy();
+	//Destroy();
 }
 

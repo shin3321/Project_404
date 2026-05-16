@@ -70,20 +70,20 @@ void AFZFBossLevelManager::HandlePhaseChanged(EBossPhase NewPhase)
 	switch (NewPhase)
 	{
 	case EBossPhase::Phase1:
-		{
-			FirstPhase();
-			break;
-		}
+	{
+		FirstPhase();
+		break;
+	}
 
 	case EBossPhase::Phase2:
-		{
-			SecondPhase();
-			break;
-		}
+	{
+		SecondPhase();
+		break;
+	}
 	case EBossPhase::Phase3:
-		{
-			break;
-		}
+	{
+		break;
+	}
 	}
 }
 
@@ -148,14 +148,13 @@ void AFZFBossLevelManager::CreateTrigger()
 	{
 		for (AActor* BossTrigger : BossTriggers)
 		{
-			FVector SpawnLocation = BossTrigger->GetActorLocation() + FVector(0.0f, 0.0f, 30.0f);
+			FVector SpawnLocation = BossTrigger->GetActorLocation() + FVector(0.0f, 0.0f, 25.0f);
 			FRotator SpawnRotation = BossTrigger->GetActorRotation();
 			FActorSpawnParameters SpawnParams;
 
-			AFZFBossTrigger* SpawnedTrigger = GetWorld()->SpawnActor<AFZFBossTrigger>(
-				AFZFBossTrigger::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
-			
-			UE_LOG(LogTemp, Warning, TEXT("보스 트리거 스폰 지역을 찾았습니다"));			
+			AFZFBossTrigger* SpawnedTrigger = GetWorld()->SpawnActor<AFZFBossTrigger>(AFZFBossTrigger::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
+
+			UE_LOG(LogTemp, Warning, TEXT("보스 트리거 스폰 지역을 찾았습니다"));
 			if (SpawnedTrigger)
 			{
 				SpawnedTrigger->CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFZFBossLevelManager::OnBombTriggerOverlap);
@@ -171,14 +170,20 @@ void AFZFBossLevelManager::CreateTrigger()
 
 void AFZFBossLevelManager::CreateBomb(FVector SpawnLocation)
 {
-	FVector BombLocation = SpawnLocation + FVector(0.0f, 0.0f, 250.0f);
+	if (BombBlueprintClass == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("매니저에 폭탄 블루프린트 클래스가 설정되지 않았습니다"));
+		return;
+	}
+
+	FVector BombLocation = SpawnLocation + FVector(0.0f, 0.0f, 120.0f);
 	FActorSpawnParameters SpawnParams;
 
-	AFZFBossBombActor* Bomb = GetWorld()->SpawnActor<AFZFBossBombActor>(
-		AFZFBossBombActor::StaticClass(), SpawnLocation, FRotator::ZeroRotator, SpawnParams);
-			
-	UE_LOG(LogTemp, Warning, TEXT("보스 폭탄 설치됨"));		
-	
+	AFZFBossBombActor* Bomb = GetWorld()->SpawnActor<AFZFBossBombActor>(BombBlueprintClass, BombLocation, FRotator::ZeroRotator, SpawnParams);
+	if (Bomb)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("보스 폭탄 설치됨"));
+	}
 	// Todo 보스에게 신호 주기
 }
 
@@ -187,5 +192,5 @@ void AFZFBossLevelManager::OnBombTriggerOverlap(UPrimitiveComponent* OverlappedC
 	if (Cast<AFZFCharacterBase>(OtherActor))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("컴포넌트 트리거 겹침!"));
-	}	
+	}
 }
