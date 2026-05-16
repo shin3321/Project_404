@@ -51,7 +51,6 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 				TargetActor->StartSocketName = MData->AttackSocket;
 			}
 		}
-		UE_LOG(LogTemp, Display, TEXT("TargetActor!!!!"));
 	}
 
 	// WaitTargetData 태스크 생성 및 실행
@@ -68,10 +67,17 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 	// 태스크 활성화
 	WaitTargetDataTask->ReadyForActivation();
 
+	if (TargetActor) 
+	{
+		// EGameplayTargetingConfirmation::Instant 관련
+		TargetActor->ConfirmTargeting();
+	}
 }
 
 void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle)
 {
+	UE_LOG(LogTemp, Display, TEXT("EndAbility!!!!!!!!!!"));
+
 	// TA가 브로드캐스트한 DataHandle이 여기로 들어옴
 	if (DataHandle.IsValid(0))
 	{
