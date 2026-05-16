@@ -25,28 +25,30 @@ AFZFMonster::AFZFMonster()
 	// 미리 지정한 AIController에 빙의되도록 설정.
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	//// 몬스터 메시 위치 & 회전 변경
-	//GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 27.0f), FRotator(0.0f, -90.0f, 0.0f));
+	/*
+	// 몬스터 메시 위치 & 회전 변경
+	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 27.0f), FRotator(0.0f, -90.0f, 0.0f));
 
-	//// 몬스터 메시 설정
-	//static ConstructorHelpers::FObjectFinder<USkeletalMesh> MonsterMesh(
-	//	TEXT("/Game/Assets/Monster/M1/SK_M1.SK_M1")
-	//);
+	// 몬스터 메시 설정
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MonsterMesh(
+		TEXT("/Game/Assets/Monster/M1/SK_M1.SK_M1")
+	);
 
-	//if (MonsterMesh.Succeeded())
-	//{
-	//	GetMesh()->SetSkeletalMesh(MonsterMesh.Object);
-	//}
+	if (MonsterMesh.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(MonsterMesh.Object);
+	}
 
-	//// 애님 블루프린트 클래스 정보 지정.
-	//static ConstructorHelpers::FClassFinder<UAnimInstance> MonsterAnim(
-	//	TEXT("/Game/Project404/Character/Monster/Animation/ABP_M1.ABP_M1_C")
-	//);
+	// 애님 블루프린트 클래스 정보 지정.
+	static ConstructorHelpers::FClassFinder<UAnimInstance> MonsterAnim(
+		TEXT("/Game/Project404/Character/Monster/Animation/ABP_M1.ABP_M1_C")
+	);
 
-	//if (MonsterAnim.Succeeded())
-	//{
-	//	GetMesh()->SetAnimInstanceClass(MonsterAnim.Class);
-	//}
+	if (MonsterAnim.Succeeded())
+	{
+		GetMesh()->SetAnimInstanceClass(MonsterAnim.Class);
+	}
+	*/
 }
 
 void AFZFMonster::BeginPlay() 
@@ -152,6 +154,7 @@ void AFZFMonster::InitAbilitySystem()
 
 }
 
+// 몬스터 데이터 초기화 함수
 void AFZFMonster::InitAttributesFromData()
 {
 	if (!ASC || !MonsterData || !InitMonsterEffectClass)
@@ -182,22 +185,6 @@ void AFZFMonster::InitAttributesFromData()
 	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.BT.TurnSpeed")), MonsterData->TurnSpeed);
 
 	FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
-
-	UE_LOG(LogTemp, Warning, TEXT("InitGE Handle Valid: %s"), Handle.IsValid() ? TEXT("true") : TEXT("false"));
-
-	UE_LOG(LogTemp, Warning, TEXT("Data MaxMove: %f / Attr Move: %f / Attr MaxMove: %f"),
-		MonsterData->MaxMovementSpeed,
-		MonsterAttributeSet->GetMovementSpeed(),
-		MonsterAttributeSet->GetMaxMovementSpeed()
-	);
-	UE_LOG(LogTemp, Warning, TEXT("ASC: %s"), *GetNameSafe(ASC));
-	UE_LOG(LogTemp, Warning, TEXT("InitGE Class: %s"), *GetNameSafe(InitMonsterEffectClass));
-	UE_LOG(LogTemp, Warning, TEXT("MonsterData: %s"), *GetNameSafe(MonsterData));
-	UE_LOG(LogTemp, Warning, TEXT("MonsterSet: %s"), *GetNameSafe(MonsterAttributeSet));
-	UE_LOG(LogTemp, Warning, TEXT("OwnerActor: %s / AvatarActor: %s"),
-		*GetNameSafe(ASC->AbilityActorInfo.IsValid() ? ASC->AbilityActorInfo->OwnerActor.Get() : nullptr),
-		*GetNameSafe(ASC->AbilityActorInfo.IsValid() ? ASC->AbilityActorInfo->AvatarActor.Get() : nullptr)
-	);
 }
 
 /* 인터페이스 구현 */
