@@ -1,7 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "GAS/Attributes/FZFPlayerSet.h"
+﻿#include "GAS/Attributes/FZFPlayerSet.h"
 #include "GameplayEffectExtension.h"
 
 UFZFPlayerSet::UFZFPlayerSet()
@@ -9,6 +6,7 @@ UFZFPlayerSet::UFZFPlayerSet()
 	InitMovementSpeed(300.0f);
 	InitStamina(100.0f);
 	InitMaxStamina(GetStamina());
+	InitAttackSpeed(1.0f);
 }
 
 void UFZFPlayerSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)

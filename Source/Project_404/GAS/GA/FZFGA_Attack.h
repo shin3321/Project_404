@@ -17,9 +17,15 @@ public:
 
     virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled);
 protected:
-    // 에디터에서 재생할 공격 애니메이션 몽타주를 지정
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
-    TObjectPtr<UAnimMontage> AttackMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FirstPerson")
+    TObjectPtr<UAnimMontage> FirstPersonAttackMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ThirdPerson")
+    TObjectPtr<UAnimMontage> ThirdPersonAttackMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Monster")
+    TObjectPtr<UAnimMontage> MonsterAttackMontage;
 
     // 애니메이션이 끝났을 때 호출될 함수
     UFUNCTION()
@@ -28,4 +34,20 @@ protected:
     // 애니메이션이 재생도중에 끊겼을 때, 호출될 함수
     UFUNCTION()
     void OnMontageInterrupted();
+
+private:
+
+    void PlayPlayerAttack(class AFZFCharacterPlayer* CharacterPlayer,
+        float AttackSpeed,
+        const FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        const FGameplayAbilityActivationInfo ActivationInfo);
+
+    void PlayMonsterAttack(
+        class AFZFMonster* Monster,
+        float AttackSpeed,
+        const FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        const FGameplayAbilityActivationInfo ActivationInfo
+    );
 };

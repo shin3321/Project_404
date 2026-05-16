@@ -5,6 +5,10 @@
 
 UFZFMonsterSet::UFZFMonsterSet()
 {
+
+	// 이동 스피드 설정.
+	InitMovementSpeed(300.0f);
+
 	// 공격 반경 설정.
 	InitAttackRadius(50.0f);
 
@@ -19,7 +23,4 @@ UFZFMonsterSet::UFZFMonsterSet()
 
 	// 회전 스피드 설정.
 	InitTurnSpeed(2.0f);
-
-	// 이동 스피드 설정.
-	InitMovementSpeed(300.0f);
 }

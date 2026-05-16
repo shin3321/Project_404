@@ -35,6 +35,7 @@ public:
 	
 	UFUNCTION()
 	void DeactivateLaser(AFZFLaserActor* Laser);
+
 protected:
 	FTimerHandle LaserTimerHandle;
 	
@@ -46,11 +47,26 @@ protected:
 	
 	int32 LaserCount = 20;
 
+public:
+	UFUNCTION()
+	void SecondPhase();
+
+	UFUNCTION()
+	void CreateTrigger();
+	
+	UFUNCTION()
+	void CreateBomb(FVector SpawnLocation);
+	
+protected:
+	UFUNCTION()
+	void OnBombTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
+						  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
+						  bool bFromSweep, const FHitResult& SweepResult);
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class UBoxComponent* TransferVolume;
-	
+
 	int32 MoveSpeed = 300.0f;
 	
 	FVector MinWallLocation = FVector(0.0f, 0.0f, 0.0f);

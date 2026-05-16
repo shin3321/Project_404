@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Utils/Boss/FZFLaserActor.h"
@@ -26,6 +26,8 @@ AFZFLaserActor::AFZFLaserActor()
 	LaserEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LaserEffectComp"));
 	LaserEffectComp->SetupAttachment(CollisionComp); // 콜리전을 따라다니도록 설정
 	LaserEffectComp->bAutoActivate = false;
+
+	MoveDirection = FVector(1.0f, 1.0f, 1.0f);
 	
 	//CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AFZFLaserActor::OnLaserOverlap);
 	
@@ -41,11 +43,11 @@ void AFZFLaserActor::BeginPlay()
 void AFZFLaserActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (CurrentMode != ELaserMode::Moving)
+	if (CurrentMode == ELaserMode::Inactive)
 		return;
 	FVector NewLocation = GetActorLocation();
 
-	if (CurrentType == ELaserType::Vertical)
+	if (CurrentType == ELaserType::Horizon && CurrentMode == ELaserMode::Moving)
 	{
 		NewLocation.Z += Speed * MoveDirection.Z * DeltaTime;
 		if (NewLocation.Z < MinZ || NewLocation.Z > MaxZ)
@@ -53,14 +55,17 @@ void AFZFLaserActor::Tick(float DeltaTime)
 			MoveDirection.Z *= -1.0;
 		}
 	}
-	if (CurrentType == ELaserType::Horizon)
+	if (CurrentType == ELaserType::Vertical)
 	{
-		NewLocation.Y += Speed * MoveDirection.Y * DeltaTime;
-		if (NewLocation.Y < 0.0f || NewLocation.Y > MaxY)
-			MoveDirection.Y *= -1.0;
+		NewLocation.X += Speed * MoveDirection.X * DeltaTime;
+		if (NewLocation.X < 0.0f || NewLocation.X> MaxX)
+			MoveDirection.X *= -1.0;
 	}
+
+	NewLocation.Y+= Speed * MoveDirection.Y * DeltaTime;
 	SetActorLocation(NewLocation);
-	if (NewLocation.X < MinX || NewLocation.X > MaxX)
+
+	if (NewLocation.Y < MinY || NewLocation.Y > MaxY)
 	{
 		DeactivateLaser();
 	}
@@ -87,7 +92,8 @@ void AFZFLaserActor::ActivateLaser(FVector StartLocation, ELaserMode Mode, ELase
 
 	// 콜리전 및 이펙트 활성화
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	LaserEffectComp->Activate();
+	LaserEffectComp->Activate(true);
+	LaserEffectComp->ReinitializeSystem();
 	LaserEffectComp->SetVisibility(true);
 	
 }

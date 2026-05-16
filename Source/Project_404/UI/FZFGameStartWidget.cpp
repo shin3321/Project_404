@@ -29,8 +29,7 @@ void UFZFGameStartWidget::OnHostStartClicked()
 	UE_LOG(LogTemp, Warning, TEXT("Host IP Address: %s"), *MyIP);
 
 	// Todo 로비 레벨 띄우기
-	UGameplayStatics::OpenLevel(GetWorld(), TEXT("Lobby"), true,
-		TEXT("listen"));
+	UGameplayStatics::OpenLevel(GetWorld(), TEXT("/Game/Project404/Map/Lobby"), true, TEXT("listen"));
 }
 
 void UFZFGameStartWidget::OnGuestStartClicked()

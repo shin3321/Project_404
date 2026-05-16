@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "ItemTypes.generated.h"
@@ -9,15 +9,19 @@ enum class EItemType : uint8
     Equipment      UMETA(DisplayName = "Equipment"),
     Consumable     UMETA(DisplayName = "Consumable"),
     CraftMaterial  UMETA(DisplayName = "Craft Material"),
-    Crystal         UMETA(DisplayName = "Crystal")
+    Crystal        UMETA(DisplayName = "Crystal")
 };
 
+// 애니메이션 재생을 위한 세분화된 타입 분기.
 UENUM()
 enum class EEquipmentType : uint8
 {
-    Melee      UMETA(DisplayName = "Melee"),
-    Ranged     UMETA(DisplayName = "Ranged"),
-    Throwable  UMETA(DisplayName = "Throwable")
+    None    UMETA(DisplayName = "None"),
+    Pistol  UMETA(DisplayName = "Pistol"),
+    Rifle   UMETA(DisplayName = "Rifle"),
+    Sword   UMETA(DisplayName = "Sword"),
+    Pickaxe UMETA(DisplayName = "Pickaxe"),
+    Throwable UMETA(DisplayName = "Throwable")
 };
 
 UENUM()

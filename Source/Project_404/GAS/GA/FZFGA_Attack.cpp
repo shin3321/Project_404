@@ -8,6 +8,8 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Interface/FZFMonsterAIInterface.h"
+#include "Character/Player/FZFCharacterPlayer.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Character/Monster/FZFMonster.h"
 
 UFZFGA_Attack::UFZFGA_Attack()
@@ -19,41 +21,36 @@ void UFZFGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// 유효성 검사: 어빌리티가 정상적으로 시작 가능한지, 몽타주가 할당되어 있는지 확인
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || AttackMontage == nullptr)
+	if (!ActorInfo || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	// 몽타주 재생하면 캐릭터 이동을 멈춤
-	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	if (!ASC)
 	{
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
-	// AttributeSet 정보 받아오기
-	UFZFAbilitySystemComponent* ASC = Cast<UFZFAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get());
+	const float AttackSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackSpeedAttribute());
 
-	float AttackSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackSpeedAttribute());
+	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 
-	// 애니메이션 몽타주 재생 태스크 생성
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this,
-		TEXT("AttackTask"),
-		AttackMontage,
-		AttackSpeed,
-		NAME_None, // 일단 몽타주 처음을 재생
-		false
-	);
+	if (AFZFCharacterPlayer* Player = Cast<AFZFCharacterPlayer>(AvatarActor))
+	{
+		PlayPlayerAttack(Player, AttackSpeed, Handle, ActorInfo, ActivationInfo);
+		return;
+	}
 
-	// 델리게이트 연결 (애니메이션이 끝나거나 중단되었을 때의 처리)
-	MontageTask->OnCompleted.AddDynamic(this, &UFZFGA_Attack::OnMontageCompleted);
-	MontageTask->OnInterrupted.AddDynamic(this, &UFZFGA_Attack::OnMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UFZFGA_Attack::OnMontageInterrupted);
+	if (AFZFMonster* Monster = Cast<AFZFMonster>(AvatarActor))
+	{
+		PlayMonsterAttack(Monster, AttackSpeed, Handle, ActorInfo, ActivationInfo);
+		return;
+	}
 
-	// 태스크 활성화
-	MontageTask->ReadyForActivation();
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 }
 
 void UFZFGA_Attack::OnMontageCompleted()
@@ -66,6 +63,91 @@ void UFZFGA_Attack::OnMontageInterrupted()
 {
 	// 애니메이션이 끊겼으므로 어빌리티 종료
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UFZFGA_Attack::PlayPlayerAttack(AFZFCharacterPlayer* CharacterPlayer,float AttackSpeed,const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	if (!CharacterPlayer)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	USkeletalMeshComponent* TargetMesh = nullptr;
+	UAnimMontage* AttackMontage = nullptr;
+
+	if (CharacterPlayer->IsLocallyControlled())
+	{
+		TargetMesh = CharacterPlayer->GetArmMesh();
+		AttackMontage = FirstPersonAttackMontage;
+	}
+	else
+	{
+		TargetMesh = CharacterPlayer->GetMesh();
+		AttackMontage = ThirdPersonAttackMontage;
+	}
+
+	if (!TargetMesh || !TargetMesh->GetAnimInstance() || !AttackMontage)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	const float Duration = TargetMesh->GetAnimInstance()->Montage_Play(AttackMontage, AttackSpeed);
+
+	if (Duration <= 0.f)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(this, Duration);
+
+	if (!WaitTask)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	WaitTask->OnFinish.AddDynamic(this, &UFZFGA_Attack::OnMontageCompleted);
+	WaitTask->ReadyForActivation();
+}
+
+void UFZFGA_Attack::PlayMonsterAttack(class AFZFMonster* Monster, float AttackSpeed, const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	if (!Monster || !MonsterAttackMontage)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	if (Monster->GetCharacterMovement())
+	{
+		Monster->GetCharacterMovement()->SetMovementMode(MOVE_None);
+	}
+
+	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+			this,
+			TEXT("MonsterAttackTask"),
+			MonsterAttackMontage,
+			AttackSpeed,
+			NAME_None,
+			false
+		);
+
+	if (!MontageTask)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	MontageTask->OnCompleted.AddDynamic(this, &UFZFGA_Attack::OnMontageCompleted);
+	MontageTask->OnInterrupted.AddDynamic(this, &UFZFGA_Attack::OnMontageInterrupted);
+	MontageTask->OnCancelled.AddDynamic(this, &UFZFGA_Attack::OnMontageInterrupted);
+
+	MontageTask->ReadyForActivation();
 }
 
 void UFZFGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)

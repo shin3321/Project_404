@@ -1,42 +1,59 @@
-#include "FZFHeldItemComponent.h"
+ï»¿#include "FZFHeldItemComponent.h"
 #include "FZFHeldItemActor.h"
 #include "Item/FZFItemData.h"
+#include "Character/Player/FZFCharacterPlayer.h"
+#include "Item/FZFItemAnimSetData.h"
 
+// Itemì˜ ëŠ¥ë ¥ì¹˜
+#include "Item/Equipment/FZFRangedItemData.h"
+#include "Item/Equipment/FZFMeleeItemData.h"
+#include "Item/Equipment/FZFThrowableItemData.h"
+
+#include "GameFramework/Pawn.h"
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 
+// GAS
+#include "AbilitySystemInterface.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayTagContainer.h"
+
 UFZFHeldItemComponent::UFZFHeldItemComponent()
 {
-    // Tick ÇÊ¿ä ¾øÀ¸¸é ²û
+    // Tick í•„ìš” ì—†ìœ¼ë©´ ë”
     PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
 {
-    // ±âÁ¸¿¡ ¼Õ¿¡ µé°í ÀÖ´ø ¾ÆÀÌÅÛÀÌ ÀÖÀ¸¸é ¸ÕÀú Á¦°Å
+    // ê¸°ì¡´ì— ì†ì— ë“¤ê³  ìˆë˜ ì•„ì´í…œì´ ìˆìœ¼ë©´ ë¨¼ì € ì œê±°
     ClearHeldItem();
 
-    // ¼±ÅÃµÈ ½½·ÔÀÌ ºñ¾îÀÖ°Å³ª ItemData°¡ ¾øÀ¸¸é Á¾·á
+    // í˜„ì¬ ì•„ì´í…œ ë°ì´í„° ì €ì¥
+    CurrentItemData = ItemData;
+
+    // ì„ íƒëœ ìŠ¬ë¡¯ì´ ë¹„ì–´ìˆê±°ë‚˜ ItemDataê°€ ì—†ìœ¼ë©´ ì¢…ë£Œ
     if (!ItemData)
     {
         return;
     }
 
-    // ItemData¿¡ Mesh°¡ ¾øÀ¸¸é ¼Õ¿¡ º¸¿©ÁÙ ¼ö ¾øÀ¸¹Ç·Î Á¾·á
+    // ItemDataì— Meshê°€ ì—†ìœ¼ë©´ ì†ì— ë³´ì—¬ì¤„ ìˆ˜ ì—†ìœ¼ë¯€ë¡œ ì¢…ë£Œ
     if (!ItemData->Mesh)
     {
         UE_LOG(LogTemp, Warning, TEXT("ItemData Mesh is null"));
         return;
     }
 
-    // ¼Õ¿¡ µé ¾ÆÀÌÅÛ Actor Å¬·¡½º°¡ ¼³Á¤µÇ¾î ÀÖÁö ¾ÊÀ¸¸é »ı¼º ºÒ°¡
+    // ì†ì— ë“¤ ì•„ì´í…œ Actor í´ë˜ìŠ¤ê°€ ì„¤ì •ë˜ì–´ ìˆì§€ ì•Šìœ¼ë©´ ìƒì„± ë¶ˆê°€
     if (!HeldItemClass)
     {
         UE_LOG(LogTemp, Warning, TEXT("HeldItemClass is null"));
         return;
     }
 
-    // ÀÌ ÄÄÆ÷³ÍÆ®¸¦ °¡Áö°í ÀÖ´Â Owner¸¦ Character·Î Ä³½ºÆÃ
+
+    // ì´ ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì§€ê³  ìˆëŠ” Ownerë¥¼ Characterë¡œ ìºìŠ¤íŒ…
     ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
     if (!OwnerCharacter)
     {
@@ -44,40 +61,44 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
         return;
     }
 
-    // Ä³¸¯ÅÍ°¡ °¡Áø ¸ğµç SkeletalMeshComponent¸¦ °¡Á®¿È
-    // ¸ö ¸Ş½Ã, ¼Õ ¸Ş½Ã°¡ µÑ ´Ù ÀÖÀ» ¼ö ÀÖ±â ¶§¹®
+    // ìºë¦­í„°ê°€ ê°€ì§„ ëª¨ë“  SkeletalMeshComponentë¥¼ ê°€ì ¸ì˜´
+    // ëª¸ ë©”ì‹œ, ì† ë©”ì‹œê°€ ë‘˜ ë‹¤ ìˆì„ ìˆ˜ ìˆê¸° ë•Œë¬¸
     TArray<USkeletalMeshComponent*> MeshComponents;
     OwnerCharacter->GetComponents<USkeletalMeshComponent>(MeshComponents);
 
-    // È­¸é¿¡ º¸ÀÌ´Â ¼Õ SkeletalMeshComponent¸¦ ÀúÀåÇÒ º¯¼ö
-    USkeletalMeshComponent* ArmsMeshComponent = nullptr;
-
-    // ÀÌ¸§ÀÌ "2_Hand"ÀÎ ¼Õ ¸Ş½Ã ÄÄÆ÷³ÍÆ®¸¦ Ã£À½
-    // ÁÖÀÇ: "2_Hand"´Â BP_FZFPlayerÀÇ Components ÆĞ³Î¿¡ ÀÖ´Â ÄÄÆ÷³ÍÆ® ÀÌ¸§°ú °°¾Æ¾ß ÇÔ
+    USkeletalMeshComponent* TargetMesh = nullptr;
     for (USkeletalMeshComponent* MeshComp : MeshComponents)
     {
         if (MeshComp && MeshComp->GetName() == TEXT("CharacterArmMesh"))
         {
-            ArmsMeshComponent = MeshComp;
-            break;
+            if (OwnerCharacter->IsLocallyControlled())
+            {
+                TargetMesh = MeshComp;
+                break;
+            }
+            else
+            {
+                TargetMesh = OwnerCharacter->GetMesh();
+                break;
+            }
         }
     }
 
-    // ¼Õ ¸Ş½Ã ÄÄÆ÷³ÍÆ®¸¦ ¸ø Ã£À¸¸é ¾ÆÀÌÅÛÀ» ºÙÀÏ ¼ö ¾øÀ¸¹Ç·Î Á¾·á
-    if (!ArmsMeshComponent)
+    // ì† ë©”ì‹œ ì»´í¬ë„ŒíŠ¸ë¥¼ ëª» ì°¾ìœ¼ë©´ ì•„ì´í…œì„ ë¶™ì¼ ìˆ˜ ì—†ìœ¼ë¯€ë¡œ ì¢…ë£Œ
+    if (!TargetMesh)
     {
         UE_LOG(LogTemp, Warning, TEXT("2_Hand SkeletalMeshComponent not found"));
         return;
     }
 
-    // ¼Õ ¸Ş½Ã ¾È¿¡ hand_r_Socket ¼ÒÄÏÀÌ ½ÇÁ¦·Î ÀÖ´ÂÁö È®ÀÎ
-    if (!ArmsMeshComponent->DoesSocketExist(TEXT("hand_r_Socket")))
+    // ë©”ì‹œ ì•ˆì— hand_r_Socket ì†Œì¼“ì´ ì‹¤ì œë¡œ ìˆëŠ”ì§€ í™•ì¸
+    if (!TargetMesh->DoesSocketExist(TEXT("hand_r_Socket")))
     {
         UE_LOG(LogTemp, Warning, TEXT("hand_r_Socket does not exist on 2_Hand"));
         return;
     }
 
-    // ¼Õ¿¡ µé ¾ÆÀÌÅÛ Actor »ı¼º
+    // ì†ì— ë“¤ ì•„ì´í…œ Actor ìƒì„±
     CurrentHeldItem = GetWorld()->SpawnActor<AFZFHeldItemActor>(HeldItemClass);
     if (!CurrentHeldItem)
     {
@@ -85,21 +106,96 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
         return;
     }
 
-    // ItemData¿¡ µî·ÏµÈ Mesh¸¦ ¼Õ ¾ÆÀÌÅÛ Actor¿¡ Àû¿ë
+    // ItemDataì— ë“±ë¡ëœ Meshë¥¼ ì† ì•„ì´í…œ Actorì— ì ìš©
     CurrentHeldItem->SetHeldMesh(ItemData->Mesh);
 
-    // ¼Õ ¸Ş½ÃÀÇ hand_r_Socket ¼ÒÄÏ¿¡ ¾ÆÀÌÅÛ Actor¸¦ ºÙÀÓ
-    // SnapToTargetIncludingScaleÀ» ¾²¸é ¼ÒÄÏÀÇ Location / Rotation / ScaleÀÌ Àû¿ëµÊ
+    // ì† ë©”ì‹œì˜ hand_r_Socket ì†Œì¼“ì— ì•„ì´í…œ Actorë¥¼ ë¶™ì„
+    // SnapToTargetIncludingScaleì„ ì“°ë©´ ì†Œì¼“ì˜ Location / Rotation / Scaleì´ ì ìš©ë¨
     CurrentHeldItem->AttachToComponent(
-        ArmsMeshComponent,
+        TargetMesh,
         FAttachmentTransformRules::SnapToTargetIncludingScale,
         TEXT("hand_r_Socket")
     );
+
+
+    AFZFCharacterPlayer* PlayerCharacter = Cast<AFZFCharacterPlayer>(GetOwner());
+    if (IsValid(PlayerCharacter) && IsValid(ItemData->AnimSet))
+    {
+        PlayerCharacter->ApplyAnimationsByItemAnimType(ItemData->AnimSet->ThirdPersonIdle, ItemData->AnimSet->FirstPersonIdle);
+    }
+
+    if (OwnerCharacter && ItemData && ItemData->ItemAbilityTag.IsValid())
+    { 
+        // ìºë¦­í„°ë¡œë¶€í„° ASCë¥¼ ê°€ì ¸ì˜´ (IAbilitySystemInterface êµ¬í˜„ ê°€ì •)
+        if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(OwnerCharacter)) 
+        { 
+            UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
+            if (ASC)
+            { 
+                // ì•„ì´í…œ ì¥ì°© ì‹œ íƒœê·¸ ë¶€ì—¬.
+                ASC->AddLooseGameplayTag(ItemData->ItemAbilityTag);
+                
+                // ë‚˜ì¤‘ì— ì§€ìš°ê¸° ìœ„í•´ í˜„ì¬ íƒœê·¸ ì €ì¥ 
+                CurrentEquippedTag = ItemData->ItemAbilityTag;
+
+                // ì‚¬ê±°ë¦¬ GE ì²˜ë¦¬
+                if (UFZFEquipmentItemData* EquipData = Cast<UFZFEquipmentItemData>(ItemData))
+                {
+                    if (RangeModifierGE.Get() && RangeDataTag.IsValid())
+                    {
+                        // ì´ íš¨ê³¼ê°€ "ì–´ë””ì„œ, ëˆ„êµ¬ì— ì˜í•´" ë°œìƒí–ˆëŠ”ì§€ì— ëŒ€í•œ ë¶€ê°€ì •ë³´(Context)ë¥¼ ë‹´ì„ ë°”êµ¬ë‹ˆ ì œì‘
+                        FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+
+                        // íš¨ê³¼ë¥¼ ì¼ìœ¼í‚¨ ì£¼ì²´(Instingator)ì™€ ì›ì¸ ì œê³µì(EffectCauser)ë¥¼ ì„¤ì •
+                        EffectContext.AddInstigator(OwnerCharacter, OwnerCharacter);
+
+                        // ì„¤ì •ëœ GE í´ë˜ìŠ¤ì™€ ì»¨í…ìŠ¤íŠ¸ë¥¼ ë°”íƒ•ìœ¼ë¡œ, ì‹¤ì œ ì ìš© ê°€ëŠ¥í•œ ì‹¤í–‰ ë°ì´í„° ê°ì²´(Spec)ë¥¼ ìƒì„±í•¨, 1.0fëŠ” íš¨ê³¼ì˜ ë ˆë²¨
+                        FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(RangeModifierGE, 1.0f, EffectContext);
+                        if (SpecHandle.IsValid())
+                        {
+                            // SetByCallerë¡œ ì‚¬ê±°ë¦¬ ì „ë‹¬
+                            // GE ë‚´ë¶€ì— ë¯¸ë¦¬ ì •ì˜ëœ RangeDataTag ìœ„ì¹˜ì— ë°ì´í„° ì—ì…‹ì—ì„œ ê°€ì ¸ì˜¨ ì‹¤ì œ ì‚¬ê±°ë¦¬ ìˆ˜ì¹˜ë¥¼ ë™ì ìœ¼ë¡œ ë„£ìŒ
+                            SpecHandle.Data.Get()->SetSetByCallerMagnitude(RangeDataTag, EquipData->GetRange());
+
+                            // GE ì ìš© ë° í•¸ë“¤ ì €ì¥ (ë‚˜ì¤‘ì— í•´ì œí•  ë•Œ, ì‚¬ìš©)
+                            // RangeEffectHandle = ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get()); ì´ê±°ì™€ ê°™ìŒ
+                            RangeEffectHandle = ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 void UFZFHeldItemComponent::ClearHeldItem()
 {
-    // ÇöÀç ¼Õ¿¡ µç ¾ÆÀÌÅÛÀÌ ÀÖÀ¸¸é Á¦°Å
+    // GAS ê´€ë ¨ ìì› í•´ì œ
+    if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(GetOwner()))
+    {
+        if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent())
+        {
+            // ì‚¬ê±°ë¦¬ GE ì œê±° : í•¸ë“¤ì´ ìœ íš¨í•˜ë‹¤ë©´ ì ìš© ì¤‘ì¸ GEë¥¼ ì œê±°í•˜ì—¬ ì‚¬ê±°ë¦¬ ë³µêµ¬
+            if (RangeEffectHandle.IsValid())
+            {
+                ASC->RemoveActiveGameplayEffect(RangeEffectHandle);
+                RangeEffectHandle.Invalidate(); // í•¸ë“¤ ì´ˆê¸°í™”
+            }
+
+            // ì•„ì´í…œ íƒœê·¸ ì œê±° : ì¥ì°© ì‹œ ë¶€ì—¬í–ˆë˜ LooseTag ì œê±°
+            if (CurrentEquippedTag.IsValid())
+            {
+                ASC->RemoveLooseGameplayTag(CurrentEquippedTag);
+                CurrentEquippedTag = FGameplayTag::EmptyTag; // íƒœê·¸ ì´ˆê¸°í™”
+            }
+        }
+    }
+
+    // ë°ì´í„° í¬ì¸í„°ë„ ì´ˆê¸°í™”
+    CurrentItemData = nullptr;
+
+    // í˜„ì¬ ì†ì— ë“  ì•„ì´í…œì´ ìˆìœ¼ë©´ ì œê±°
     if (CurrentHeldItem)
     {
         CurrentHeldItem->Destroy();

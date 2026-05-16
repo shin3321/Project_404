@@ -8,32 +8,7 @@
 #include "Item/CraftMaterial/FZFRobotPartItemData.h"
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Inventory/FZFInventoryComponent.h"
-
-namespace
-{
-    // 액터 안에 있는 컴포넌트 중 이름이 같은 컴포넌트를 찾아 반환하는 함수
-    template <typename T>
-    T* FindComponentByName(AActor* Owner, const FString& ComponentName)
-    {
-        if (Owner == nullptr)
-        {
-            return nullptr;
-        }
-
-        TArray<T*> Components;
-        Owner->GetComponents<T>(Components);
-
-        for (T* Component : Components)
-        {
-            if (Component && Component->GetName() == ComponentName)
-            {
-                return Component;
-            }
-        }
-
-        return nullptr;
-    }
-}
+#include "Utils/FZFUtils.h"
 
 AFZFRobotWorkbench::AFZFRobotWorkbench()
 {
@@ -45,17 +20,17 @@ void AFZFRobotWorkbench::BeginPlay()
 	Super::BeginPlay();
 
 	// BP에 배치한 제작대 전체 상호작용 박스를 이름으로 찾아 변수에 연결한다.
-	WorkbenchInteractionBoxRef = FindComponentByName<UBoxComponent>(this, TEXT("WorkbenchInteractionBox"));
+	WorkbenchInteractionBoxRef = FZFFindComponentByName<UBoxComponent>(this, TEXT("WorkbenchInteractionBox"));
 
 	// BP에 배치한 조립 버튼 박스를 이름으로 찾아 변수에 연결한다.
-	CraftButtonBoxRef = FindComponentByName<UBoxComponent>(this, TEXT("CraftButtonBox"));
+	CraftButtonBoxRef = FZFFindComponentByName<UBoxComponent>(this, TEXT("CraftButtonBox"));
 
 	// BP에 배치한 로봇 부품 미리보기 메시를 이름으로 찾아 변수에 연결한다.
-	RobotBodyMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotBodyPreviewMesh"));
-	RobotLArmMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotLArmPreviewMesh"));
-	RobotRArmMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotRArmPreviewMesh"));
-	RobotLLegMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotLLegPreviewMesh"));
-	RobotRLegMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotRLegPreviewMesh"));
+	RobotBodyMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("RobotBodyPreviewMesh"));
+	RobotLArmMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("RobotLArmPreviewMesh"));
+	RobotRArmMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("RobotRArmPreviewMesh"));
+	RobotLLegMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("RobotLLegPreviewMesh"));
+	RobotRLegMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("RobotRLegPreviewMesh"));
 
 	// 상호작용 박스가 라인트레이스에 맞도록 충돌 설정을 맞춘다.
 	auto SetupInteractionBox = [](UBoxComponent* Box)

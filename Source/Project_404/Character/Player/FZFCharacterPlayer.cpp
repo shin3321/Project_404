@@ -15,6 +15,7 @@
 #include "Inventory/FZFInventoryComponent.h"
 #include "GameplayTag/FZFGameplayTags.h"
 #include "Interface/FZFInteractableInterface.h"
+#include "Animation/FZFPlayerAnimInstance.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Game/FZFGameMode.h"
@@ -142,6 +143,13 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 		RunAction = RunActionRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionRef(TEXT("/Game/Project404/Input/Actions/IA_Attack.IA_Attack"));
+	if (AttackActionRef.Succeeded())
+	{
+		// 공격 액션
+		AttackAction = AttackActionRef.Object;
+	}
+
 	// GAS
 	// 의도적으로 nullptr로 밀어줌 -> PlayerState의 ASC값을 대입할거라서 혼선방지용
 	ASC = nullptr;
@@ -226,7 +234,8 @@ void AFZFCharacterPlayer::PossessedBy(AController* NewController)
 	 * 이 시점에는 PlayerState가 유효함이 보장되므로, 서버 측 ASC에
 	 * Owner(PlayerState)와 Avatar(Character) 정보를 등록합니다.
 	 */
-	InitAbilitySystem();
+	if (HasAuthority())
+		InitAbilitySystem();
 }
 
 void AFZFCharacterPlayer::InitAbilitySystem()
@@ -292,6 +301,8 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::RunStart);
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFZFCharacterPlayer::RunEnd);
 
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Attack);
+
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
 
@@ -356,6 +367,29 @@ void AFZFCharacterPlayer::PawnClientRestart()
 	UE_LOG(LogTemp, Log, TEXT("PawnClientRestart"));
 
 	ApplyMappingContext(DefaultMappingContext);
+}
+
+void AFZFCharacterPlayer::ApplyAnimationsByItemAnimType(UAnimSequence* ThirdPersonIdle, UAnimSequence* FirstPersonIdle)
+{
+	if (GetMesh())
+	{
+		UFZFPlayerAnimInstance* TPAnim = Cast<UFZFPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+
+		if (TPAnim)
+		{
+			TPAnim->SetCurrentIdleAnim(ThirdPersonIdle);
+		}
+	}
+
+	if (ArmMesh)
+	{
+		UFZFPlayerAnimInstance* FPAnim = Cast<UFZFPlayerAnimInstance>(ArmMesh->GetAnimInstance());
+
+		if (FPAnim)
+		{
+			FPAnim->SetCurrentIdleAnim(FirstPersonIdle);
+		}
+	}
 }
 
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
@@ -449,6 +483,18 @@ void AFZFCharacterPlayer::JumpEnd()
 {
 	StopJumping();
 
+}
+
+void AFZFCharacterPlayer::Attack()
+{
+	//if (IsLocallyControlled)
+
+	FGameplayTag AttackTag = HeldItemComponent->GetCurrentAttackTag();
+
+	if (ASC)
+	{
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
+	}
 }
 
 void AFZFCharacterPlayer::OnRep_PlayerState()
