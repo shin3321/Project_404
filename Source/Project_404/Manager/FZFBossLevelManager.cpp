@@ -34,6 +34,12 @@ AFZFBossLevelManager::AFZFBossLevelManager()
 void AFZFBossLevelManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	AFZFTestBoss* Boss = Cast<AFZFTestBoss>(UGameplayStatics::GetActorOfClass(GetWorld(), AFZFTestBoss::StaticClass()));
 	if (Boss != nullptr)
 	{
@@ -105,6 +111,7 @@ GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
 
 void AFZFBossLevelManager::Laser()
 {
+	AvailableLasers.Empty();
 	LaserCount = FMath::RandRange(2, 6);
 
 	for (AFZFLaserActor* Laser : LaserPool)
@@ -115,8 +122,11 @@ void AFZFBossLevelManager::Laser()
 		}
 	}
 
+	if (AvailableLasers.IsEmpty()) return;
 	Algo::RandomShuffle(AvailableLasers);
-	for (int32 i = 0; i < LaserCount; ++i)
+
+	int32 MaxSpawnCount = FMath::Min(FMath::RandRange(2, 6), AvailableLasers.Num());
+	for (int32 i = 0; i < MaxSpawnCount; ++i)
 	{
 		AFZFLaserActor* SelectedLaser = AvailableLasers[i];
 		if (SelectedLaser)

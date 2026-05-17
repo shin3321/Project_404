@@ -10,6 +10,7 @@
 // Sets default values
 AFZFBossTrigger::AFZFBossTrigger()
 {
+	bReplicates = true;
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	RootComponent = CollisionBox;
 	CollisionBox->SetBoxExtent(FVector(200.f, 200.f, 200.f));
