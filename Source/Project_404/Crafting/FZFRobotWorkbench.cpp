@@ -10,9 +10,38 @@
 #include "Inventory/FZFInventoryComponent.h"
 #include "Utils/FZFUtils.h"
 
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "Components/SceneComponent.h"
+
 AFZFRobotWorkbench::AFZFRobotWorkbench()
 {
 	PrimaryActorTick.bCanEverTick = false;
+}
+
+namespace
+{
+	template <typename T>
+	T* FindComponentByName(AActor* Owner, const FString& ComponentName)
+	{
+		if (Owner == nullptr)
+		{
+			return nullptr;
+		}
+
+		TArray<T*> Components;
+		Owner->GetComponents<T>(Components);
+
+		for (T* Component : Components)
+		{
+			if (Component && Component->GetName() == ComponentName)
+			{
+				return Component;
+			}
+		}
+
+		return nullptr;
+	}
 }
 
 void AFZFRobotWorkbench::BeginPlay()
@@ -21,9 +50,6 @@ void AFZFRobotWorkbench::BeginPlay()
 
 	// BP에 배치한 제작대 전체 상호작용 박스를 이름으로 찾아 변수에 연결한다.
 	WorkbenchInteractionBoxRef = FZFFindComponentByName<UBoxComponent>(this, TEXT("WorkbenchInteractionBox"));
-
-	// BP에 배치한 조립 버튼 박스를 이름으로 찾아 변수에 연결한다.
-	CraftButtonBoxRef = FZFFindComponentByName<UBoxComponent>(this, TEXT("CraftButtonBox"));
 
 	// BP에 배치한 로봇 부품 미리보기 메시를 이름으로 찾아 변수에 연결한다.
 	RobotBodyMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("RobotBodyPreviewMesh"));
@@ -51,10 +77,23 @@ void AFZFRobotWorkbench::BeginPlay()
 		};
 
 	SetupInteractionBox(WorkbenchInteractionBoxRef);
-	SetupInteractionBox(CraftButtonBoxRef);
 
 	// 시작할 때는 장착된 부품이 없으므로 모든 미리보기 메시를 숨긴다.
 	UpdatePreviewMeshes();
+
+	//파티클 위치 컴포넌트 찾기
+	BodyEffectPointRef = FindComponentByName<USceneComponent>(this, TEXT("BodyEffectPoint"));
+	LArmEffectPointRef = FindComponentByName<USceneComponent>(this, TEXT("LArmEffectPoint"));
+	RArmEffectPointRef = FindComponentByName<USceneComponent>(this, TEXT("RArmEffectPoint"));
+	LLegEffectPointRef = FindComponentByName<USceneComponent>(this, TEXT("LLegEffectPoint"));
+	RLegEffectPointRef = FindComponentByName<USceneComponent>(this, TEXT("RLegEffectPoint"));
+
+	//가이드 메쉬찾기
+	RobotBodyGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotBodyGuideMesh"));
+	RobotLArmGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotLArmGuideMesh"));
+	RobotRArmGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotRArmGuideMesh"));
+	RobotLLegGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotLLegGuideMesh"));
+	RobotRLegGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotRLegGuideMesh"));
 }
 
 void AFZFRobotWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
@@ -72,7 +111,7 @@ void AFZFRobotWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveCom
 		return;
 	}
 
-	// 라인트레이스에 맞은 컴포넌트가 제작대인지 조립 버튼인지 판별
+	// 라인트레이스에 맞은 컴포넌트가 제작대인지 판별
 	EFZFRobotWorkbenchSlot HitSlot = GetSlotFromHitComponent(HitComponent);
 
 	switch (HitSlot)
@@ -91,17 +130,10 @@ void AFZFRobotWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveCom
 
 		// 부품 넣기에 성공했으면 인벤토리에서 선택 아이템 제거
 		Inventory->RemoveSelectedItem();
-		break;
-	}
 
-	case EFZFRobotWorkbenchSlot::Crafting:
-	{
-		// 모든 부품이 들어갔는지 확인하고 로봇 조립 시도
-		if (TryCraftRobot() == false)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to craft robot."));
-			return;
-		}
+		// 부품을 넣은 직후, 모든 부품이 들어갔는지 확인한다.
+		// 전부 들어갔다면 자동으로 조립 성공 처리된다.
+		TryCraftRobot();
 
 		break;
 	}
@@ -121,10 +153,6 @@ FText AFZFRobotWorkbench::GetInteractableName(UPrimitiveComponent* HitComponent)
 		// 제작대 본체를 바라볼 때 표시할 이름
 		return FText::FromString(TEXT("Robot Workbench"));
 
-	case EFZFRobotWorkbenchSlot::Crafting:
-		// 조립 버튼을 바라볼 때 표시할 이름
-		return FText::FromString(TEXT("Craft Robot"));
-
 	default:
 		return FText::GetEmpty();
 	}
@@ -132,7 +160,7 @@ FText AFZFRobotWorkbench::GetInteractableName(UPrimitiveComponent* HitComponent)
 
 EFZFRobotWorkbenchSlot AFZFRobotWorkbench::GetSlotFromHitComponent(UPrimitiveComponent* HitComponent) const
 {
-	// 라인트레이스에 맞은 컴포넌트가 없으면 슬롯 없음
+	// 라인트레이스에 맞은 컴포넌트가 없으면 슬롯 없음 처리
 	if (HitComponent == nullptr)
 	{
 		return EFZFRobotWorkbenchSlot::None;
@@ -144,12 +172,7 @@ EFZFRobotWorkbenchSlot AFZFRobotWorkbench::GetSlotFromHitComponent(UPrimitiveCom
 		return EFZFRobotWorkbenchSlot::Workbench;
 	}
 
-	// 조립 버튼 박스를 맞췄다면 조립 영역으로 처리
-	if (HitComponent == CraftButtonBoxRef)
-	{
-		return EFZFRobotWorkbenchSlot::Crafting;
-	}
-
+	// 제작대 상호작용 영역이 아니면 None
 	return EFZFRobotWorkbenchSlot::None;
 }
 
@@ -191,6 +214,23 @@ void AFZFRobotWorkbench::UpdatePreviewMeshes()
 	}
 }
 
+void AFZFRobotWorkbench::PlayInsertPartEffect(USceneComponent* EffectPoint)
+{
+	// 나이아가라 시스템이나 위치 컴포넌트가 없으면 실행하지 않는다.
+	if (InsertPartEffect == nullptr || EffectPoint == nullptr)
+	{
+		return;
+	}
+
+	// EffectPoint 위치에 나이아가라 시스템을 생성한다.
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		GetWorld(),
+		InsertPartEffect,
+		EffectPoint->GetComponentLocation(),
+		EffectPoint->GetComponentRotation()
+	);
+}
+
 bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 {
 	// 선택한 아이템 데이터가 없으면 실패
@@ -216,6 +256,16 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 
 		CurrentBodyPart = RobotPartData;
 		UpdatePreviewMeshes();
+
+		// 몸통 부품 장착이 끝났으므로 몸통 가이드 메시 숨김
+		if (RobotBodyGuideMeshRef)
+		{
+			RobotBodyGuideMeshRef->SetVisibility(false);
+		}
+
+		// 원하는 위치용 SceneComponent에서 파티클 재생
+		PlayInsertPartEffect(BodyEffectPointRef);
+
 		return true;
 	}
 
@@ -229,6 +279,14 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 
 		CurrentLArmPart = RobotPartData;
 		UpdatePreviewMeshes();
+
+		if (RobotLArmGuideMeshRef)
+		{
+			RobotLArmGuideMeshRef->SetVisibility(false);
+		}
+
+		PlayInsertPartEffect(LArmEffectPointRef);
+
 		return true;
 	}
 
@@ -242,6 +300,14 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 
 		CurrentRArmPart = RobotPartData;
 		UpdatePreviewMeshes();
+
+		if (RobotRArmGuideMeshRef)
+		{
+			RobotRArmGuideMeshRef->SetVisibility(false);
+		}
+
+		PlayInsertPartEffect(RArmEffectPointRef);
+
 		return true;
 	}
 
@@ -255,6 +321,13 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 
 		CurrentLLegPart = RobotPartData;
 		UpdatePreviewMeshes();
+
+		if (RobotLLegGuideMeshRef)
+		{
+			RobotLLegGuideMeshRef->SetVisibility(false);
+		}
+
+		PlayInsertPartEffect(LLegEffectPointRef);
 		return true;
 	}
 
@@ -268,6 +341,14 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 
 		CurrentRLegPart = RobotPartData;
 		UpdatePreviewMeshes();
+
+		if (RobotRLegGuideMeshRef)
+		{
+			RobotRLegGuideMeshRef->SetVisibility(false);
+		}
+
+		PlayInsertPartEffect(RLegEffectPointRef);
+
 		return true;
 	}
 
