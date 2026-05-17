@@ -60,7 +60,7 @@ public:
 protected:
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
-
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 private:
 	// private : 직접 접근해서 값을 수정하는 것을 방지
 	// AllowPrivateAccess : 에디터에서는 값을 확인하고 초기값 설정 허용

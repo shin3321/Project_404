@@ -54,6 +54,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
 	TSubclassOf<UGameplayEffect> ChaseSpeedEffect;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
+	TArray<TSubclassOf<UGameplayEffect>> AllowedEffectClasses;
+
 	// Abilities
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
 	TArray<TSubclassOf<UGameplayAbility>> Abilities;
