@@ -35,6 +35,12 @@ AFZFAIController::AFZFAIController()
 
 void AFZFAIController::RunAI()
 {
+	// 서버에서만 돌게 예외처리
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	// 블랙보드 컴포넌트 포인터 가져오기.
 	UBlackboardComponent* BlackboardPtr = Blackboard.Get();
 

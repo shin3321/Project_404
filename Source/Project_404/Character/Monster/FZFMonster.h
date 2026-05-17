@@ -9,6 +9,8 @@
 #include "Character/Monster/MonsterData/FZFMonsterData.h"
 #include "FZFMonster.generated.h"
 
+class FLifetimeProperty;
+
 /**
  * 
  */
@@ -24,12 +26,18 @@ public:
 	FORCEINLINE UFZFMonsterData* GetMonsterData() const { return MonsterData; }
 
 protected:
+	// 디버깅용 임시 테스트
+	virtual void Tick(float DeltaTime) override;
+
 	/* 클래스 멤버 함수(초기화) */
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	
-	// 몬스터 종류별 초기화
-	virtual void InitializeMonster();
+	// MonsterData Asset 서버/클라 공통 초기화 (메시/애님/외형)
+	virtual void InitializeMonsterVisual();
+
+	// MonsterData Asset 서버만 초기화 (GAS/BT/Ability/AI)
+	virtual void InitializeMonsterServer();
 
 	// GAS 관련 초기화
 	virtual void InitAbilitySystem() override;
@@ -37,7 +45,6 @@ protected:
 	// AttributeSet 초기화
 	virtual void InitAttributesFromData();
 
-	
 
 	/* 인터페이스 */
 	virtual float GetAIPatrolRadius() override;

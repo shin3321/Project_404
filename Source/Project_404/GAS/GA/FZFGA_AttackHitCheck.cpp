@@ -2,8 +2,7 @@
 
 
 #include "GAS/GA/FZFGA_AttackHitCheck.h"
-#include "GAS/TA/FZFTA_SphereSweep.h"
-#include "Abilities/GameplayAbilityTargetActor.h"
+#include "GAS/TA/FZFTA_Base.h"
 #include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
 #include "Inventory/FZFHeldItemComponent.h"
 #include "Item/FZFItemData.h"
@@ -26,7 +25,7 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 
 	AActor* Avatar = GetAvatarActorFromActorInfo();
 	// TargetActor 생성 및 설정
-	AFZFTA_SphereSweep* TargetActor = GetWorld()->SpawnActor<AFZFTA_SphereSweep>(TargetActorClass);
+	AFZFTA_Base* TargetActor = GetWorld()->SpawnActor<AFZFTA_Base>(TargetActorClass);
 	if (TargetActor)
 	{
 		TargetActor->SourceActor = Avatar;
@@ -76,8 +75,6 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 
 void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle)
 {
-	UE_LOG(LogTemp, Display, TEXT("EndAbility!!!!!!!!!!"));
-
 	// TA가 브로드캐스트한 DataHandle이 여기로 들어옴
 	if (DataHandle.IsValid(0))
 	{
