@@ -7,6 +7,10 @@ UFZFPlayerSet::UFZFPlayerSet()
 	InitStamina(100.0f);
 	InitMaxStamina(GetStamina());
 	InitAttackSpeed(1.0f);
+
+	// Todo : 무기 데이터
+	InitAttackRange(800);
+	InitAttackRadius(30);
 }
 
 void UFZFPlayerSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)

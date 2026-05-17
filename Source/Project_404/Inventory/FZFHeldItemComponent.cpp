@@ -12,6 +12,9 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Animation/FZFPlayerAnimInstance.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/World.h"
 
 // GAS
 #include "AbilitySystemInterface.h"
@@ -22,119 +25,93 @@ UFZFHeldItemComponent::UFZFHeldItemComponent()
 {
     // Tick 필요 없으면 끔
     PrimaryComponentTick.bCanEverTick = false;
+    SetIsReplicatedByDefault(true);
+}
+
+void UFZFHeldItemComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    UpdateUpperBodyBlendWeight();
+}
+
+void UFZFHeldItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(UFZFHeldItemComponent, CurrentHeldItem);
+    DOREPLIFETIME(UFZFHeldItemComponent, CurrentHeldItemData);
+}
+
+AFZFCharacterPlayer* UFZFHeldItemComponent::GetOwnerCharacter() const
+{
+    return Cast<AFZFCharacterPlayer>(GetOwner());
 }
 
 void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
 {
-    // 기존에 손에 들고 있던 아이템이 있으면 먼저 제거
-    ClearHeldItem();
-
-    // 현재 아이템 데이터 저장
-    CurrentItemData = ItemData;
-
-    // 선택된 슬롯이 비어있거나 ItemData가 없으면 종료
-    if (!ItemData)
+    // 클라이언트라면 서버에게 장착 요청
+    if (!GetOwner()->HasAuthority())
     {
+        ServerHoldItem(ItemData);
         return;
     }
 
-    // ItemData에 Mesh가 없으면 손에 보여줄 수 없으므로 종료
-    if (!ItemData->Mesh)
+    ServerHoldItem_Implementation(ItemData);
+}
+
+void UFZFHeldItemComponent::ServerHoldItem_Implementation(UFZFItemData* ItemData)
+{
+    ClearHeldItemGAS();
+
+    DestroyThirdPersonHeldItem_Server();
+
+    CurrentHeldItemData = ItemData;
+
+    if (!ItemData || !HeldItemClass)
     {
-        UE_LOG(LogTemp, Warning, TEXT("ItemData Mesh is null"));
+        UpdateUpperBodyBlendWeight();
+        UpdateHeldItemAnimation();
+        DestroyLocalFirstPersonHeldItem();
+
+        if (AFZFCharacterPlayer* OwnerCharacter = GetOwnerCharacter())
+            OwnerCharacter->SetArmMeshDefaultTransform();
+
         return;
     }
 
-    // 손에 들 아이템 Actor 클래스가 설정되어 있지 않으면 생성 불가
-    if (!HeldItemClass)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("HeldItemClass is null"));
-        return;
-    }
+    SpawnThirdPersonHeldItem_Server(ItemData);
+ 
+    ApplyHeldItemGAS(ItemData);
 
+    // Listen Server의 Host 플레이어를 위한 처리
+    RefreshLocalFirstPersonHeldItem();
 
-    // 이 컴포넌트를 가지고 있는 Owner를 Character로 캐스팅
-    ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+    UpdateUpperBodyBlendWeight();
+    UpdateHeldItemAnimation();
+}
+
+void UFZFHeldItemComponent::ApplyHeldItemGAS(UFZFItemData* ItemData)
+{
+    AFZFCharacterPlayer* OwnerCharacter = Cast<AFZFCharacterPlayer>(GetOwner());
     if (!OwnerCharacter)
     {
         UE_LOG(LogTemp, Warning, TEXT("OwnerCharacter is null"));
         return;
     }
 
-    // 캐릭터가 가진 모든 SkeletalMeshComponent를 가져옴
-    // 몸 메시, 손 메시가 둘 다 있을 수 있기 때문
-    TArray<USkeletalMeshComponent*> MeshComponents;
-    OwnerCharacter->GetComponents<USkeletalMeshComponent>(MeshComponents);
-
-    USkeletalMeshComponent* TargetMesh = nullptr;
-    for (USkeletalMeshComponent* MeshComp : MeshComponents)
-    {
-        if (MeshComp && MeshComp->GetName() == TEXT("CharacterArmMesh"))
-        {
-            if (OwnerCharacter->IsLocallyControlled())
-            {
-                TargetMesh = MeshComp;
-                break;
-            }
-            else
-            {
-                TargetMesh = OwnerCharacter->GetMesh();
-                break;
-            }
-        }
-    }
-
-    // 손 메시 컴포넌트를 못 찾으면 아이템을 붙일 수 없으므로 종료
-    if (!TargetMesh)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("2_Hand SkeletalMeshComponent not found"));
-        return;
-    }
-
-    // 메시 안에 hand_r_Socket 소켓이 실제로 있는지 확인
-    if (!TargetMesh->DoesSocketExist(TEXT("hand_r_Socket")))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("hand_r_Socket does not exist on 2_Hand"));
-        return;
-    }
-
-    // 손에 들 아이템 Actor 생성
-    CurrentHeldItem = GetWorld()->SpawnActor<AFZFHeldItemActor>(HeldItemClass);
-    if (!CurrentHeldItem)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Failed to spawn HeldItemActor"));
-        return;
-    }
-
-    // ItemData에 등록된 Mesh를 손 아이템 Actor에 적용
-    CurrentHeldItem->SetHeldMesh(ItemData->Mesh);
-
-    // 손 메시의 hand_r_Socket 소켓에 아이템 Actor를 붙임
-    // SnapToTargetIncludingScale을 쓰면 소켓의 Location / Rotation / Scale이 적용됨
-    CurrentHeldItem->AttachToComponent(
-        TargetMesh,
-        FAttachmentTransformRules::SnapToTargetIncludingScale,
-        TEXT("hand_r_Socket")
-    );
-
-
-    AFZFCharacterPlayer* PlayerCharacter = Cast<AFZFCharacterPlayer>(GetOwner());
-    if (IsValid(PlayerCharacter) && IsValid(ItemData->AnimSet))
-    {
-        PlayerCharacter->ApplyAnimationsByItemAnimType(ItemData->AnimSet->ThirdPersonIdle, ItemData->AnimSet->FirstPersonIdle);
-    }
-
     if (OwnerCharacter && ItemData && ItemData->ItemAbilityTag.IsValid())
-    { 
+    {
         // 캐릭터로부터 ASC를 가져옴 (IAbilitySystemInterface 구현 가정)
-        if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(OwnerCharacter)) 
-        { 
+        if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(OwnerCharacter))
+        {
             UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
             if (ASC)
-            { 
+            {
                 // 아이템 장착 시 태그 부여.
-                ASC->AddLooseGameplayTag(ItemData->ItemAbilityTag);
-                
+                //ASC->AddLooseGameplayTag(ItemData->ItemAbilityTag);
+                ASC->AddReplicatedLooseGameplayTag(ItemData->ItemAbilityTag);
+
                 // 나중에 지우기 위해 현재 태그 저장 
                 CurrentEquippedTag = ItemData->ItemAbilityTag;
 
@@ -166,10 +143,86 @@ void UFZFHeldItemComponent::HoldItem(UFZFItemData* ItemData)
             }
         }
     }
+}
 
+void UFZFHeldItemComponent::SpawnThirdPersonHeldItem_Server(UFZFItemData* ItemData)
+{
+    if (!GetOwner() || !GetOwner()->HasAuthority())
+    {
+        return;
+    }
+
+    AFZFCharacterPlayer* OwnerCharacter = GetOwnerCharacter();
+    if (!OwnerCharacter)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("OwnerCharacter is null"));
+        return;
+    }
+
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = OwnerCharacter;
+    SpawnParams.Instigator = OwnerCharacter->GetInstigator();
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    CurrentHeldItem = GetWorld()->SpawnActor<AFZFHeldItemActor>(
+        HeldItemClass,
+        FTransform::Identity,
+        SpawnParams
+    );
+
+    if (!CurrentHeldItem)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to spawn HeldItemActor"));
+        return;
+    }
+
+    CurrentHeldItem->SetHeldItemData(ItemData);
+    CurrentHeldItem->SetThirdPersonVisualMode();
+
+    // 멀티에서 다른 사람에게 보이는 아이템은 항상 3인칭 Mesh에 붙인다.
+    CurrentHeldItem->AttachToComponent(
+        OwnerCharacter->GetMesh(),
+        FAttachmentTransformRules::SnapToTargetIncludingScale,
+        TEXT("hand_r_Socket")
+    );
 }
 
 void UFZFHeldItemComponent::ClearHeldItem()
+{
+    if (!GetOwner())
+    {
+        return;
+    }
+
+    if (!GetOwner()->HasAuthority())
+    {
+        ServerClearHeldItem();
+        return;
+    }
+
+    ServerClearHeldItem();
+}
+
+void UFZFHeldItemComponent::ServerClearHeldItem_Implementation()
+{
+    // GAS 관련 효과 / 태그 먼저 제거
+    ClearHeldItemGAS();
+
+    // 서버에 존재하는 3인칭 복제 아이템 제거
+    DestroyThirdPersonHeldItem_Server();
+
+    // 현재 아이템 데이터 초기화
+    CurrentHeldItemData = nullptr;
+
+    // 애니메이션 블렌드 갱신
+    UpdateUpperBodyBlendWeight();
+    UpdateHeldItemAnimation();
+
+    // Listen Server Host용 로컬 1인칭 아이템 제거
+    DestroyLocalFirstPersonHeldItem();
+}
+
+void UFZFHeldItemComponent::ClearHeldItemGAS()
 {
     // GAS 관련 자원 해제
     if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(GetOwner()))
@@ -186,19 +239,204 @@ void UFZFHeldItemComponent::ClearHeldItem()
             // 아이템 태그 제거 : 장착 시 부여했던 LooseTag 제거
             if (CurrentEquippedTag.IsValid())
             {
-                ASC->RemoveLooseGameplayTag(CurrentEquippedTag);
-                CurrentEquippedTag = FGameplayTag::EmptyTag; // 태그 초기화
+                ASC->RemoveReplicatedLooseGameplayTag(CurrentEquippedTag);
+                CurrentEquippedTag = FGameplayTag::EmptyTag;
             }
         }
     }
+}
 
-    // 데이터 포인터도 초기화
-    CurrentItemData = nullptr;
+void UFZFHeldItemComponent::DestroyThirdPersonHeldItem_Server()
+{
+    if (!GetOwner() || !GetOwner()->HasAuthority())
+    {
+        return;
+    }
 
-    // 현재 손에 든 아이템이 있으면 제거
-    if (CurrentHeldItem)
+    if (IsValid(CurrentHeldItem))
     {
         CurrentHeldItem->Destroy();
-        CurrentHeldItem = nullptr;
+    }
+
+    CurrentHeldItem = nullptr;
+}
+
+void UFZFHeldItemComponent::OnRep_CurrentHeldItem()
+{
+    AttachThirdPersonHeldItem();
+}
+
+void UFZFHeldItemComponent::OnRep_CurrentHeldItemData()
+{
+    UpdateUpperBodyBlendWeight();
+    UpdateHeldItemAnimation();
+    RefreshLocalFirstPersonHeldItem();
+}
+
+void UFZFHeldItemComponent::AttachThirdPersonHeldItem()
+{
+    if (!IsValid(CurrentHeldItem))
+    {
+        return;
+    }
+
+    AFZFCharacterPlayer* OwnerCharacter = GetOwnerCharacter();
+    if (!OwnerCharacter)
+    {
+        return;
+    }
+
+    CurrentHeldItem->SetThirdPersonVisualMode();
+
+    CurrentHeldItem->AttachToComponent(
+        OwnerCharacter->GetMesh(),
+        FAttachmentTransformRules::SnapToTargetIncludingScale,
+        TEXT("hand_r_Socket")
+    );
+}
+
+void UFZFHeldItemComponent::RefreshLocalFirstPersonHeldItem()
+{
+    AFZFCharacterPlayer* OwnerCharacter = GetOwnerCharacter();
+    if (!OwnerCharacter)
+    {
+        return;
+    }
+
+    // 내가 조종하는 캐릭터가 아니면 1인칭 아이템을 만들 필요 없음
+    if (!OwnerCharacter->IsLocallyControlled())
+    {
+        DestroyLocalFirstPersonHeldItem();
+        return;
+    }
+
+    DestroyLocalFirstPersonHeldItem();
+
+    if (!CurrentHeldItemData)
+    {
+        return;
+    }
+
+    if (!CurrentHeldItemData->Mesh)
+    {
+        return;
+    }
+
+    if (!HeldItemClass)
+    {
+        return;
+    }
+
+    USkeletalMeshComponent* ArmMesh = OwnerCharacter->GetArmMesh();
+    if (!ArmMesh)
+    {
+        return;
+    }
+
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = OwnerCharacter;
+    SpawnParams.Instigator = OwnerCharacter->GetInstigator();
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    LocalFirstPersonHeldItem = GetWorld()->SpawnActor<AFZFHeldItemActor>(
+        HeldItemClass,
+        FTransform::Identity,
+        SpawnParams
+    );
+
+    if (!LocalFirstPersonHeldItem)
+    {
+        return;
+    }
+
+    // 로컬 전용 아이템은 복제하지 않는다.
+    LocalFirstPersonHeldItem->SetReplicates(false);
+    LocalFirstPersonHeldItem->SetReplicateMovement(false);
+
+    LocalFirstPersonHeldItem->SetHeldItemData(CurrentHeldItemData);
+    LocalFirstPersonHeldItem->SetFirstPersonVisualMode();
+
+    LocalFirstPersonHeldItem->AttachToComponent(
+        ArmMesh,
+        FAttachmentTransformRules::SnapToTargetIncludingScale,
+        TEXT("hand_r_Socket")
+    );
+
+    // 애니메이션 위치 및 회전 값 하드코딩 방식.
+    OwnerCharacter->SetArmMeshTransform(FVector(0.0f, 0.0f, -194.0f), FRotator(0.0f, -105.0f, 0.0f));
+}
+
+void UFZFHeldItemComponent::DestroyLocalFirstPersonHeldItem()
+{
+    if (IsValid(LocalFirstPersonHeldItem))
+    {
+        LocalFirstPersonHeldItem->Destroy();
+    }
+
+    LocalFirstPersonHeldItem = nullptr;
+}
+
+void UFZFHeldItemComponent::UpdateUpperBodyBlendWeight()
+{
+    AFZFCharacterPlayer* OwnerCharacter = GetOwnerCharacter();
+    if (!OwnerCharacter)
+    {
+        return;
+    }
+
+    const float BlendWeight = CurrentHeldItemData ? 1.0f : 0.0f;
+
+    // 3인칭 Mesh AnimInstance
+    if (USkeletalMeshComponent* CharacterMesh = OwnerCharacter->GetMesh())
+    {
+        if (UFZFPlayerAnimInstance* AnimInstance = Cast<UFZFPlayerAnimInstance>(CharacterMesh->GetAnimInstance()))
+        {
+            AnimInstance->SetUpperBodyBlendWeight(BlendWeight);
+        }
+    }
+
+    // 1인칭 ArmMesh AnimInstance
+    if (USkeletalMeshComponent* ArmMesh = OwnerCharacter->GetArmMesh())
+    {
+        if (UFZFPlayerAnimInstance* AnimInstance = Cast<UFZFPlayerAnimInstance>(ArmMesh->GetAnimInstance()))
+        {
+            AnimInstance->SetUpperBodyBlendWeight(BlendWeight);
+        }
+    }
+}
+
+void UFZFHeldItemComponent::UpdateHeldItemAnimation()
+{
+    AFZFCharacterPlayer* OwnerCharacter = GetOwnerCharacter();
+    if (!OwnerCharacter)
+    {
+        return;
+    }
+
+    UAnimSequence* ThirdPersonIdle = nullptr;
+    UAnimSequence* FirstPersonIdle = nullptr;
+
+    if (CurrentHeldItemData && CurrentHeldItemData->AnimSet)
+    {
+        ThirdPersonIdle = CurrentHeldItemData->AnimSet->ThirdPersonIdle;
+        FirstPersonIdle = CurrentHeldItemData->AnimSet->FirstPersonIdle;
+    }
+
+    // 3인칭 Mesh AnimInstance
+    if (USkeletalMeshComponent* CharacterMesh = OwnerCharacter->GetMesh())
+    {
+        if (UFZFPlayerAnimInstance* AnimInstance = Cast<UFZFPlayerAnimInstance>(CharacterMesh->GetAnimInstance()))
+        {
+            AnimInstance->SetCurrentIdleAnim(ThirdPersonIdle);
+        }
+    }
+
+    // 1인칭 ArmMesh AnimInstance
+    if (USkeletalMeshComponent* ArmMesh = OwnerCharacter->GetArmMesh())
+    {
+        if (UFZFPlayerAnimInstance* AnimInstance = Cast<UFZFPlayerAnimInstance>(ArmMesh->GetAnimInstance()))
+        {
+            AnimInstance->SetCurrentIdleAnim(FirstPersonIdle);
+        }
     }
 }

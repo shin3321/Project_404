@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -6,6 +6,7 @@
 
 class UStaticMeshComponent;
 class UStaticMesh;
+class UFZFItemData;
 
 UCLASS()
 class PROJECT_404_API AFZFHeldItemActor: public AActor
@@ -15,12 +16,28 @@ class PROJECT_404_API AFZFHeldItemActor: public AActor
 public:
     AFZFHeldItemActor();
 
-    // ItemData¿¡¼­ ¹ŞÀº Mesh¸¦ ÀÌ Actor¿¡ Àû¿ëÇÏ´Â ÇÔ¼ö
-    void SetHeldMesh(UStaticMesh* InMesh);
+protected:
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+
+public:
+    void SetHeldItemData(UFZFItemData* NewItemData);
+
+    void SetFirstPersonVisualMode();
+    void SetThirdPersonVisualMode();
+
+protected:
+    UFUNCTION()
+    void OnRep_ItemData();
+
+    void ApplyItemData();
 
 private:
-    // ½ÇÁ¦·Î È­¸é¿¡ º¸ÀÏ Static Mesh Component
-    // Ä³¸¯ÅÍ ¼Õ¿¡ ºÙÀ» ¶§ ÀÌ ÄÄÆ÷³ÍÆ®°¡ º¸ÀÌ°Ô µÊ
+    // ì‹¤ì œë¡œ í™”ë©´ì— ë³´ì¼ Static Mesh Component
+    // ìºë¦­í„° ì†ì— ë¶™ì„ ë•Œ ì´ ì»´í¬ë„ŒíŠ¸ê°€ ë³´ì´ê²Œ ë¨
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Held Item", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UStaticMeshComponent> MeshComponent;
+
+    UPROPERTY(ReplicatedUsing = OnRep_ItemData)
+    TObjectPtr<UFZFItemData> ItemData;
 };

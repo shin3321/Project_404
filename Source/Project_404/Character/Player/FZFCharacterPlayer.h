@@ -41,6 +41,10 @@ public:
 	// 아이템 변경 시 Idle 애니메이션 수정.
 	void ApplyAnimationsByItemAnimType(UAnimSequence* ThirdPersonIdle, UAnimSequence* FirstPersonIdle);
 
+	// 위치값 및 회전값이 다른 애니메이션 대응을 위한, ArmMesh위치 하드코딩 수정.
+	void SetArmMeshTransform(FVector Location, FRotator Rotation);
+	void SetArmMeshDefaultTransform();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float deltaTime)override;
