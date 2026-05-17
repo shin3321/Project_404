@@ -8,13 +8,27 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayTag/FZFGameplayTags.h"
 #include "Character/Monster/MonsterData/FZFMonsterData.h"
+#include "DrawDebugHelpers.h"
 
 AFZFMonster::AFZFMonster()
 {
+	/* 서버 설정 */
+	bReplicates = true;
+
+	// 움직임 관련 설정
+	GetCharacterMovement()->SetIsReplicated(true); // CharacterMovementComponent 자체의 네트워크 이동 동기화 활성화
+	SetReplicateMovement(true); // 액터 transform(Location/Rotation 등) 복제
+	GetCharacterMovement()->bUseControllerDesiredRotation = false; // Controller 회전 따라가지 않음
+
+	// AI 몬스터/NPC 스타일	
+	GetCharacterMovement()->bOrientRotationToMovement = true; // 이동 방향으로 캐릭터 회전
+	bUseControllerRotationYaw = false; // Pawn/Character 자체가 Controller Yaw 직접 사용 안함
+
 	// Ability System Components 설정
 	ASC = CreateDefaultSubobject<UFZFAbilitySystemComponent>("AbilitySystem");
 	ASC->SetIsReplicated(true);
 
+	/* 로직 설정 */
 	// MonsterAttributeSet 설정
 	MonsterAttributeSet = CreateDefaultSubobject<UFZFMonsterSet>(TEXT("MonsterAttributeSet"));
 	
@@ -25,30 +39,28 @@ AFZFMonster::AFZFMonster()
 	// 미리 지정한 AIController에 빙의되도록 설정.
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	/*
-	// 몬스터 메시 위치 & 회전 변경
-	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 27.0f), FRotator(0.0f, -90.0f, 0.0f));
+	// tick 설정
+	PrimaryActorTick.bCanEverTick = true;
+}
 
-	// 몬스터 메시 설정
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MonsterMesh(
-		TEXT("/Game/Assets/Monster/M1/SK_M1.SK_M1")
-	);
+void AFZFMonster::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 
-	if (MonsterMesh.Succeeded())
+	/*if (GEngine)
 	{
-		GetMesh()->SetSkeletalMesh(MonsterMesh.Object);
-	}
-
-	// 애님 블루프린트 클래스 정보 지정.
-	static ConstructorHelpers::FClassFinder<UAnimInstance> MonsterAnim(
-		TEXT("/Game/Project404/Character/Monster/Animation/ABP_M1.ABP_M1_C")
-	);
-
-	if (MonsterAnim.Succeeded())
-	{
-		GetMesh()->SetAnimInstanceClass(MonsterAnim.Class);
-	}
-	*/
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			0.f,
+			FColor::Yellow,
+			FString::Printf(
+				TEXT("ActorYaw %.1f / MeshRelYaw %.1f / MeshWorldYaw %.1f"),
+				GetActorRotation().Yaw,
+				GetMesh()->GetRelativeRotation().Yaw,
+				GetMesh()->GetComponentRotation().Yaw
+			)
+		);
+	}*/
 }
 
 void AFZFMonster::BeginPlay() 
@@ -56,7 +68,10 @@ void AFZFMonster::BeginPlay()
 	Super::BeginPlay();
 
 	bBeginPlayReady = true;
-	InitializeMonster();
+
+	InitializeMonsterVisual(); // 서버/클라 둘 다
+
+	InitializeMonsterServer(); // 서버 전용
 }
 
 void AFZFMonster::PossessedBy(AController* NewController)
@@ -64,11 +79,44 @@ void AFZFMonster::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	bPossessedReady = true;
-	InitializeMonster();
+	InitializeMonsterServer();
 }
 
-void AFZFMonster::InitializeMonster()
+void AFZFMonster::InitializeMonsterVisual()
 {
+	// MonsterData 없으면 return
+	if (!MonsterData)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] MonsterData is null"), *GetName());
+		return;
+	}
+
+	// 1. 외형 세팅
+	// Seletal Mesh 할당
+	GetMesh()->SetSkeletalMesh(MonsterData->SkeletalMesh);
+
+	// Anim Class 할당
+	GetMesh()->SetAnimInstanceClass(MonsterData->AnimClass);
+
+	// Mesh Transform 지정 -> BP에서 직접 설정!!! 서버 복제에서 덮어씌워짐!
+	// GetMesh()->SetRelativeLocationAndRotation(MonsterData->MeshLocation, MonsterData->MeshRotation);
+}
+
+void AFZFMonster::InitializeMonsterServer()
+{
+	// 서버에서 초기화
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// MonsterData없으면 return
+	if (!MonsterData)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] MonsterData is null"), *GetName());
+		return;
+	}
+
 	// 한번 초기화 후 다시 호출되면 return
 	if (bMonsterInitialized)
 	{
@@ -98,19 +146,8 @@ void AFZFMonster::InitializeMonster()
 
 	// 3. AttributeSet 값 초기화
 	InitAttributesFromData();
-
-	// 4. 외형 세팅
-	// Mesh Transform 지정
-	GetMesh()->SetRelativeLocationAndRotation(MonsterData->MeshLocation, MonsterData->MeshRotation);
-
-	// Seletal Mesh 할당
-	GetMesh()->SetSkeletalMesh(MonsterData->SkeletalMesh);
 	
-	// Anim Class 할당
-	GetMesh()->SetAnimInstanceClass(MonsterData->AnimClass);
-
-	
-	// 5. BT 할당과 실행(마지막 순서 필수)
+	// 4. BT 할당과 실행(마지막 순서 필수)
 	AFZFAIController* AIController = Cast<AFZFAIController>(GetController());
 	if (!AIController || !MonsterData || !MonsterData->BehaviorTree)
 	{
@@ -249,6 +286,12 @@ void AFZFMonster::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAtta
 // 공격 실행
 void AFZFMonster::AttackByAI()
 {
+	// 서버 예외처리
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	// GAS 어빌리티 실행 (태그 기반)
 	if (ASC)
 	{
@@ -258,6 +301,12 @@ void AFZFMonster::AttackByAI()
 
 void AFZFMonster::SetAIMoveSpeedMode(EFZFAIMoveSpeedMode MoveSpeedMode)
 {
+	// 서버 예외처리
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	if (!ASC || !MonsterAttributeSet)
 	{
 		return;

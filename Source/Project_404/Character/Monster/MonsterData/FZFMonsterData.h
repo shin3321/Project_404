@@ -24,15 +24,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= Monster)
 	TSubclassOf<APawn> MonsterClass;
 
-	// Mesh Transform
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
+	// Mesh Transform -> BP에서 직접 설정해야 함! 서버 복제할 때 값이 덮어씌워져서 적용 안됨.
+	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
 	FVector MeshLocation = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
 	FRotator MeshRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
-	FVector MeshScale = FVector(1.f);
+	FVector MeshScale = FVector(1.f);*/
 
 	// Mesh
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
@@ -53,6 +53,12 @@ public:
 	// 나머지 GE
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
 	TSubclassOf<UGameplayEffect> ChaseSpeedEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
+	TArray<TSubclassOf<UGameplayEffect>> AllowedEffectClasses;
 
 	// Abilities
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)

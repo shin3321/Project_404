@@ -6,7 +6,6 @@
 #include "FZFRobotWorkbench.generated.h"
 
 
-// 로봇 제작대에서 상호작용 가능한 슬롯 종류
 // 로봇 제작대에서 상호작용 가능한 영역
 UENUM(BlueprintType)
 enum class EFZFRobotWorkbenchSlot : uint8
@@ -14,10 +13,8 @@ enum class EFZFRobotWorkbenchSlot : uint8
     None UMETA(DisplayName = "None"),
 
     // 제작대 본체 상호작용 영역
-    Workbench UMETA(DisplayName = "Workbench"),
-
-    // 조립 버튼 영역
-    Crafting UMETA(DisplayName = "Crafting")
+    // 이 영역에 상호작용하면 현재 선택한 로봇 부품을 자동으로 맞는 위치에 넣는다.
+    Workbench UMETA(DisplayName = "Workbench")
 };
 
 // 라인트레이스에 맞은 컴포넌트를 받기 위한 전방 선언
@@ -37,6 +34,10 @@ class UFZFRobotPartItemData;
 
 // 상호작용하는 플레이어 캐릭터 클래스
 class AFZFCharacterPlayer;
+
+//파티클 시스템 클래스
+class UNiagaraSystem;
+class USceneComponent;
 
 
 // 로봇 제작대 액터
@@ -71,10 +72,6 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RobotWorkbench|Interaction")
     TObjectPtr<UBoxComponent> WorkbenchInteractionBoxRef;
 
-    // 로봇 조립 버튼 상호작용 박스
-    // 모든 부품이 들어간 상태에서 상호작용하면 조립을 시도한다.
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RobotWorkbench|Interaction")
-    TObjectPtr<UBoxComponent> CraftButtonBoxRef;
 
 protected:
     // 제작대 위에 보여줄 몸통 메시
@@ -97,6 +94,53 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RobotWorkbench|Preview")
     TObjectPtr<UStaticMeshComponent> RobotRLegMeshRef;
 
+protected:
+    // 부품 장착 성공 시 재생할 나이아가라 시스템
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RobotWorkbench|Effect")
+    TObjectPtr<UNiagaraSystem> InsertPartEffect;
+
+    // 몸통 장착 이펙트 위치
+    UPROPERTY()
+    TObjectPtr<USceneComponent> BodyEffectPointRef;
+
+    // 왼팔 장착 이펙트 위치
+    UPROPERTY()
+    TObjectPtr<USceneComponent> LArmEffectPointRef;
+
+    // 오른팔 장착 이펙트 위치
+    UPROPERTY()
+    TObjectPtr<USceneComponent> RArmEffectPointRef;
+
+    // 왼다리 장착 이펙트 위치
+    UPROPERTY()
+    TObjectPtr<USceneComponent> LLegEffectPointRef;
+
+    // 오른다리 장착 이펙트 위치
+    UPROPERTY()
+    TObjectPtr<USceneComponent> RLegEffectPointRef;
+
+protected:
+
+    // 몸통 장착 전 보여줄 가이드 메시
+    UPROPERTY()
+    TObjectPtr<UStaticMeshComponent> RobotBodyGuideMeshRef;
+
+    // 왼팔 장착 전 보여줄 가이드 메시
+    UPROPERTY()
+    TObjectPtr<UStaticMeshComponent> RobotLArmGuideMeshRef;
+
+    // 오른팔 장착 전 보여줄 가이드 메시
+    UPROPERTY()
+    TObjectPtr<UStaticMeshComponent> RobotRArmGuideMeshRef;
+
+    // 왼다리 장착 전 보여줄 가이드 메시
+    UPROPERTY()
+    TObjectPtr<UStaticMeshComponent> RobotLLegGuideMeshRef;
+
+    // 오른다리 장착 전 보여줄 가이드 메시
+    UPROPERTY()
+    TObjectPtr<UStaticMeshComponent> RobotRLegGuideMeshRef;
+
 private:
     // 현재 몸통 슬롯에 들어간 부품 데이터
     UPROPERTY()
@@ -118,6 +162,8 @@ private:
     UPROPERTY()
     TObjectPtr<UFZFRobotPartItemData> CurrentRLegPart;
 
+
+
 private:
     // 맞은 컴포넌트가 제작대인지 조립 버튼인지 판별하는 함수
     EFZFRobotWorkbenchSlot GetSlotFromHitComponent(UPrimitiveComponent* HitComponent) const;
@@ -130,4 +176,7 @@ private:
 
     // 현재 들어간 부품 상태에 따라 미리보기 메시를 보이거나 숨기는 함수
     void UpdatePreviewMeshes();
+
+    // 지정한 위치에 부품 장착 이펙트를 재생한다.
+    void PlayInsertPartEffect(USceneComponent* EffectPoint);
 };
