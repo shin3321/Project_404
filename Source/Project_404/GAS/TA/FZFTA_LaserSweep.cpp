@@ -1,4 +1,4 @@
-﻿#include "GAS/TA/FZFTA_SphereSweep.h"
+﻿#include "GAS/TA/FZFTA_LaserSweep.h"
 #include "GAS/Attributes/FZFAttributeSet.h" // 본인의 AttributeSet 헤더
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -6,12 +6,12 @@
 #include "Physics/FZFCollision.h"
 #include "Components/CapsuleComponent.h"
 
-AFZFTA_SphereSweep::AFZFTA_SphereSweep()
+AFZFTA_LaserSweep::AFZFTA_LaserSweep()
 {
 	StartSocketName = NAME_None;
 }
 
-void AFZFTA_SphereSweep::ConfirmTargetingAndContinue()
+void AFZFTA_LaserSweep::ConfirmTargetingAndContinue()
 {
 	if (SourceActor)
 	{
@@ -20,7 +20,7 @@ void AFZFTA_SphereSweep::ConfirmTargetingAndContinue()
 	}
 }
 
-void AFZFTA_SphereSweep::StartTargeting(UGameplayAbility* Ability)
+void AFZFTA_LaserSweep::StartTargeting(UGameplayAbility* Ability)
 {
 	Super::StartTargeting(Ability);
 
@@ -28,7 +28,7 @@ void AFZFTA_SphereSweep::StartTargeting(UGameplayAbility* Ability)
 	SourceActor = Ability->GetCurrentActorInfo()->AvatarActor.Get();
 }
 
-FGameplayAbilityTargetDataHandle AFZFTA_SphereSweep::MakeTargetData() const
+FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 {
 	ACharacter* Character = Cast<ACharacter>(SourceActor);
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
@@ -55,25 +55,51 @@ FGameplayAbilityTargetDataHandle AFZFTA_SphereSweep::MakeTargetData() const
 	const FVector End = Start + Forward * AttackRange;
 
 	// 판정 실행
-	FHitResult OutHitResult;
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(AFZFTA_SphereSweep), false, Character);
+	TArray<FHitResult> HitResults;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(AFZFTA_LaserSweep), false, Character);
 
-	bool HitDetected = GetWorld()->SweepSingleByChannel(
-		OutHitResult, 
-		Start, 
+	bool HitDetected = GetWorld()->SweepMultiByChannel(
+		HitResults,
+		Start,
 		End,
-		FQuat::Identity, 
-		CCHANNEL_FZFATTACK, 
+		FQuat::Identity,
+		CCHANNEL_FZFATTACK,
 		FCollisionShape::MakeSphere(AttackRadius),
 		Params
 	);
 
 	FGameplayAbilityTargetDataHandle DataHandle;
+
+	TSet<TWeakObjectPtr<AActor>> HitActors;
+
 	if (HitDetected)
 	{
-		FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(OutHitResult);
-		// Add에서 Shared 포인터를 사용해서 넣어줘서 레퍼런스가 유지되는 한 객체가 유지됨
-		DataHandle.Add(TargetData);
+		for (const FHitResult& Hit : HitResults)
+		{
+			// 액처 Hit 처리
+			AActor* HitActor = Hit.GetActor();
+			if (!HitActor)
+			{
+				continue;
+			}
+
+			// 캐릭터 Hit 처리
+			APawn* HitPawn = Cast<APawn>(HitActor);
+			if (!HitPawn)
+			{
+				continue;
+			}
+
+			if (HitActors.Contains(HitActor))
+			{
+				continue;
+			}
+			HitActors.Add(HitActor);
+
+			FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(Hit);
+			// Add에서 Shared 포인터를 사용해서 넣어줘서 레퍼런스가 유지되는 한 객체가 유지됨
+			DataHandle.Add(TargetData);
+		}
 	}
 
 #if ENABLE_DRAW_DEBUG

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Manager/FZFSpawnManager.h"
@@ -19,6 +19,13 @@ AFZFSpawnManager::AFZFSpawnManager()
 void AFZFSpawnManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 서버에서만 돌게 예외처리
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	TArray<AActor*> SpawnPoints;
 
 	// 시작 위치 설정
@@ -34,21 +41,35 @@ void AFZFSpawnManager::BeginPlay()
 			if (SpawnPoint->ActorHasTag("ItemSpawnSlot"))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("아이템 스폰 지역을 찾았습니다"));
+
+				if (ItemClasses.IsEmpty())
+				{
+					UE_LOG(LogTemp, Error, TEXT("ItemClasses 배열이 비어있습니다."));
+					continue;
+				}
 				
 				int32 RandomIndex = FMath::RandRange(0, ItemClasses.Num() - 1);
 				TSubclassOf<AFZFItemBase> ItemClass = ItemClasses[RandomIndex];
+
 				if (ItemClass)
 				{
-				UE_LOG(LogTemp, Warning, TEXT("ItemClass: 스폰 위치: (%lf, %f, %lf)"),SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z );
+					UE_LOG(LogTemp, Warning, TEXT("ItemClass: 스폰 위치: (%lf, %f, %lf)"),SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z );
 					GetWorld()->SpawnActor<AFZFItemBase>(ItemClass, SpawnLocation, SpawnRotation, SpawnParams);
 				}
 			}
 			else if (SpawnPoint->ActorHasTag("MonsterSpawnSlot"))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("몬스터 스폰 지역을 찾았습니다"));
+
+				if (MonsterClasses.IsEmpty())
+				{
+					UE_LOG(LogTemp, Error, TEXT("MonsterClasses 배열이 비어있습니다."));
+					continue;
+				}
 			
 				int32 RandomIndex = FMath::RandRange(0, MonsterClasses.Num() - 1);
 				TSubclassOf<AFZFMonster> MonsterClass = MonsterClasses[RandomIndex];
+
 				if (MonsterClass)
 				{
 					UE_LOG(LogTemp, Warning, TEXT("MonsterClass: 스폰 위치: (%lf, %f, %lf)"),SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z );
