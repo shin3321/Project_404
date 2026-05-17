@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "AI/BTService_Detect.h"
@@ -11,10 +11,10 @@
 
 UBTService_Detect::UBTService_Detect()
 {
-	// ³ëµå ÀÌ¸§ ¼³Á¤.
+	// ë…¸ë“œ ì´ë¦„ ì„¤ì •.
 	NodeName = TEXT("Detect");
 
-	// ¼­ºñ½º ½ÇÇà °£°İ ¼³Á¤(´ÜÀ§: ÃÊ).
+	// ì„œë¹„ìŠ¤ ì‹¤í–‰ ê°„ê²© ì„¤ì •(ë‹¨ìœ„: ì´ˆ).
 	Interval = 1.0f;
 }
 
@@ -22,40 +22,40 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	// ±¸ÇöÇÏ°í ½ÍÀº °Í: AIÆù À§Ä¡¸¦ ±âÁØÀ¸·Î Æ¯Á¤ ¹İ°æ ¾È¿¡ Ä³¸¯ÅÍ°¡ ÀÖ´ÂÁö È®ÀÎ.
-	// 1. AIÆù À§Ä¡ °¡Á®¿À±â.
+	// êµ¬í˜„í•˜ê³  ì‹¶ì€ ê²ƒ: AIí° ìœ„ì¹˜ë¥¼ ê¸°ì¤€ìœ¼ë¡œ íŠ¹ì • ë°˜ê²½ ì•ˆì— ìºë¦­í„°ê°€ ìˆëŠ”ì§€ í™•ì¸.
+	// 1. AIí° ìœ„ì¹˜ ê°€ì ¸ì˜¤ê¸°.
 	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
 	if (!ControllingPawn)
 	{
 		return;
 	}
 
-	// Æù À§Ä¡ ÀúÀå.
+	// í° ìœ„ì¹˜ ì €ì¥.
 	FVector Center = ControllingPawn->GetActorLocation();
 
-	// 2. Ä³¸¯ÅÍ °¨Áö - Ãæµ¹(¿À¹ö·¦) ±â´ÉÀ» È°¿ëÇØ Ä³¸¯ÅÍ °¨Áö.
+	// 2. ìºë¦­í„° ê°ì§€ - ì¶©ëŒ(ì˜¤ë²„ë©) ê¸°ëŠ¥ì„ í™œìš©í•´ ìºë¦­í„° ê°ì§€.
 	UWorld* World = ControllingPawn->GetWorld();
 	if (!World)
 	{
 		return;
 	}
 
-	// ÀÎÅÍÆäÀÌ½º·Î Çüº¯È¯.
+	// ì¸í„°í˜ì´ìŠ¤ë¡œ í˜•ë³€í™˜.
 	IFZFMonsterAIInterface* AIPawn = Cast<IFZFMonsterAIInterface>(ControllingPawn);
 	if (!AIPawn)
 	{
 		return;
 	}
 
-	// Interface: ¼öÁ¤
-	// NPC°¡ Ä³¸¯ÅÍ¸¦ °¨ÁöÇÒ ¹üÀ§(¹İÁö¸§).
+	// Interface: ìˆ˜ì •
+	// NPCê°€ ìºë¦­í„°ë¥¼ ê°ì§€í•  ë²”ìœ„(ë°˜ì§€ë¦„).
 	float DetectRadius = AIPawn->GetAIDetectRange();
 
-	// Äõ¸® ÆÄ¶ó¹ÌÅÍ. -> AI°¡ Á¦¾îÇÏ´Â PawnÀº °¨Áö´ë»ó Á¦¿Ü
+	// ì¿¼ë¦¬ íŒŒë¼ë¯¸í„°. -> AIê°€ ì œì–´í•˜ëŠ” Pawnì€ ê°ì§€ëŒ€ìƒ ì œì™¸
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Detect), false, ControllingPawn);
 
-	// Physics: ¼öÁ¤
-	// Ãæµ¹ Ã³¸® °á°ú¸¦ ÀúÀåÇÒ ¹è¿­.
+	// Physics: ìˆ˜ì •
+	// ì¶©ëŒ ì²˜ë¦¬ ê²°ê³¼ë¥¼ ì €ì¥í•  ë°°ì—´.
 	TArray<FOverlapResult> Results;
 	bool bResult = World->OverlapMultiByChannel(
 		Results,
@@ -66,23 +66,23 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 		Params
 	);
 
-	// 3. °¨ÁöµÈ Á¤º¸´Â ºí·¢º¸µå¿¡ ±â·Ï.
-	// µğ¹ö±× ¿ëµµ·Î °¨Áö ¿µ¿ª ½Ã°¢È­.
+	// 3. ê°ì§€ëœ ì •ë³´ëŠ” ë¸”ë™ë³´ë“œì— ê¸°ë¡.
+	// ë””ë²„ê·¸ ìš©ë„ë¡œ ê°ì§€ ì˜ì—­ ì‹œê°í™”.
 	if (bResult)
 	{
-		// °¨ÁöµÈ °á°ú Ã³¸®.
+		// ê°ì§€ëœ ê²°ê³¼ ì²˜ë¦¬.
 		for (const auto& OverlapResult : Results)
 		{
-			// °¨ÁöµÈ ¾×ÅÍ¸¦ ÆùÀ¸·Î º¯È¯.
+			// ê°ì§€ëœ ì•¡í„°ë¥¼ í°ìœ¼ë¡œ ë³€í™˜.
 			APawn* Pawn = Cast<APawn>(OverlapResult.GetActor());
 
-			// ÇÃ·¹ÀÌ¾îÀÎÁö È®ÀÎ. (AI´Â Á¦¿Ü)
+			// í”Œë ˆì´ì–´ì¸ì§€ í™•ì¸. (AIëŠ” ì œì™¸)
 			if (Pawn && Pawn->GetController()->IsPlayerController())
 			{
-				// °¨ÁöÇÑ Á¤º¸¸¦ ºí·¢º¸µå¿¡ ÀúÀå.
+				// ê°ì§€í•œ ì •ë³´ë¥¼ ë¸”ë™ë³´ë“œì— ì €ì¥.
 				OwnerComp.GetBlackboardComponent()->SetValueAsObject(BBKEY_TARGET, Pawn);
 
-				// °¨Áö ¿µ¿ª ½Ã°¢È­(µğ¹ö±× ¿ëµµ).
+				// ê°ì§€ ì˜ì—­ ì‹œê°í™”(ë””ë²„ê·¸ ìš©ë„).
 				DrawDebugSphere(
 					World,
 					Center,
@@ -93,7 +93,7 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 					0.2f
 				);
 
-				// °¨ÁöµÈ ÁöÁ¡À» Á¡À¸·Î Ç¥½Ã.
+				// ê°ì§€ëœ ì§€ì ì„ ì ìœ¼ë¡œ í‘œì‹œ.
 				DrawDebugPoint(
 					World,
 					Pawn->GetActorLocation(),
@@ -103,32 +103,32 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 					0.2f
 				);
 
-				// NPC¿¡¼­ °¨ÁöµÈ ÆùÀ¸·Î ¼±±ß±â.
-				DrawDebugLine(
+				// NPCì—ì„œ ê°ì§€ëœ í°ìœ¼ë¡œ ì„ ê¸‹ê¸°.
+				/*DrawDebugLine(
 					World,
 					Center,
 					Pawn->GetActorLocation(),
 					FColor::Green,
 					false,
 					0.2f
-				);
+				);*/
 
 				return;
 			}
 		}
 	}
 
-	// °¨Áö ¸øÇÑ °æ¿ì´Â Å¸°Ù ¾×ÅÍ¸¦ null·Î ÀúÀå.
+	// ê°ì§€ ëª»í•œ ê²½ìš°ëŠ” íƒ€ê²Ÿ ì•¡í„°ë¥¼ nullë¡œ ì €ì¥.
 	OwnerComp.GetBlackboardComponent()->SetValueAsObject(BBKEY_TARGET, nullptr);
 
-	// °¨Áö ¿µ¿ªÀ» »¡°£»öÀ¸·Î Ç¥½Ã(µğ¹ö±× ¿ëµµ).
+	// ê°ì§€ ì˜ì—­ì„ ë¹¨ê°„ìƒ‰ìœ¼ë¡œ í‘œì‹œ(ë””ë²„ê·¸ ìš©ë„).
 	DrawDebugSphere(
 		World,
 		Center,
 		DetectRadius,
-		16,/*¼±ºĞ*/
+		16,/*ì„ ë¶„*/
 		FColor::Red,
 		false,
-		0.2f/*À¯Áö ½Ã°£*/
+		0.2f/*ìœ ì§€ ì‹œê°„*/
 	);
 }
