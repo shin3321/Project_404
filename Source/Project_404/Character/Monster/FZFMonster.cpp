@@ -47,7 +47,7 @@ void AFZFMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (GEngine)
+	/*if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(
 			-1,
@@ -60,7 +60,7 @@ void AFZFMonster::Tick(float DeltaTime)
 				GetMesh()->GetComponentRotation().Yaw
 			)
 		);
-	}
+	}*/
 }
 
 void AFZFMonster::BeginPlay() 
