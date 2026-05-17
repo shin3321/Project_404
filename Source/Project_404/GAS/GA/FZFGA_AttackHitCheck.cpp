@@ -24,6 +24,13 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 	}
 
 	AActor* Avatar = GetAvatarActorFromActorInfo();
+
+	if (!Avatar)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
 	// TargetActor 생성 및 설정
 	AFZFTA_Base* TargetActor = GetWorld()->SpawnActor<AFZFTA_Base>(TargetActorClass);
 	if (TargetActor)
@@ -61,10 +68,13 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		TargetActor
 	);
 	// 콜백 함수 연결 (데이터가 유효할 때 호출)
-	WaitTargetDataTask->ValidData.AddDynamic(this, &UFZFGA_AttackHitCheck::OnTargetDataReceived);
+	if (WaitTargetDataTask)
+	{
+		WaitTargetDataTask->ValidData.AddDynamic(this, &UFZFGA_AttackHitCheck::OnTargetDataReceived);
 
-	// 태스크 활성화
-	WaitTargetDataTask->ReadyForActivation();
+		// 태스크 활성화
+		WaitTargetDataTask->ReadyForActivation();
+	}
 
 	if (TargetActor) 
 	{
@@ -76,10 +86,45 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle)
 {
 	// TA가 브로드캐스트한 DataHandle이 여기로 들어옴
-	if (DataHandle.IsValid(0))
+	if (DataHandle.Num() >0 && DataHandle.IsValid(0))
 	{
-		// TODO : 데미지 적용 로직 (GE 적용)
-		UE_LOG(LogTemp, Log, TEXT("Target Data Received!"));
+		AActor* Avatar = GetAvatarActorFromActorInfo();
+		if (Avatar)
+		{
+			TArray<TSubclassOf<UGameplayEffect>> EffectsToApply; // 적용할 효과 클래스담는 배열
+
+			// 플레이어의 인벤토리(HeldItemComponent)에서 아이템 데이터의 GE 확인
+			if(UFZFHeldItemComponent* HeldItemComp = Avatar->FindComponentByClass<UFZFHeldItemComponent>())
+			{
+				if (UFZFItemData* ItemData = HeldItemComp->GetCurrentItemData())
+				{
+					EffectsToApply = ItemData->AllowedEffectClasses;
+				}
+			}
+			// 플레이어 데이터가 없고 몬스터라면 몬스터 데이터의 GE 확인
+			else if (AFZFMonster* Monster = Cast<AFZFMonster>(Avatar))
+			{
+				if (UFZFMonsterData* MData = Monster->GetMonsterData())
+				{
+					EffectsToApply = MData->AllowedEffectClasses;
+				}
+			}
+			for(const TSubclassOf<UGameplayEffect>& EffectClass : EffectsToApply)
+			{
+				if (EffectClass)
+				{
+					ApplyGameplayEffectToTarget(
+						CurrentSpecHandle,      // 어빌리티 스펙 핸들
+						CurrentActorInfo,       // 액터 정보 포인터
+						CurrentActivationInfo,  // 활성화 정보
+						DataHandle,             // 전송할 타겟 데이터 핸들
+						EffectClass,          // GameplayEffect 클래스
+						GetAbilityLevel()		// GameplayEffect 레벨
+					);
+				}
+			}
+
+		}		
 	}
 
 	// 모든 로직이 완료되면 능력을 종료

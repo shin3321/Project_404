@@ -53,9 +53,9 @@ public:
     UPROPERTY(EditAnywhere, Category = "GAS")
     FGameplayTag ItemAbilityTag;
 
-    // 이 무기가 타겟에게 적용할 효과 (데미지, 기절 등) 
-    UPROPERTY(EditAnywhere, Category = "GAS")
-    TSubclassOf<class UGameplayEffect> DamageEffectClass;
+    // 이 무기가 타겟에게 적용할 효과 (데미지, 기절 등)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
+    TArray<TSubclassOf<class UGameplayEffect>> AllowedEffectClasses;
 
     // 메쉬 사이즈를 Trigger Collision의 사이즈에 맞게 자동으로 조정해주는 변수.
     // 사용 이유 : 애셋들의 모든 사이즈를 Trigger Collision의 사이즈에 맞게 일일이 수동으로 해주기보다는 자동으로 맞춰주도록 해주기 위해.
