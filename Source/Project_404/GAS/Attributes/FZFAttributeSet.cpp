@@ -49,7 +49,7 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	AActor* InstigatorActor = Data.EffectSpec.GetContext().GetInstigator();
 	const UGameplayEffect* AppliedGE = Data.EffectSpec.Def;
 
-	if (!InstigatorActor || AppliedGE)
+	if (!InstigatorActor || !AppliedGE)
 	{
 		return;
 	}
