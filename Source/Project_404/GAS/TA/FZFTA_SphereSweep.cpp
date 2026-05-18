@@ -74,6 +74,10 @@ FGameplayAbilityTargetDataHandle AFZFTA_SphereSweep::MakeTargetData() const
 		FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(OutHitResult);
 		// Add에서 Shared 포인터를 사용해서 넣어줘서 레퍼런스가 유지되는 한 객체가 유지됨
 		DataHandle.Add(TargetData);
+		UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *GetNameSafe(OutHitResult.GetActor()));
+		UE_LOG(LogTemp, Warning, TEXT("Hit Comp: %s"), *GetNameSafe(OutHitResult.GetComponent()));
+		UE_LOG(LogTemp, Warning, TEXT("Hit Comp Class: %s"), *GetNameSafe(OutHitResult.GetComponent()->GetClass()));
+		UE_LOG(LogTemp, Warning, TEXT("Hit Bone: %s"), *OutHitResult.BoneName.ToString());
 	}
 
 #if ENABLE_DRAW_DEBUG
