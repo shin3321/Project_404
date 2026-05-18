@@ -11,7 +11,7 @@ struct FFZFItemRow : public  FTableRowBase
 {
 	GENERATED_BODY()
 	
-	public:
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	TSubclassOf<AActor> ItemActorClass;
 	
