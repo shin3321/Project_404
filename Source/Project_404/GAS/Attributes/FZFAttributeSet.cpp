@@ -10,6 +10,7 @@
 #include "Character/Monster/FZFMonster.h"
 #include "Character/Monster/MonsterData/FZFMonsterData.h"
 #include "Character/Player/FZFCharacterPlayer.h"
+#include "Utils/Boss/FZFLaserActor.h"
 
 UFZFAttributeSet::UFZFAttributeSet()
 {
@@ -56,12 +57,21 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 	if (!InstigatorActor || !AppliedGE)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[GAS_Debug] 가해자(Instigator) 또는 GE가 Null입니다!"));
+		if (!AppliedGE)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[GAS_Debug] 크리티컬: AppliedGE(이펙트 정의)가 Null입니다!"));
+		}
+		if (!InstigatorActor)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[GAS_Debug] 크리티컬: InstigatorActor(가해자)가 Null입니다!"));
+		}
 		return;
 	}
 
 	// 공격자가 가질 수 있는 합법적인 이펙트 목록을 가져올 임시 배열
 	TArray<TSubclassOf<UGameplayEffect>> AllowedEffects;
+	// 검증 결과를 담을 변수
+	bool bIsValidEffect = false;
 
 	if (UFZFHeldItemComponent* HeldItemComp = InstigatorActor->FindComponentByClass<UFZFHeldItemComponent>())
 	{
@@ -79,15 +89,26 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			AllowedEffects = MData->AllowedEffectClasses;
 		}
 	}
-
-	// 현재 들어온 이펙트가 검증된 이펙트 목록에 있는지 확인
-	bool bIsValidEffect = false;
-	for (const auto& EffectClass : AllowedEffects)
+	// 공격 주체가 레이저 엑터 본인이거나 레이저를 쏜 원인이 레이져인 경우
+	else if (AFZFLaserActor* Laser = Cast<AFZFLaserActor>(InstigatorActor))
 	{
-		if (EffectClass && AppliedGE->GetClass() == EffectClass)
+		// 레이저가 가진 DamageGEClass와 현재 들어온 GE의 클래스가 일치하는지 바로 비교합니다.
+		if (Laser->GetDamageGEClass() && AppliedGE->GetClass() == Laser->GetDamageGEClass())
 		{
 			bIsValidEffect = true;
-			break;
+		}
+	}
+
+	// 현재 들어온 이펙트(아이템,몬스터)가 검증된 이펙트 목록에 있는지 확인
+	if (!bIsValidEffect && AllowedEffects.Num() > 0)
+	{
+		for(const auto& EffectClass : AllowedEffects)
+		{
+			if (EffectClass && AppliedGE->GetClass() == EffectClass)
+			{
+				bIsValidEffect = true;
+				break;
+			}
 		}
 	}
 
