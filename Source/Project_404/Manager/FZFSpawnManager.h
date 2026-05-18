@@ -23,10 +23,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void SpawnItem(FName ItemId, FVector SpawnLocation);
+		
+	
 private:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	TArray<TSubclassOf<class AFZFItemBase>> ItemClasses;
-	
 	
 	UPROPERTY(EditAnywhere, Category = "Monster")
 	TArray<TSubclassOf<class AFZFMonster>> MonsterClasses;

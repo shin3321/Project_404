@@ -81,6 +81,21 @@ void AFZFGameMode::PostLogin(APlayerController* NewPlayer)
 		CurrentPlayerCount);
 }
 
+void AFZFGameMode::HandleMatchHasStarted()
+{
+	Super::HandleMatchHasStarted();
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (PC && PC->GetPawn() == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[안전장치] 폰이 없는 컨트롤러 발견, 강제 스폰: %s"), *PC->GetName());
+			RestartPlayer(PC);
+		}
+	}
+}
+
 AActor* AFZFGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 	TArray<AActor*> FoundActors;

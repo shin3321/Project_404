@@ -15,6 +15,7 @@ AFZFItemBase::AFZFItemBase()
 
     // 네트워크 복제 설정
     bReplicates = true;
+    //SetReplicates(true);
 
     Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
     Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));

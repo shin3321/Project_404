@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Utils/Boss/FZFBossTrigger.h"
@@ -10,20 +10,21 @@
 // Sets default values
 AFZFBossTrigger::AFZFBossTrigger()
 {
+	bReplicates = true;
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	RootComponent = CollisionBox;
 	CollisionBox->SetBoxExtent(FVector(200.f, 200.f, 200.f));
 
 	TriggerMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TriggerMesh"));
-    
+
 	TriggerMeshComp->SetupAttachment(RootComponent);
 	TriggerMeshComp->SetCollisionProfileName(TEXT("NoCollision"));
-    
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/Project404/Utils/Button.Button"));
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Game/Project404/Utils/FZF_BossBomb/Button.Button"));
 	if (MeshAsset.Succeeded())
 	{
 		TriggerMeshComp->SetStaticMesh(MeshAsset.Object);
-	}	
+	}
 }
 
 // Called when the game starts or when spawned
@@ -46,14 +47,13 @@ void AFZFBossTrigger::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 	if (Cast<AFZFCharacterBase>(OtherActor))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("컴포넌트 트리거 겹침!"));
-		AFZFBossLevelManager* BossLevelManager = Cast<AFZFBossLevelManager>(
-		UGameplayStatics::GetActorOfClass(GetWorld(), AFZFBossLevelManager::StaticClass())
-	);
+		AFZFBossLevelManager* BossLevelManager = Cast<AFZFBossLevelManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AFZFBossLevelManager::StaticClass()));
 
 		if (BossLevelManager)
 		{
 			BossLevelManager->CreateBomb(GetActorLocation());
+			Destroy();
 		}
-	}	
+	}
 }
 

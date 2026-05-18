@@ -56,7 +56,10 @@ public:
 	
 	UFUNCTION()
 	void CreateBomb(FVector SpawnLocation);
-	
+
+	UPROPERTY(EditAnywhere, Category = "Gimmick|Bomb")
+	TSubclassOf<class AFZFBossBombActor> BombBlueprintClass;
+
 protected:
 	UFUNCTION()
 	void OnBombTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 

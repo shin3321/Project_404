@@ -45,18 +45,18 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 {
 	Super::PostGameplayEffectExecute(Data);
 
-	UE_LOG(LogTemp, Warning,
-		TEXT("[AttrDebug] Owner=%s / Avatar=%s / Instigator=%s / Attr=%s / HP=%.1f / MaxHP=%.1f / Damage=%.1f"),
-		*GetNameSafe(GetOwningActor()),
-		*GetNameSafe(GetOwningAbilitySystemComponent()
-			? GetOwningAbilitySystemComponent()->GetAvatarActor()
-			: nullptr),
-		*GetNameSafe(Data.EffectSpec.GetContext().GetInstigator()),
-		*Data.EvaluatedData.Attribute.GetName(),
-		GetHP(),
-		GetMaxHP(),
-		GetDamage()
-	);
+	//UE_LOG(LogTemp, Warning,
+	//	TEXT("[AttrDebug] Owner=%s / Avatar=%s / Instigator=%s / Attr=%s / HP=%.1f / MaxHP=%.1f / Damage=%.1f"),
+	//	*GetNameSafe(GetOwningActor()),
+	//	*GetNameSafe(GetOwningAbilitySystemComponent()
+	//		? GetOwningAbilitySystemComponent()->GetAvatarActor()
+	//		: nullptr),
+	//	*GetNameSafe(Data.EffectSpec.GetContext().GetInstigator()),
+	//	*Data.EvaluatedData.Attribute.GetName(),
+	//	GetHP(),
+	//	GetMaxHP(),
+	//	GetDamage()
+	//);
 
 	// 이펙트를 유발한 가해자(공격자)의 정보와 GE 정보 추출
 	AActor* InstigatorActor = Data.EffectSpec.GetContext().GetInstigator();
@@ -124,6 +124,10 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			// TODO : 사망 처리 로직
 
 		}
+		else
+		{
+			
+		}		
 	}
 
 	// TODO : 다른 어트리뷰트 처리 로직 (힐 , 버프 등)

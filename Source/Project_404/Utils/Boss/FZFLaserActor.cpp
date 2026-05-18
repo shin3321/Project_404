@@ -10,6 +10,8 @@ AFZFLaserActor::AFZFLaserActor()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
+
 	CurrentMode = ELaserMode::Inactive;
 	
 	RootComp = CreateDefaultSubobject<USceneComponent>("RootComponent");
@@ -82,7 +84,6 @@ void AFZFLaserActor::ActivateLaser(FVector StartLocation, ELaserMode Mode, ELase
 	if (CurrentType == ELaserType::Horizon)
 	{
 		// 가로 방향 설정 로직
-		SetActorRotation(FRotator(0.f, 0.f, 0.f));
 	}
 	else if (CurrentType == ELaserType::Vertical)
 	{
