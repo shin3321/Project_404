@@ -48,3 +48,12 @@ void UFZFHUD::SetCrosshairHighlight()
         CrosshairImage->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 1.f));
     }
 }
+
+void UFZFHUD::PlayDamageEffect()
+{
+    // DamageFade 애니메이션이 존재하면 실행
+    if (DamageFade)
+    {
+        PlayAnimation(DamageFade);
+    }
+}
