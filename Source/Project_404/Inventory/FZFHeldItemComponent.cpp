@@ -73,10 +73,6 @@ void UFZFHeldItemComponent::ServerHoldItem_Implementation(UFZFItemData* ItemData
         UpdateUpperBodyBlendWeight();
         UpdateHeldItemAnimation();
         DestroyLocalFirstPersonHeldItem();
-
-        if (AFZFCharacterPlayer* OwnerCharacter = GetOwnerCharacter())
-            OwnerCharacter->SetArmMeshDefaultTransform();
-
         return;
     }
 
@@ -201,6 +197,9 @@ void UFZFHeldItemComponent::ClearHeldItem()
     }
 
     ServerClearHeldItem();
+
+    if (AFZFCharacterPlayer* OwnerCharacter = GetOwnerCharacter())
+        OwnerCharacter->SetArmMeshDefaultTransform();
 }
 
 void UFZFHeldItemComponent::ServerClearHeldItem_Implementation()
@@ -363,7 +362,7 @@ void UFZFHeldItemComponent::RefreshLocalFirstPersonHeldItem()
     );
 
     // 애니메이션 위치 및 회전 값 하드코딩 방식.
-    OwnerCharacter->SetArmMeshTransform(FVector(0.0f, 0.0f, -194.0f), FRotator(0.0f, -105.0f, 0.0f));
+    OwnerCharacter->SetArmMeshTransform(FVector(45.0f, 20.0f, -194.0f), FRotator(0.0f, 0.0f, 0.0f));
 }
 
 void UFZFHeldItemComponent::DestroyLocalFirstPersonHeldItem()

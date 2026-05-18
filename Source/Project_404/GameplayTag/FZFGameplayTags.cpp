@@ -17,6 +17,7 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack, "Ability.Action.Attack");
 
 	// 아이템에 맞는 공격 방식
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Pickaxe, "Ability.Action.Attack.Pickaxe");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Rifle, "Ability.Action.Attack.Rifle");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Sword, "Ability.Action.Attack.Sword");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Pistol, "Ability.Action.Attack.Pistol");
