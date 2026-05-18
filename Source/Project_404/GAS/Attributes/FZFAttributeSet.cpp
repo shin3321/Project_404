@@ -47,19 +47,6 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 {
 	Super::PostGameplayEffectExecute(Data);
 
-	//UE_LOG(LogTemp, Warning,
-	//	TEXT("[AttrDebug] Owner=%s / Avatar=%s / Instigator=%s / Attr=%s / HP=%.1f / MaxHP=%.1f / Damage=%.1f"),
-	//	*GetNameSafe(GetOwningActor()),
-	//	*GetNameSafe(GetOwningAbilitySystemComponent()
-	//		? GetOwningAbilitySystemComponent()->GetAvatarActor()
-	//		: nullptr),
-	//	*GetNameSafe(Data.EffectSpec.GetContext().GetInstigator()),
-	//	*Data.EvaluatedData.Attribute.GetName(),
-	//	GetHP(),
-	//	GetMaxHP(),
-	//	GetDamage()
-	//);
-
 	UE_LOG(LogTemp, Log, TEXT("[GAS_Debug] 함수 진입! Attr: %s, 들어온 Damage 값: %.1f"),
 		*Data.EvaluatedData.Attribute.GetName(), GetDamage());
 
@@ -104,16 +91,16 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		}
 	}
 
-	//// 검증 실패 시, 수치 무효화 및 차단
-	//if (!bIsValidEffect)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("[GAS_Debug] 검증 실패! 허용되지 않은 GE 클래스입니다: %s"), *AppliedGE->GetClass()->GetName());
-	//	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
-	//	{
-	//		SetDamage(0.0f);
-	//		return;
-	//	}
-	//}
+	// 검증 실패 시, 수치 무효화 및 차단
+	if (!bIsValidEffect)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[GAS_Debug] 검증 실패! 허용되지 않은 GE 클래스입니다: %s"), *AppliedGE->GetClass()->GetName());
+		if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+		{
+			SetDamage(0.0f);
+			return;
+		}
+	}
 
 	// 검증 성공 시, Attribute별 실제 처리
 	// 데미지 처리
@@ -130,18 +117,12 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			const float NewHP = GetHP() - LocalDamage;
 			SetHP(FMath::Clamp(NewHP,0.0f,GetMaxHP()));
 			UE_LOG(LogTemp, Log, TEXT("[GAS_Debug] HP 변경 완료! 현재 HP: %.1f / %.1f"), GetHP(), GetMaxHP());
-			// TODO : 사망 처리 로직
 
-		}
-		else
-		{
-
-			if (!bIsDead)
+			if (AFZFCharacterBase* TargetCharacter = Cast<AFZFCharacterBase>(Data.Target.GetAvatarActor()))
 			{
-				if (AFZFCharacterBase* TargetCharacter = Cast<AFZFCharacterBase>(Data.Target.GetAvatarActor()))
+				if (GetHP() <= 0.0f)
 				{
-					TargetCharacter->HandleDeath();
-					bIsDead = true;
+					TargetCharacter->SetDead();
 				}
 			}
 		}
