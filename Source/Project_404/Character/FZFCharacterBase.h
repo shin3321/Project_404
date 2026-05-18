@@ -28,6 +28,12 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_IsDead();
 
+	// 죽음 처리 (Dead 몽타주 재생)
+	virtual void SetDead();
+
+	// 몽타주 애니메이션 재생
+	virtual void PlayDeadAnimation();
+
 protected:
 	// 읽기 가능, 수정 불가
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GAS)
@@ -44,4 +50,15 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | State", ReplicatedUsing = OnRep_IsDead)
 	bool bIsDead = false;
+
+
+	// Dead Section
+protected:
+	// 죽음 몽타주
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Dead)
+	TObjectPtr<class UAnimMontage> DeadMontage;
+
+	// 죽은 후 대기할 시간 값(단위: 초).
+	float DeadEventDelayTime = 5.0f;
+
 };
