@@ -136,10 +136,7 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		else
 		{
 
-			
-			SetHP(NewHP);
-
-			if (NewHP <= 0.0f && !bIsDead)
+			if (!bIsDead)
 			{
 				if (AFZFCharacterBase* TargetCharacter = Cast<AFZFCharacterBase>(Data.Target.GetAvatarActor()))
 				{
