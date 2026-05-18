@@ -1,10 +1,10 @@
-#include "GAS/GA/FZFGA_DropItem.h"
+ï»¿#include "GAS/GA/FZFGA_DropItem.h"
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Inventory/FZFInventoryComponent.h"
 
 UFZFGA_DropItem::UFZFGA_DropItem()
 {
-    // ÀÎ½ºÅÏ½Ì Á¤Ã¥: Ä³¸¯ÅÍ¸¶´Ù ¾îºô¸®Æ¼ ÀÎ½ºÅÏ½º¸¦ °¡Áü
+    // ì¸ìŠ¤í„´ì‹± ì •ì±…: ìºë¦­í„°ë§ˆë‹¤ ì–´ë¹Œë¦¬í‹° ì¸ìŠ¤í„´ìŠ¤ë¥¼ ê°€ì§
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
@@ -15,39 +15,40 @@ void UFZFGA_DropItem::ActivateAbility(
     const FGameplayEventData* TriggerEventData
 )
 {
-    // ¾îºô¸®Æ¼ ½ÇÇà °¡´É ¿©ºÎ È®ÀÎ
+    // ì–´ë¹Œë¦¬í‹° ì‹¤í–‰ ê°€ëŠ¥ ì—¬ë¶€ í™•ì¸
     if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
     {
         EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
         return;
     }
 
-    // ¼±ÅÃµÈ ¾ÆÀÌÅÛ ¹ö¸®±â ½ÇÇà
+    // ì„ íƒëœ ì•„ì´í…œ ë²„ë¦¬ê¸° ì‹¤í–‰
     DropSelectedItem();
 
-    // ½ÇÇà ÈÄ Áï½Ã ¾îºô¸®Æ¼ Á¾·á
+    // ì‹¤í–‰ í›„ ì¦‰ì‹œ ì–´ë¹Œë¦¬í‹° ì¢…ë£Œ
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
 void UFZFGA_DropItem::DropSelectedItem()
 {
-    // ¾îºô¸®Æ¼¸¦ ½ÇÇàÇÑ Ä³¸¯ÅÍ °¡Á®¿À±â
+    // ì–´ë¹Œë¦¬í‹°ë¥¼ ì‹¤í–‰í•œ ìºë¦­í„° ê°€ì ¸ì˜¤ê¸°
     AFZFCharacterPlayer* Player = Cast<AFZFCharacterPlayer>(GetAvatarActorFromActorInfo());
     if (!Player)
     {
         return;
     }
 
-    // ÇÃ·¹ÀÌ¾î°¡ °¡Áø InventoryComponent Ã£±â
+    // í”Œë ˆì´ì–´ê°€ ê°€ì§„ InventoryComponent ì°¾ê¸°
     UFZFInventoryComponent* InventoryComponent =
         Player->FindComponentByClass<UFZFInventoryComponent>();
 
-    // ÀÎº¥Åä¸® ÄÄÆ÷³ÍÆ®°¡ ¾øÀ¸¸é Á¾·á
+    // ì¸ë²¤í† ë¦¬ ì»´í¬ë„ŒíŠ¸ê°€ ì—†ìœ¼ë©´ ì¢…ë£Œ
     if (!InventoryComponent)
     {
         return;
     }
 
-    // ÇöÀç ¼±ÅÃµÈ ½½·ÔÀÇ ¾ÆÀÌÅÛ ¹ö¸®±â
+    // í˜„ì¬ ì„ íƒëœ ìŠ¬ë¡¯ì˜ ì•„ì´í…œ ë²„ë¦¬ê¸°
     InventoryComponent->DropSelectedItem();
+    Player->SetArmMeshDefaultTransform();
 }

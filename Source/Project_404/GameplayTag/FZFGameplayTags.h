@@ -21,6 +21,7 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack);
 
 	// 아이템에 맞는 공격 방식
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Pickaxe);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Rifle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Sword);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Pistol);

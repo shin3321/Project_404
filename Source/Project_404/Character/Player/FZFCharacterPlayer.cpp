@@ -395,7 +395,7 @@ void AFZFCharacterPlayer::SetArmMeshTransform(FVector Location, FRotator Rotatio
 
 void AFZFCharacterPlayer::SetArmMeshDefaultTransform()
 {
-	SetArmMeshTransform(FVector(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
+	SetArmMeshTransform(FVector(-10.0f, 0.0f, -140.0f), FRotator(0.0f, -90.0f, 0.0f));
 }
 
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
