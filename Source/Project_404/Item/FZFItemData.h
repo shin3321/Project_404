@@ -69,4 +69,8 @@ public:
     // 판정의 시작점으로 사용할 소켓 이름 (예: Hand_R_Socket, Muzzle_Socket)
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Socket")
     FName StartSocketName;
+	
+	// 스폰 클래스를 결정하는 변수
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Config")
+	TSubclassOf<AActor> ItemActorClass;
 };

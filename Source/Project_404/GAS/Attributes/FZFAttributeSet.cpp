@@ -123,6 +123,11 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		
 			// TODO : 사망 처리 로직
 		}
+		else
+		{
+			
+		}
+		
 	}
 
 	// TODO : 다른 어트리뷰트 처리 로직 (힐 , 버프 등)
