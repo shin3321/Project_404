@@ -161,7 +161,7 @@ void UFZFHeldItemComponent::SpawnThirdPersonHeldItem_Server(UFZFItemData* ItemDa
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
     CurrentHeldItem = GetWorld()->SpawnActor<AFZFHeldItemActor>(
-      HeldItemClass,
+        HeldItemClass,
         FTransform::Identity,
         SpawnParams
     );
@@ -362,7 +362,8 @@ void UFZFHeldItemComponent::RefreshLocalFirstPersonHeldItem()
     );
 
     // 애니메이션 위치 및 회전 값 하드코딩 방식.
-    OwnerCharacter->SetArmMeshTransform(FVector(45.0f, 20.0f, -194.0f), FRotator(0.0f, 0.0f, 0.0f));
+    if (CurrentHeldItemData->ItemType == EItemType::Equipment)
+        OwnerCharacter->SetArmMeshTransform(FVector(45.0f, 20.0f, -194.0f), FRotator(0.0f, 0.0f, 0.0f));
 }
 
 void UFZFHeldItemComponent::DestroyLocalFirstPersonHeldItem()
@@ -383,7 +384,10 @@ void UFZFHeldItemComponent::UpdateUpperBodyBlendWeight()
         return;
     }
 
-    const float BlendWeight = CurrentHeldItemData ? 1.0f : 0.0f;
+    float BlendWeight = 0.0f;
+    if (CurrentHeldItemData && CurrentHeldItemData->ItemType == EItemType::Equipment)
+        BlendWeight = CurrentHeldItemData ? 1.0f : 0.0f;
+
 
     // 3인칭 Mesh AnimInstance
     if (USkeletalMeshComponent* CharacterMesh = OwnerCharacter->GetMesh())
