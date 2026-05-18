@@ -67,6 +67,12 @@ protected:
 public:
 	// 공격 모션(몽타주 재생) 종료 시 호출되는 이벤트 함수.
 	void NotifyAttackActionEnd();
+	
+	// 죽음 처리 함수
+	virtual void SetDead() override;
+
+	// 죽음 모션 재생
+	virtual void PlayDeadAnimation() override;
 
 	/* 클래스 멤버 변수 */
 private:

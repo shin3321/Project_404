@@ -23,7 +23,6 @@
 #include "Inventory/FZFHeldItemComponent.h"
 #include "Components/PrimitiveComponent.h"
 
-
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
 	// 기본 설정
@@ -577,6 +576,40 @@ void AFZFCharacterPlayer::DetectInteractable()
 			HUDWidget->SetCrosshairNormal();
 		}
 	}
+}
+// 죽음 로직
+void AFZFCharacterPlayer::HandleDeath()
+{
+	Super::HandleDeath();
+	//
+	// if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	// {
+	// 	// 살아 있는 플레이어 찾기
+	// 	AActor* TargetActor = nullptr;
+	// 	if (AGameStateBase* GS = GetWorld()->GetGameState())
+	// 	{
+	// 		for (APlayerState* PS : GS->PlayerArray)
+	// 		{
+	// 			if (PS && PS!= GetPlayerState())
+	// 			{
+	// 				if (APawn* OtherPawn = PS->GetPawn())
+	// 				{
+	// 					TargetActor = OtherPawn;
+	// 					break;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	if (TargetActor)
+	// 	{
+	// 		// 다른 플레이어의 뷰로 전환
+	// 		PC->SetViewTargetWithBlend(TargetActor, 0.5f);
+	// 	}
+	// 	PC->UnPossess();
+	// }
+	SetLifeSpan(3.0f);
+	SetActorEnableCollision(false);
+	GetCharacterMovement()->DisableMovement();
 }
 
 // 1번 슬롯 선택
