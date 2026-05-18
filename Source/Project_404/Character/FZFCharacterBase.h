@@ -24,7 +24,6 @@ public:
 	virtual void HandleDeath();
 	void TriggerDeathGameplayCue();
 
-protected:
 	UFUNCTION()
 	virtual void OnRep_IsDead();
 
@@ -59,6 +58,6 @@ protected:
 	TObjectPtr<class UAnimMontage> DeadMontage;
 
 	// 죽은 후 대기할 시간 값(단위: 초).
-	float DeadEventDelayTime = 5.0f;
+	float DeadEventDelayTime = 1.5f;
 
 };
