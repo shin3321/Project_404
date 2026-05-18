@@ -122,6 +122,7 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			SetHP(FMath::Clamp(NewHP,0.0f,GetMaxHP()));
 		
 			// TODO : 사망 처리 로직
+
 		}
 		else
 		{
