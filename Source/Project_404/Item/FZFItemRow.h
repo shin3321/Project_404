@@ -16,5 +16,8 @@ public:
 	TSubclassOf<AActor> ItemActorClass;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+	TObjectPtr<class UFZFItemData> ItemData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	FName ItemId;
 };

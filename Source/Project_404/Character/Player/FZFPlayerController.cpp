@@ -51,7 +51,6 @@ TArray<APawn*> AFZFPlayerController::GetSpectatablePawns()
 			{
 				if (APawn* P = PS->GetPawn())
 				{
-					// [수정] 부모 캐릭터 클래스로 캐스팅해서 살아있는지 확인
 					if (AFZFCharacterBase* BaseChar = Cast<AFZFCharacterBase>(P))
 					{
 						// 아까 만든 IsDead() 함수(State.Dead 태그 검사)를 활용

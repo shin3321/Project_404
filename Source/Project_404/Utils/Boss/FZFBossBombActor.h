@@ -37,6 +37,10 @@ public:
 	
 	UFUNCTION()
 	void Explode();
+
+	// 서버가 모든 클라이언트에게 이펙트를 재생하라고 지시하는 RPC
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastExplode();
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UBoxComponent* CollisionBox;
