@@ -20,6 +20,13 @@ public:
 
 	// CharacterBase를 상속받은 클래스들의 ASC를 초기화 시키는 함수
 	virtual void InitAbilitySystem();
+public:
+	virtual void HandleDeath();
+	void TriggerDeathGameplayCue();
+
+protected:
+	UFUNCTION()
+	virtual void OnRep_IsDead();
 
 	// 죽음 처리 (Dead 몽타주 재생)
 	virtual void SetDead();
@@ -40,6 +47,10 @@ protected:
 	// 초기에 캐릭터가 가질 GameAbility를 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
 	TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | State", ReplicatedUsing = OnRep_IsDead)
+	bool bIsDead = false;
+
 
 	// Dead Section
 protected:

@@ -166,10 +166,13 @@ protected:
 	// 선택된 인벤토리 아이템을 손에 들게 처리하는 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UFZFHeldItemComponent> HeldItemComponent;
-
+protected:
+	virtual void HandleDeath() override;
+	
 // GameplayEffect Section 
 protected:
 	// 스테미너 자동 재생 GE
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> PassiveRegenEffectClass;
 };
+

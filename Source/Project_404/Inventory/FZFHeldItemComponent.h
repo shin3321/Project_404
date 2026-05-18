@@ -28,7 +28,7 @@ public:
     void ClearHeldItem();
 
     //GA에서 현재 아이템 정보를 참조할 수 있도록 Getter 추가
-    FORCEINLINE UFZFItemData* GetCurrentItemData() const { return CurrentItemData; }
+    FORCEINLINE UFZFItemData* GetCurrentItemData() const { return CurrentHeldItemData; }
 
     FGameplayTag GetCurrentAttackTag() { return  CurrentEquippedTag; }
 
@@ -62,10 +62,6 @@ protected:
 
 
 private:
-    // 현재 들고 있는 아이템의 원본데이터를 저장
-    UPROPERTY()
-    TObjectPtr<UFZFItemData> CurrentItemData;
-
     // 손에 생성할 HeldItem Actor 클래스
     // BP_HeldItem 같은 블루프린트 클래스를 넣을 수 있게 함
     UPROPERTY(EditAnywhere, Category = "Held Item")

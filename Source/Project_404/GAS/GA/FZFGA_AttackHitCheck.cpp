@@ -7,6 +7,7 @@
 #include "Inventory/FZFHeldItemComponent.h"
 #include "Item/FZFItemData.h"
 #include "Character/Monster/FZFMonster.h"
+#include "GAS/FZFAbilitySystemComponent.h"
 
 UFZFGA_AttackHitCheck::UFZFGA_AttackHitCheck()
 {
@@ -109,21 +110,36 @@ void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDat
 					EffectsToApply = MData->AllowedEffectClasses;
 				}
 			}
-			for(const TSubclassOf<UGameplayEffect>& EffectClass : EffectsToApply)
+
+			// 능력 사용자의 ASC(Ability System Component) 가져오기
+			UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+			if (ASC)
 			{
-				if (EffectClass)
+				for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectsToApply)
 				{
-					ApplyGameplayEffectToTarget(
-						CurrentSpecHandle,      // 어빌리티 스펙 핸들
-						CurrentActorInfo,       // 액터 정보 포인터
-						CurrentActivationInfo,  // 활성화 정보
-						DataHandle,             // 전송할 타겟 데이터 핸들
-						EffectClass,          // GameplayEffect 클래스
-						GetAbilityLevel()		// GameplayEffect 레벨
-					);
+					if (EffectClass)
+					{
+						// 이펙트 컨텍스트 생성 및 가해자(Instigator) 명시
+						// AvatarActor를 가해자로 지정하여 캐릭터의 AttributeSet 스탯을 정상적으로 캡처하게 만듭니다.
+						FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+						EffectContext.AddInstigator(Avatar, Avatar);
+
+						// 수동으로 컨텍스트를 주입한 안전한 이펙트 스펙(Spec) 생성
+						FGameplayEffectSpecHandle NewSpecHandle = ASC->MakeOutgoingSpec(EffectClass, GetAbilityLevel(), EffectContext);
+						if (NewSpecHandle.IsValid())
+						{
+							// 타겟 데이터 핸들(DataHandle) 내에 있는 대상들에게 스펙 적용
+							ApplyGameplayEffectSpecToTarget(
+								CurrentSpecHandle,      // 어빌리티 스펙 핸들
+								CurrentActorInfo,       // 액터 정보 포인터
+								CurrentActivationInfo,  // 활성화 정보
+								NewSpecHandle,          // 수동으로 생성한 GameplayEffect 스펙 핸들
+								DataHandle              // 전송할 타겟 데이터 핸들
+							);
+						}
+					}
 				}
 			}
-
 		}		
 	}
 
