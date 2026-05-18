@@ -8,7 +8,6 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "Character/Player/FZFCharacterPlayer.h"
 
@@ -156,6 +155,8 @@ void AFZFLaserActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComp
 {
 	// 1. 서버에서만 실행
 	if (!HasAuthority()) return;
+	if (!DamageGEClass) return;
+
 	if (OtherActor && OtherActor->IsA(AFZFCharacterPlayer::StaticClass()))
 	{
 		// 2. 상대방이 ASC를 가지고 있는지 확인 (IAbilitySystemInterface 구현여부)
@@ -173,7 +174,7 @@ void AFZFLaserActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComp
 				FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(DamageGEClass, 1.0f, Context);
 				if (SpecHandle.IsValid())
 				{
-					TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+					TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 				}
 			}
 		}
