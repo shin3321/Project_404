@@ -95,5 +95,6 @@ private:
 	
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackSpeed;
-
+private:
+	bool bIsDead = false;
 };

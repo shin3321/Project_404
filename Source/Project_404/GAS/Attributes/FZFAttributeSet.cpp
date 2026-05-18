@@ -6,8 +6,10 @@
 // 추후 인터페이스로 뺄 헤더들
 #include "Inventory/FZFHeldItemComponent.h"
 #include "Item/FZFItemData.h"
+#include "Character/FZFCharacterBase.h"
 #include "Character/Monster/FZFMonster.h"
 #include "Character/Monster/MonsterData/FZFMonsterData.h"
+#include "Character/Player/FZFCharacterPlayer.h"
 
 UFZFAttributeSet::UFZFAttributeSet()
 {
@@ -118,15 +120,20 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 		if (LocalDamage > 0.0f)
 		{
-			const float NewHP = GetHP() - LocalDamage;
-			SetHP(FMath::Clamp(NewHP,0.0f,GetMaxHP()));
-		
-			// TODO : 사망 처리 로직
-		}
-		else
-		{
+			const float CurrentHP = GetHP();
+			const float NewHP = FMath::Clamp(CurrentHP - LocalDamage, 0.0f, GetMaxHP());
 			
-		}		
+			SetHP(NewHP);
+
+			if (NewHP <= 0.0f && !bIsDead)
+			{
+				if (AFZFCharacterBase* TargetCharacter = Cast<AFZFCharacterBase>(Data.Target.GetAvatarActor()))
+				{
+					TargetCharacter->HandleDeath();
+					bIsDead = true;
+				}
+			}
+		}
 	}
 
 	// TODO : 다른 어트리뷰트 처리 로직 (힐 , 버프 등)
