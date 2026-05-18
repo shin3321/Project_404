@@ -1,30 +1,87 @@
-#include "FZFHeldItemActor.h"
+ï»¿#include "FZFHeldItemActor.h"
 #include "Components/StaticMeshComponent.h"
+
+#include "Item/FZFItemData.h"
+#include "Net/UnrealNetwork.h"
 
 AFZFHeldItemActor::AFZFHeldItemActor()
 {
-    // TickÀº ÇÊ¿ä ¾øÀ¸´Ï±î ²¨µÒ
+    // Tickì€ í•„ìš” ì—†ìœ¼ë‹ˆê¹Œ êº¼ë‘ 
     PrimaryActorTick.bCanEverTick = false;
 
-    // Static Mesh Component »ı¼º
+    bReplicates = true;
+    SetReplicateMovement(true);
+
+    // Static Mesh Component ìƒì„±
     MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 
-    // ÀÌ ActorÀÇ RootComponent·Î ¼³Á¤
-    // ³ªÁß¿¡ ¼Õ ¼ÒÄÏ¿¡ AttachÇÒ ¶§ ÀÌ Root ±âÁØÀ¸·Î ºÙÀ½
-    RootComponent = MeshComponent;
+    // ì´ Actorì˜ RootComponentë¡œ ì„¤ì •
+   // ë‚˜ì¤‘ì— ì† ì†Œì¼“ì— Attachí•  ë•Œ ì´ Root ê¸°ì¤€ìœ¼ë¡œ ë¶™ìŒ
+    SetRootComponent(MeshComponent);
 
-    // ¼Õ¿¡ µé ¾ÆÀÌÅÛÀº Ä³¸¯ÅÍ¶û Ãæµ¹ÇÏ¸é °Å½½¸± ¼ö ÀÖÀ¸´Ï±î Ãæµ¹ ²û
+    // ì†ì— ë“¤ ì•„ì´í…œì€ ìºë¦­í„°ë‘ ì¶©ëŒí•˜ë©´ ê±°ìŠ¬ë¦´ ìˆ˜ ìˆìœ¼ë‹ˆê¹Œ ì¶©ëŒ ë”
     MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    MeshComponent->SetIsReplicated(true);
 }
 
-void AFZFHeldItemActor::SetHeldMesh(UStaticMesh* InMesh)
+void AFZFHeldItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-    // Mesh°¡ ¾øÀ¸¸é ¾Æ¹«°Íµµ ÇÏÁö ¾ÊÀ½
-    if (!InMesh)
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AFZFHeldItemActor, ItemData);
+}
+
+void AFZFHeldItemActor::SetHeldItemData(UFZFItemData* NewItemData)
+{
+    ItemData = NewItemData;
+    ApplyItemData();
+}
+
+void AFZFHeldItemActor::OnRep_ItemData()
+{
+    ApplyItemData();
+}
+
+void AFZFHeldItemActor::ApplyItemData()
+{
+    if (!ItemData)
+    {
+        if (MeshComponent)
+        {
+            MeshComponent->SetStaticMesh(nullptr);
+        }
+        return;
+    }
+
+    if (!MeshComponent)
     {
         return;
     }
 
-    // ItemData¿¡¼­ ¹ŞÀº Mesh¸¦ StaticMeshComponent¿¡ Àû¿ë
-    MeshComponent->SetStaticMesh(InMesh);
+    MeshComponent->SetStaticMesh(ItemData->Mesh);
+}
+
+void AFZFHeldItemActor::SetFirstPersonVisualMode()
+{
+    if (!MeshComponent)
+    {
+        return;
+    }
+
+    // ë¡œì»¬ 1ì¸ì¹­ ì „ìš© ì•„ì´í…œ.
+    MeshComponent->SetOnlyOwnerSee(false);
+    MeshComponent->SetOwnerNoSee(false);
+}
+
+void AFZFHeldItemActor::SetThirdPersonVisualMode()
+{
+    if (!MeshComponent)
+    {
+        return;
+    }
+
+    // 3ì¸ì¹­ ë³µì œ ì•„ì´í…œ.
+    // Ownerì—ê²ŒëŠ” ë³´ì´ì§€ ì•Šê²Œ í•´ì„œ, ìê¸° í™”ë©´ì—ì„œëŠ” 1ì¸ì¹­ ArmMeshìš© ì•„ì´í…œë§Œ ë³´ì´ê²Œ í•¨.
+    MeshComponent->SetOwnerNoSee(true);
+    MeshComponent->SetOnlyOwnerSee(false);
 }

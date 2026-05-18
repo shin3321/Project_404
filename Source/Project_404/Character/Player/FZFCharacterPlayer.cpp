@@ -39,7 +39,6 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 800.0f;
 
-
 	// 카메라 컴포넌트 설정
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	// 캡슐 컴포넌트(Root)에 붙이고 Z값을 눈높이로 올리기
@@ -72,9 +71,8 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	ArmMesh->CastShadow = false;
 
 	// 팔 매시 위치 및 회전
-	ArmMesh->SetRelativeLocation(FVector(10.0f, 0.0f, -108.0f));
-	ArmMesh->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-
+	SetArmMeshDefaultTransform();
+	
 	// 팔 전용 메쉬 할당
 	if (ArmMeshRef.Succeeded())
 	{
@@ -86,7 +84,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	GetCharacterMovement()->GravityScale = 1.6f; // 중력 배율
 
 	// ArmMesh ABP 설정
-	static ConstructorHelpers::FClassFinder<UAnimInstance> ArmABPRef(TEXT("/Game/Project404/Character/Player/Animation/ABP_Player.ABP_Player_C"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> ArmABPRef(TEXT("/Game/Project404/Character/Player/Animation/ABP_Hand.ABP_Hand_C"));
 
 	if (ArmABPRef.Succeeded())
 	{
@@ -387,6 +385,17 @@ void AFZFCharacterPlayer::ApplyAnimationsByItemAnimType(UAnimSequence* ThirdPers
 			FPAnim->SetCurrentIdleAnim(FirstPersonIdle);
 		}
 	}
+}
+
+void AFZFCharacterPlayer::SetArmMeshTransform(FVector Location, FRotator Rotation)
+{
+	ArmMesh->SetRelativeLocation(Location);
+	ArmMesh->SetRelativeRotation(Rotation);
+}
+
+void AFZFCharacterPlayer::SetArmMeshDefaultTransform()
+{
+	SetArmMeshTransform(FVector(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
 }
 
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)

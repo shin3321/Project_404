@@ -9,11 +9,13 @@
 //struct FGameplayTag;
 class AFZFHeldItemActor;
 class UFZFItemData;
+class AFZFCharacterPlayer;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class PROJECT_404_API UFZFHeldItemComponent : public UActorComponent
 {
     GENERATED_BODY()
+
 
 public:
     // 생성자
@@ -30,6 +32,35 @@ public:
 
     FGameplayTag GetCurrentAttackTag() { return  CurrentEquippedTag; }
 
+protected:
+    virtual void BeginPlay() override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    void ClearHeldItemGAS();
+    void ApplyHeldItemGAS(UFZFItemData* ItemData);
+
+// 멀티 전용 함수
+/*
+
+클라이언트 코드에서 ServerHoldItem(ItemData) 호출
+        ↓
+언리얼 네트워크 시스템이 RPC 요청 패킷 생성
+        ↓
+    서버로 전송
+        ↓
+서버가 해당 Actor/Component를 찾아서 RPC 실행
+        ↓
+ServerHoldItem_Implementation(ItemData) 호출
+
+*/
+
+protected:
+    UFUNCTION(Server, Reliable)
+    void ServerHoldItem(UFZFItemData* ItemData);
+
+    UFUNCTION(Server, Reliable)
+    void ServerClearHeldItem();
+
+
 private:
     // 현재 들고 있는 아이템의 원본데이터를 저장
     UPROPERTY()
@@ -41,12 +72,48 @@ private:
     TSubclassOf<AFZFHeldItemActor> HeldItemClass;
 
     // 현재 손에 들고 있는 아이템 Actor
-    UPROPERTY()
+    UPROPERTY(ReplicatedUsing = OnRep_CurrentHeldItem)
     TObjectPtr<AFZFHeldItemActor> CurrentHeldItem;
 
-    // 캐릭터 손에 만든 소켓 이름
-    UPROPERTY(EditAnywhere, Category = "Held Item")
-    FName HandSocketName = TEXT("hand_r_Socket");
+    // 현재 들고 있는 ItemData 상태
+    UPROPERTY(ReplicatedUsing = OnRep_CurrentHeldItemData)
+    TObjectPtr<UFZFItemData> CurrentHeldItemData;
+
+    // owning client에서만 쓰는 1인칭 로컬 아이템
+    UPROPERTY()
+    TObjectPtr<AFZFHeldItemActor> LocalFirstPersonHeldItem;
+
+protected:
+    // 복제된 3인칭 아이템 Actor를 캐릭터 Mesh에 Attach한다.
+    UFUNCTION()
+    void OnRep_CurrentHeldItem();
+
+    // 복제된 아이템 데이터 기준으로 애니메이션/1인칭 아이템 표시를 갱신한다.
+    UFUNCTION()
+    void OnRep_CurrentHeldItemData();
+
+    // 서버에서 다른 플레이어들에게 보일 3인칭 아이템 Actor를 생성한다.
+    void SpawnThirdPersonHeldItem_Server(UFZFItemData* ItemData);
+
+    // 서버에서 3인칭 아이템 Actor를 제거한다.
+    void DestroyThirdPersonHeldItem_Server();
+
+    // 로컬 플레이어 전용 1인칭 아이템 Actor를 생성/갱신한다.
+    void RefreshLocalFirstPersonHeldItem();
+
+    // 로컬 플레이어 전용 1인칭 아이템 Actor를 제거한다.
+    void DestroyLocalFirstPersonHeldItem();
+
+    // 3인칭 아이템 Actor를 캐릭터의 3인칭 Mesh 소켓에 부착한다.
+    void AttachThirdPersonHeldItem();
+
+    // 장착 아이템 유무에 따라 상체 블렌드 Weight를 갱신한다.
+    void UpdateUpperBodyBlendWeight();
+
+    // 장착 아이템의 AnimSet에 따라 1인칭/3인칭 Idle 애니메이션을 갱신한다.
+    void UpdateHeldItemAnimation();
+
+    AFZFCharacterPlayer* GetOwnerCharacter() const;
 
     UPROPERTY(EditAnywhere, Category = "GAS")
     FGameplayTag CurrentEquippedTag;

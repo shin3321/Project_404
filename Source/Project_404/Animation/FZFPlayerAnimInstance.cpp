@@ -13,6 +13,11 @@ UFZFPlayerAnimInstance::UFZFPlayerAnimInstance()
     bIsRunning = false;
 }
 
+void UFZFPlayerAnimInstance::SetUpperBodyBlendWeight(float NewWeight)
+{
+    UpperBodyBlendWeight = FMath::Clamp(NewWeight, 0.0f, 1.0f);
+}
+
 void UFZFPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
