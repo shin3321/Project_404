@@ -69,7 +69,6 @@ void AFZFCharacterBase::SetDead()
 {
 	// 죽음 정리 작업.
 
-
 	// 무브먼트 끄기.
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
     
