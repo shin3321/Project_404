@@ -11,6 +11,7 @@
 #include "Algo/RandomShuffle.h"
 #include "Engine/TargetPoint.h"
 #include "Character/Player/FZFCharacterPlayer.h"
+#include "ProfilingDebugging/StallDetector.h"
 
 
 // Sets default values
@@ -62,6 +63,7 @@ void AFZFBossLevelManager::BeginPlay()
 			}
 		}
 	}
+	FirstPhase();
 	SecondPhase();
 }
 

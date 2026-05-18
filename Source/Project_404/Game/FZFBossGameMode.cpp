@@ -12,10 +12,10 @@ void AFZFBossGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	if (BossLevelManagerClass)
-	{
-		
+	{		
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
+
 
 		GetWorld()->SpawnActor<AFZFBossLevelManager>(
 			BossLevelManagerClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);

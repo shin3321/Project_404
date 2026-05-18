@@ -70,23 +70,28 @@ void AFZFBossBombActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 
 void AFZFBossBombActor::Explode()
 {
+	if (!HasAuthority()) return;
+
+	// 서버에서 데미지 처리 등의 논리적 작업을 수행
 	//if (BossActor)
 	//{
-	//	if (ExplosionFX)
-	//	{
-	//		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionFX, GetActorLocation());
-	//		
-	//		//Todo boss 데미지 설정
-	//		UGameplayStatics::ApplyDamage(BossActor, 50.0f, GetInstigatorController(), this, UDamageType::StaticClass());
-	//	}
+	//	//Todo boss 데미지 설정
+	//	UGameplayStatics::ApplyDamage(BossActor, 50.0f, GetInstigatorController(), this, UDamageType::StaticClass());
 	//}	
 
+	// 클라이언트들에게 이펙트 재생을 지시
+	MulticastExplode();
+	
+	// 폭발물 자신 제거
+	Destroy();
+}
+
+void AFZFBossBombActor::MulticastExplode_Implementation()
+{
+	// 이 함수는 서버의 지시를 받아 모든 클라이언트(및 Listen Server)에서 실행됩니다.
 	if (ExplosionFX)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionFX, GetActorLocation());
 	}
-	
-	// 폭발물 자신 제거
-	//Destroy();
 }
 

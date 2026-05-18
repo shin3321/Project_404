@@ -161,7 +161,7 @@ void UFZFHeldItemComponent::SpawnThirdPersonHeldItem_Server(UFZFItemData* ItemDa
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
     CurrentHeldItem = GetWorld()->SpawnActor<AFZFHeldItemActor>(
-        AFZFHeldItemActor::StaticClass(),
+      HeldItemClass,
         FTransform::Identity,
         SpawnParams
     );
