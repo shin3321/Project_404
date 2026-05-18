@@ -42,6 +42,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
 	TSubclassOf<UAnimInstance> AnimClass;
 
+	// Dead Montage
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
+	TObjectPtr<UAnimMontage> MonsterDeadMontage;
+
 	// BT
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI)
 	TObjectPtr<UBehaviorTree> BehaviorTree;
