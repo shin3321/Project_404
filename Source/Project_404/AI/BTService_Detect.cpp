@@ -3,7 +3,7 @@
 
 #include "AI/BTService_Detect.h"
 #include "AIController.h"
-//#include "Physics/ABCollision.h"
+#include "Physics/FZFCollision.h"
 #include "Interface/FZFMonsterAIInterface.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "FZFAI.h"
@@ -61,7 +61,7 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 		Results,
 		Center,
 		FQuat::Identity,
-		ECC_GameTraceChannel1/*CCHANNEL_ABACTION*/,
+		CCHANNEL_FZFPLAYER/*CCHANNEL_ABACTION*/,
 		FCollisionShape::MakeSphere(DetectRadius),
 		Params
 	);

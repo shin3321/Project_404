@@ -24,3 +24,8 @@ UFZFMonsterSet::UFZFMonsterSet()
 	// 회전 스피드 설정.
 	InitTurnSpeed(2.0f);
 }
+
+void UFZFMonsterSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+}
