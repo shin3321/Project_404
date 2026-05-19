@@ -36,6 +36,8 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Stamina_NoRegen);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_Attack);
+		
+	
 
 	// 어트리뷰트 데이터 초기화용 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_MaxHp);

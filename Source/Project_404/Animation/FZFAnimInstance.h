@@ -40,7 +40,7 @@ protected:
 	// 이동 빠르기 (블랜드 스페이스에 적용).
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	float GroundSpeed;
-
+	
 	// 이동하는지 멈춰있는지 확인하는 변수.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	uint8 bIsIdle : 1;

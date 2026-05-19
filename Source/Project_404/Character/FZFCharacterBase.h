@@ -24,7 +24,6 @@ public:
 	virtual void HandleDeath();
 	void TriggerDeathGameplayCue();
 
-protected:
 	UFUNCTION()
 	virtual void OnRep_IsDead();
 

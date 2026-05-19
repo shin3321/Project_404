@@ -98,6 +98,9 @@ void AFZFMonster::InitializeMonsterVisual()
 	// Anim Class 할당
 	GetMesh()->SetAnimInstanceClass(MonsterData->AnimClass);
 
+	// 몽타주 데이터 초기화
+	DeadMontage = MonsterData->MonsterDeadMontage;
+
 	// Mesh Transform 지정 -> BP에서 직접 설정!!! 서버 복제에서 덮어씌워짐!
 	// GetMesh()->SetRelativeLocationAndRotation(MonsterData->MeshLocation, MonsterData->MeshRotation);
 }
@@ -147,10 +150,7 @@ void AFZFMonster::InitializeMonsterServer()
 	// 3. AttributeSet 값 초기화
 	InitAttributesFromData();
 
-	// 4. 몽타주 데이터 초기화
-	DeadMontage = MonsterData->MonsterDeadMontage;
-	
-	// 5. BT 할당과 실행(마지막 순서 필수)
+	// 4. BT 할당과 실행(마지막 순서 필수)
 	AFZFAIController* AIController = Cast<AFZFAIController>(GetController());
 	if (!AIController || !MonsterData || !MonsterData->BehaviorTree)
 	{

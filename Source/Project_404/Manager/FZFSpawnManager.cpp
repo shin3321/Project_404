@@ -111,7 +111,11 @@ void AFZFSpawnManager::SpawnItem_Implementation(FName ItemId, FVector SpawnLocat
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 
 	AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
-
+	if (AFZFItemBase* ItemBase = Cast<AFZFItemBase>(SpawnedItem))
+	{
+		// 중요: 스폰된 아이템에 데이터를 넣어주어야 상호작용 및 장착이가능합니다.
+		ItemBase->InitializeItem(Row->ItemData);
+	}
 	if (SpawnedItem)
 	{
 		// 스폰된 아이템 액터에 런타임 데이터 세팅이 필요하다면 여기서 수행

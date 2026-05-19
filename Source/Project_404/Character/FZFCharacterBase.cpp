@@ -1,10 +1,11 @@
-#include "Character/FZFCharacterBase.h"
+﻿#include "Character/FZFCharacterBase.h"
 
 #include "Net/UnrealNetwork.h"
 #include "GAS/FZFAbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
 #include "GameplayTag/FZFGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Animation/FZFAnimInstance.h"
 
 
 AFZFCharacterBase::AFZFCharacterBase()
@@ -68,9 +69,22 @@ void AFZFCharacterBase::SetDead()
 {
 	// 죽음 정리 작업.
 
-
 	// 무브먼트 끄기.
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+    
+    // GAS 어빌리티 제거 로직 추가
+    if (UAbilitySystemComponent* ActiveASC = GetAbilitySystemComponent())
+    {
+        // 현재 재생 중인 모든 어빌리티를 강제로 취소
+        ActiveASC->CancelAbilities();
+
+        // 캐릭터가 가진 모든 어빌리티 권한 영구적 삭제
+        ActiveASC->ClearAllAbilities();
+
+        //// 죽었을 경우 태그부여
+        //FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag(TEXT("Character.State.Dead"));
+        //ActiveASC->AddLooseGameplayTag(DeadTag);
+    }
 
 	// 죽는 모션 재생 몽타주 재생
 	PlayDeadAnimation();
@@ -81,14 +95,14 @@ void AFZFCharacterBase::SetDead()
 
 void AFZFCharacterBase::PlayDeadAnimation()
 {
+    UE_LOG(LogTemp, Log, TEXT("PlayDeadAnimation"));
+
 	// 몽타주 재생을 위해 애님 인트섵스 가져오기.
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	UFZFAnimInstance* AnimInstance = Cast<UFZFAnimInstance>(GetMesh()->GetAnimInstance());
 	if (AnimInstance)
 	{
 		// 재생 중일 수 있는 몽타주 모두 종료.
 		AnimInstance->StopAllMontages(0.0f);
-
-		// 죽음 몽타주 재생.
-		AnimInstance->Montage_Play(DeadMontage);
+        AnimInstance->Montage_Play(DeadMontage);
 	}
 }
