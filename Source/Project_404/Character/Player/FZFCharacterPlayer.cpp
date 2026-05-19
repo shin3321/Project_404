@@ -204,13 +204,13 @@ void AFZFCharacterPlayer::BeginPlay()
 	FTimerHandle DetectionTimerHandle;
 	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
 
-	if (HUDWidgetClass)
-	{
-		HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
-		HUDWidget->AddToViewport();
-		HUDWidget->HideWidget();
-		HUDWidget->SetCrosshairNormal();
-	}
+	//if (HUDWidgetClass)
+	//{
+	//	HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
+	//	HUDWidget->AddToViewport();
+	//	HUDWidget->HideWidget();
+	//	HUDWidget->SetCrosshairNormal();
+	//}
 }
 
 void AFZFCharacterPlayer::Tick(float deltaTime)
@@ -268,6 +268,37 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 				ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
 			}
 		}
+
+		// 오직 로컬 플레이어 일 때만 HUD 생성 및 델리게이트 구독 진행
+		if (IsLocallyControlled() && HUDWidgetClass)
+		{
+			// 기존에 만들어진 HUD가 있다면 중복 생성을 방지하기 위해 제거 후 재생성
+			if (HUDWidget)
+			{
+				HUDWidget->RemoveFromParent();
+				HUDWidget = nullptr;
+			}
+
+			HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
+			if (HUDWidget)
+			{
+				HUDWidget->AddToViewport();
+				HUDWidget->HideWidget();
+				HUDWidget->SetCrosshairNormal();
+
+				// 플레이어 전용 AttributeSet으로 다운캐스팅하여 안전하게 바인딩합니다.
+				if (UFZFPlayerSet* PlayerSet = Cast<UFZFPlayerSet>(AttributeSet))
+				{
+					// C++ 델리게이트와 HUD 업데이트 함수 다이내믹 바인딩 (구독 시작)
+					PlayerSet->OnHPChanged.AddDynamic(HUDWidget, &UFZFHUD::UpdateHpText);
+					PlayerSet->OnStaminaChanged.AddDynamic(HUDWidget, &UFZFHUD::UpdateStaminaBar);
+
+					// 초기 데이터 동기화 (게임 진입 즉시 만땅 상태 UI에 출력)
+					HUDWidget->UpdateHpText(PlayerSet->GetHP(), PlayerSet->GetMaxHP());
+					HUDWidget->UpdateStaminaBar(PlayerSet->GetStamina(), PlayerSet->GetMaxStamina());
+				}
+			}
+		}
 	}
 }
 
@@ -295,6 +326,7 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::RunStart);
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFZFCharacterPlayer::RunEnd);
 
+		// Attack
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Attack);
 
 		// Interaction
@@ -395,6 +427,27 @@ void AFZFCharacterPlayer::SetArmMeshTransform(FVector Location, FRotator Rotatio
 void AFZFCharacterPlayer::SetArmMeshDefaultTransform()
 {
 	SetArmMeshTransform(FVector(-10.0f, 0.0f, -140.0f), FRotator(0.0f, -90.0f, 0.0f));
+}
+
+void AFZFCharacterPlayer::SetDead()
+{
+	Super::SetDead();
+
+	if (UAbilitySystemComponent* ActiveASC = GetAbilitySystemComponent())
+	{
+		if (DeathGameplayEffectClass)
+		{
+			FGameplayEffectContextHandle EffectContext = ActiveASC->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle SpecHandle = ActiveASC->MakeOutgoingSpec(DeathGameplayEffectClass, 1.0f, EffectContext);
+			if (SpecHandle.IsValid())
+			{
+				// 이 한 줄로 모든 클라이언트에 State_Dead 태그와 GameplayCue가 자동 동기화됩니다.
+				ActiveASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
+	}
 }
 
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
@@ -576,40 +629,6 @@ void AFZFCharacterPlayer::DetectInteractable()
 			HUDWidget->SetCrosshairNormal();
 		}
 	}
-}
-// 죽음 로직
-void AFZFCharacterPlayer::HandleDeath()
-{
-	Super::HandleDeath();
-	//
-	// if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	// {
-	// 	// 살아 있는 플레이어 찾기
-	// 	AActor* TargetActor = nullptr;
-	// 	if (AGameStateBase* GS = GetWorld()->GetGameState())
-	// 	{
-	// 		for (APlayerState* PS : GS->PlayerArray)
-	// 		{
-	// 			if (PS && PS!= GetPlayerState())
-	// 			{
-	// 				if (APawn* OtherPawn = PS->GetPawn())
-	// 				{
-	// 					TargetActor = OtherPawn;
-	// 					break;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	if (TargetActor)
-	// 	{
-	// 		// 다른 플레이어의 뷰로 전환
-	// 		PC->SetViewTargetWithBlend(TargetActor, 0.5f);
-	// 	}
-	// 	PC->UnPossess();
-	// }
-	SetLifeSpan(3.0f);
-	SetActorEnableCollision(false);
-	GetCharacterMovement()->DisableMovement();
 }
 
 // 1번 슬롯 선택

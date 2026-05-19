@@ -1,6 +1,17 @@
 ﻿#include "Inventory/FZFHUD.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Materials/MaterialInstanceDynamic.h"
+
+void UFZFHUD::NativeConstruct()
+{
+    Super::NativeConstruct();
+
+    if (StaminaBar)
+    {
+        StaminaDynamicMaterial = StaminaBar->GetDynamicMaterial();
+    }
+}
 
 // 아이템 이름 텍스트 설정
 void UFZFHUD::SetTargetName(const FText& InTargetName)
@@ -55,5 +66,30 @@ void UFZFHUD::PlayDamageEffect()
     if (DamageFade)
     {
         PlayAnimation(DamageFade);
+    }
+}
+
+void UFZFHUD::UpdateStaminaBar(float NewValue, float MaxValue)
+{
+    if (StaminaDynamicMaterial && MaxValue > 0.0f)
+    {
+        const float Percent = NewValue / MaxValue;
+        StaminaDynamicMaterial->SetScalarParameterValue(TEXT("Progress"), Percent);
+    }
+}
+
+void UFZFHUD::UpdateHpText(float NewValue, float MaxValue)
+{
+    if (HPText && MaxValue > 0.0f)
+    {
+        // 현재 체력과 최대 체력 비율 계산 후 100을 곱해 % 수치로 만듦
+        const float Percent = (NewValue / MaxValue) * 100.0f;
+
+        // FString::Printf를 이용해 정수형태(또는 %.1f로 소수점 한자리) 포맷을 만듦
+        // %는 C++ 포맷팅 규칙 상 %% 로 적어야 실제 문자열에 '%' 하나가 출력
+        FString HpPercentString = FString::Printf(TEXT("%d%%"), FMath::RoundToInt(Percent));
+
+        // 텍스트 컴포넌트에 적용 (FString을 FText로 변환하여 세팅)
+        HPText->SetText(FText::FromString(HpPercentString));
     }
 }

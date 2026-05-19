@@ -64,6 +64,8 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	// 자기 자신은 라인트레이스 충돌 대상에서 제외
 	Params.AddIgnoredActor(Player);
 
+	Params.bTraceComplex = false;
+
 	// Start부터 End까지 Visibility 채널로 라인트레이스 실행
 	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
 
@@ -71,17 +73,22 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	// 맞은 액터가 있으면 초록색, 없으면 빨간색
 	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
 
-	if (!bHit && !Hit.GetActor())
+	if (!bHit)
 		return;
 
+	UPrimitiveComponent* HitComponent = Hit.GetComponent();
 	AActor* HitActor = Hit.GetActor();
+
+	if (!HitActor && HitComponent)
+	{
+		HitActor = HitComponent->GetOwner();
+	}
 
 	if (!IsValid(HitActor))
 		return;
 
 	if (IFZFInteractableInterface* Interactable = Cast<IFZFInteractableInterface>(HitActor))
 	{
-		UPrimitiveComponent* HitComponent = Hit.GetComponent();
 		Interactable->Interact(Player, HitComponent);
 	}
 }

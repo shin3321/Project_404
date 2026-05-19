@@ -168,13 +168,16 @@ void AFZFLaserActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComp
 			{
 				// 3. 이펙트 컨텍스트 생성 (가해자 정보 설정)
 				FGameplayEffectContextHandle Context = TargetASC->MakeEffectContext();
-				Context.AddInstigator(GetInstigator(), this); // 보스를	가해자로 설정
+
+				// GetInsigator() 가 Null이면 나 자신(this, 레이저)을 가해자로 설정
+				AActor* MyInstigator = GetInstigator() ? Cast<AActor>(GetInstigator()) : this;
+				Context.AddInstigator(MyInstigator, this);
 
 				// 4. 이펙트 스펙 생성 및 적용
 				FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(DamageGEClass, 1.0f, Context);
 				if (SpecHandle.IsValid())
 				{
-					TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+					TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 				}
 			}
 		}

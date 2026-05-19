@@ -20,6 +20,9 @@
 	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+// UI(HUD) 와 연동하기 위한 2개의 인자(현재값, 최대값)을 가진 델리게이트 선언
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAttributeChangedSignature, float, NewValue, float, MaxValue);
+
 UCLASS()
 class PROJECT_404_API UFZFAttributeSet : public UAttributeSet
 {
@@ -61,6 +64,15 @@ protected:
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+public:
+	// HUD에서 이 이벤트를 감지할 수 있도록 BlueprintAssignable로 선언
+	UPROPERTY(BlueprintAssignable, Category = "GAS|Attribute")
+	FOnAttributeChangedSignature OnHPChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "GAS|Attribute")
+	FOnAttributeChangedSignature OnStaminaChanged;
+
 private:
 	// private : 직접 접근해서 값을 수정하는 것을 방지
 	// AllowPrivateAccess : 에디터에서는 값을 확인하고 초기값 설정 허용
@@ -95,6 +107,4 @@ private:
 	
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackSpeed;
-private:
-	bool bIsDead = false;
 };
