@@ -44,13 +44,6 @@ void AFZFCharacterBase::HandleDeath()
     // 상태 정리 (무브먼트 차단 및 어빌리티 정리)
     SetDead();
 
-    //if (GetAbilitySystemComponent())
-    //{
-    //    // 서버에서 태그 추가 (Loose Tag는 서버에서만 추가해도 GE나 다른 수단으로 동기화되지 않으면 클라이언트는 모를 수 있음)
-    //    // 하지만 사망 상태는 bIsDead 복제로 확인 가능
-    //    GetAbilitySystemComponent()->AddLooseGameplayTag(FZFGameplayTags::EVENT_CHARACTER_DEATH);        
-    //}
-    //
 }
 
 void AFZFCharacterBase::OnRep_IsDead()

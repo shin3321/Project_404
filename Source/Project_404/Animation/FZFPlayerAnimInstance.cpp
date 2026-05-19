@@ -36,4 +36,19 @@ void UFZFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
             bIsRunning = ASC->HasMatchingGameplayTag(FZFGameplayTags::State_Movement_Run);
         }
     }
+
+    // 폰(캐릭터)이 유효한지 확인
+    APawn* Pawn = TryGetPawnOwner();
+    if (IsValid(Pawn))
+    {
+        Velocity = Pawn->GetVelocity();
+
+        GroundSpeed = Velocity.Size2D();
+        bIsIdle = GroundSpeed < MovingThreshold;
+        if (!bIsIdle)
+        {
+            // Velocity
+            Direction = CalculateDirection(Velocity, Pawn->GetActorRotation());
+        }
+    }
 }
