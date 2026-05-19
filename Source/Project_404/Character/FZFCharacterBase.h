@@ -14,24 +14,31 @@ public:
 	// 생성자
 	AFZFCharacterBase();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 	// ASC 인터페이스 함수 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	// CharacterBase를 상속받은 클래스들의 ASC를 초기화 시키는 함수
 	virtual void InitAbilitySystem();
+
 public:
-	virtual void HandleDeath();
 	void TriggerDeathGameplayCue();
 
 	UFUNCTION()
 	virtual void OnRep_IsDead();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetDead();
 
 	// 죽음 처리 (Dead 몽타주 재생)
 	virtual void SetDead();
 
 	// 몽타주 애니메이션 재생
 	virtual void PlayDeadAnimation();
+
+	FORCEINLINE bool IsDead() const { return bIsDead; }
 
 protected:
 	// 읽기 가능, 수정 불가
@@ -46,11 +53,13 @@ protected:
 	// 초기에 캐릭터가 가질 GameAbility를 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
 	TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | State", ReplicatedUsing = OnRep_IsDead)
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,
+		Category = "Character | State",
+		ReplicatedUsing = OnRep_IsDead)
 	bool bIsDead = false;
 
-
+	void ExecuteDeathSequence();
 	// Dead Section
 protected:
 	// 죽음 몽타주
@@ -59,5 +68,4 @@ protected:
 
 	// 죽은 후 대기할 시간 값(단위: 초).
 	float DeadEventDelayTime = 1.5f;
-
 };
