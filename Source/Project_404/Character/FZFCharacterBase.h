@@ -67,5 +67,6 @@ protected:
 	TObjectPtr<class UAnimMontage> DeadMontage;
 
 	// 죽은 후 대기할 시간 값(단위: 초).
-	float DeadEventDelayTime = 1.5f;
+
+	float DeadEventDelayTime = 5.0f;
 };

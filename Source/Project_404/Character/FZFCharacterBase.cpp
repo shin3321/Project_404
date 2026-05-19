@@ -74,6 +74,7 @@ void AFZFCharacterBase::SetDead()
 		return;
 	}
 
+
 	if (!HasAuthority())
 	{
 		return;
@@ -88,6 +89,30 @@ void AFZFCharacterBase::SetDead()
 	{
 		ExecuteDeathSequence();
 	}
+
+	// 무브먼트 끄기.
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+    
+    // GAS 어빌리티 제거 로직 추가
+    if (UAbilitySystemComponent* ActiveASC = GetAbilitySystemComponent())
+    {
+        // 현재 재생 중인 모든 어빌리티를 강제로 취소
+        ActiveASC->CancelAbilities();
+
+        // 캐릭터가 가진 모든 어빌리티 권한 영구적 삭제
+        ActiveASC->ClearAllAbilities();
+
+        //// 죽었을 경우 태그부여
+        //FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag(TEXT("Character.State.Dead"));
+        //ActiveASC->AddLooseGameplayTag(DeadTag);
+    }
+
+	// 죽는 모션 재생 몽타주 재생
+	PlayDeadAnimation();
+
+	// 콜리전 끄기 -> 충돌 청리 되는 콜리전을 꺼줘야 함
+	SetActorEnableCollision(false);
+
 }
 
 void AFZFCharacterBase::PlayDeadAnimation()

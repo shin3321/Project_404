@@ -56,6 +56,8 @@ public:
 	// Getter
 	ELaserMode GetLaserMode();
 
+	FORCEINLINE TSubclassOf<UGameplayEffect> GetDamageGEClass() const { return DamageGEClass; }
+
 	UPROPERTY(BlueprintAssignable, BlueprintReadWrite, Category = "Laser")
 	FOnLaserDeactive OnLaserDeactive;
 

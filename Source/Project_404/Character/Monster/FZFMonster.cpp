@@ -98,7 +98,8 @@ void AFZFMonster::InitializeMonsterVisual()
 	// Anim Class 할당
 	GetMesh()->SetAnimInstanceClass(MonsterData->AnimClass);
 
-	// 몽타주 데이터 초기화 (서버/클라 공통)
+	// 몽타주 데이터 초기화
+
 	DeadMontage = MonsterData->MonsterDeadMontage;
 
 	// Mesh Transform 지정 -> BP에서 직접 설정!!! 서버 복제에서 덮어씌워짐!
@@ -149,8 +150,7 @@ void AFZFMonster::InitializeMonsterServer()
 
 	// 3. AttributeSet 값 초기화
 	InitAttributesFromData();
-	
-	// 5. BT 할당과 실행(마지막 순서 필수)
+
 	AFZFAIController* AIController = Cast<AFZFAIController>(GetController());
 	if (!AIController || !MonsterData || !MonsterData->BehaviorTree)
 	{
@@ -357,8 +357,6 @@ void AFZFMonster::SetDead()
 {
 	// 상위 로직 실행
 	Super::SetDead();
-
-	UE_LOG(LogTemp, Log, TEXT("몬스터 쥬금"));
 
 	// 타이머를 사용해 일정 시간 대기 후 액터 제거.
 	// 레퍼런스(&) LValue Reference(참조): LValue(자리를 차지해야함)
