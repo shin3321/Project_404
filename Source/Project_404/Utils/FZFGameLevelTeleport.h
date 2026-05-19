@@ -46,4 +46,28 @@ protected:
 
 	UPROPERTY()
 	UUserWidget* TeleportWidgetInstance;
+
+public:
+	// 로딩 화면을 띄운 뒤 지정한 레벨로 이동하는 공통 함수
+	void ShowLoadingAndTravel(const FString& LevelPath);
+
+protected:
+
+	// 로딩 화면 위젯 클래스
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> LoadingWidgetClass;
+
+	// 생성된 로딩 화면 위젯 인스턴스
+	UPROPERTY()
+	UUserWidget* LoadingWidgetInstance;
+
+	// 로딩 화면 대기 타이머
+	FTimerHandle LevelTravelTimerHandle;
+
+	// 타이머 후 이동할 레벨 경로 저장용
+	FString PendingLevelPath;
+
+	// 실제 레벨 이동 실행 함수
+	UFUNCTION()
+	void TravelToLobbyLevel();
 };
