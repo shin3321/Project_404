@@ -48,12 +48,14 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 {
 	Super::PostGameplayEffectExecute(Data);
 
+
 	// 이펙트를 유발한 가해자(공격자)의 정보와 GE 정보 추출
 	AActor* InstigatorActor = Data.EffectSpec.GetContext().GetInstigator();
 	const UGameplayEffect* AppliedGE = Data.EffectSpec.Def;
 
 	if (!InstigatorActor || !AppliedGE)
 	{
+
 		if (!AppliedGE)
 		{
 			UE_LOG(LogTemp, Error, TEXT("[GAS_Debug] 크리티컬: AppliedGE(이펙트 정의)가 Null입니다!"));
@@ -62,6 +64,7 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		{
 			UE_LOG(LogTemp, Error, TEXT("[GAS_Debug] 크리티컬: InstigatorActor(가해자)가 Null입니다!"));
 		}
+
 		return;
 	}
 
@@ -112,7 +115,6 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	// 검증 실패 시, 수치 무효화 및 차단
 	if (!bIsValidEffect)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[GAS_Debug] 검증 실패! 허용되지 않은 GE 클래스입니다: %s"), *AppliedGE->GetClass()->GetName());
 		if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 		{
 			SetDamage(0.0f);
@@ -128,19 +130,19 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		// 값 넣어주자 마자 리셋시킴
 		SetDamage(0.0f);
 
-		UE_LOG(LogTemp, Log, TEXT("[GAS_Debug] 최종 계산된 LocalDamage: %.1f"), LocalDamage);
 		if (LocalDamage > 0.0f)
 		{
-			const float NewHP = GetHP() - LocalDamage;
-			SetHP(FMath::Clamp(NewHP, 0.0f, GetMaxHP()));
-			UE_LOG(LogTemp, Log, TEXT("[GAS_Debug] HP 변경 완료! 현재 HP: %.1f / %.1f"), GetHP(), GetMaxHP());
-
-			if (!bIsDead)
-			if (AFZFCharacterBase* TargetCharacter = Cast<AFZFCharacterBase>(Data.Target.GetAvatarActor()))
+			const float CurrentHP = GetHP();
+			const float NewHP = FMath::Clamp(CurrentHP - LocalDamage, 0.0f, GetMaxHP());
+			SetHP(NewHP);
+			if (NewHP <= 0.0f)
 			{
-				if (GetHP() <= 0.0f)
+				if (AFZFCharacterBase* TargetCharacter = Cast<AFZFCharacterBase>(Data.Target.GetAvatarActor()))
 				{
-					TargetCharacter->SetDead();
+					if (!TargetCharacter->IsDead())
+					{
+						TargetCharacter->SetDead();
+					}
 				}
 			}
 		}

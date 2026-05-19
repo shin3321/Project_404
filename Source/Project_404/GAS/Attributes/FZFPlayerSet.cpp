@@ -11,7 +11,7 @@ UFZFPlayerSet::UFZFPlayerSet()
 	// Todo : 무기 데이터
 	InitAttackRange(800);
 	InitAttackRadius(30);
-	InitAttack(5);
+	InitAttack(50);
 }
 
 void UFZFPlayerSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -40,7 +40,7 @@ void UFZFPlayerSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackDa
 	}
 
 	// 실제 GE가 적용된 후 최종 수치를 다시 한번 제한 (매우 중요)
-	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
+ 	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
 	{
 		SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina()));
 

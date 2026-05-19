@@ -429,6 +429,27 @@ void AFZFCharacterPlayer::SetArmMeshDefaultTransform()
 	SetArmMeshTransform(FVector(-10.0f, 0.0f, -140.0f), FRotator(0.0f, -90.0f, 0.0f));
 }
 
+void AFZFCharacterPlayer::SetDead()
+{
+	Super::SetDead();
+
+	if (UAbilitySystemComponent* ActiveASC = GetAbilitySystemComponent())
+	{
+		if (DeathGameplayEffectClass)
+		{
+			FGameplayEffectContextHandle EffectContext = ActiveASC->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle SpecHandle = ActiveASC->MakeOutgoingSpec(DeathGameplayEffectClass, 1.0f, EffectContext);
+			if (SpecHandle.IsValid())
+			{
+				// 이 한 줄로 모든 클라이언트에 State_Dead 태그와 GameplayCue가 자동 동기화됩니다.
+				ActiveASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
+	}
+}
+
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 {
 	// 입력 값으로부터 Vector2D 데이터 추출
