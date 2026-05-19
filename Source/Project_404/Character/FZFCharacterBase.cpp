@@ -39,11 +39,10 @@ void AFZFCharacterBase::HandleDeath()
     
     bIsDead = true;
 
+	OnRep_IsDead(); // 서버에서 사망 처리 시, 클라이언트에서도 즉시 사망 처리 로직 실행 (콜리전 끄기, 애니메이션 재생 등)
+
     // 상태 정리 (무브먼트 차단 및 어빌리티 정리)
     SetDead();
-
-    // 사망 큐 실행 (서버에서 ExecuteGameplayCue 실행 시 모든 클라이언트로 복제됨)
-    TriggerDeathGameplayCue();
 
     //if (GetAbilitySystemComponent())
     //{
@@ -79,31 +78,15 @@ void AFZFCharacterBase::TriggerDeathGameplayCue()
         Parameters.Location = GetActorLocation();
          
         // GameplayCueNotify_Actor 또는 Static이 이 태그를 감지하여 몽타주를 재생하게함
-        GetAbilitySystemComponent()->ExecuteGameplayCue(FZFGameplayTags::EVENT_CHARACTER_DEATH_Motion, Parameters);
+        GetAbilitySystemComponent()->ExecuteGameplayCue(FZFGameplayTags::GameplayCue_Character_Death, Parameters);
     }
 }
 
 void AFZFCharacterBase::SetDead()
 {
-	if (bIsDead)
-	{
-		return;
-	}
-
-
 	if (!HasAuthority())
 	{
 		return;
-	}
-
-	bIsDead = true;
-	if (Cast<AFZFCharacterPlayer>(this))
-	{
-		return;
-	}
-	else
-	{
-		ExecuteDeathSequence();
 	}
 
 	// 무브먼트 끄기.
@@ -125,6 +108,7 @@ void AFZFCharacterBase::SetDead()
 
 	// 죽는 모션 재생 몽타주 재생
 	PlayDeadAnimation();
+    TriggerDeathGameplayCue();
 
 	// 콜리전 끄기 -> 충돌 청리 되는 콜리전을 꺼줘야 함
 	SetActorEnableCollision(false);
@@ -142,33 +126,4 @@ void AFZFCharacterBase::PlayDeadAnimation()
 		AnimInstance->StopAllMontages(0.0f);
 		AnimInstance->Montage_Play(DeadMontage);
 	}
-}
-
-void AFZFCharacterBase::ExecuteDeathSequence()
-{
-	bIsDead = true;
-
-	// 무브먼트 끄기
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-
-	// 애니메이션 재생 (이제 서버/클라 모두 실행됨)
-	PlayDeadAnimation();
-
-	// GAS 정리
-	if (UAbilitySystemComponent* ActiveASC = GetAbilitySystemComponent())
-	{
-		ActiveASC->CancelAbilities();
-		ActiveASC->ClearAllAbilities();
-	}
-
-	// 콜리전 끄기
-	//SetActorEnableCollision(false);
-
-	// Gameplay Cue 실행 (이미 TriggerDeathGameplayCue가 있다면 여기서
-	//TriggerDeathGameplayCue();
-}
-
-void AFZFCharacterBase::ServerSetDead_Implementation()
-{
-	SetDead();
 }

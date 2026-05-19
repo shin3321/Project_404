@@ -140,6 +140,10 @@ protected:
 	// 상호작용하면 UI로 표시하기 위한 함수
 	void DetectInteractable();
 
+	// Dead Section
+public:
+	virtual void HandleDeath() override;
+
 protected:
 	// 현재 카메라 조준점에 들어와 있는 타겟 (UI 표시용)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
