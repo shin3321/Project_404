@@ -5,6 +5,9 @@
 #include "Game/FZFGameState.h"
 #include "Character/FZFCharacterBase.h"
 
+#include "Manager/FZFSpawnManager.h"
+#include "Kismet/GameplayStatics.h"
+
 AFZFPlayerController::AFZFPlayerController()
 {
 }
@@ -40,6 +43,26 @@ void AFZFPlayerController::ChangeSpectateTarget(int32 Direction)
 	}
 }
 
+void AFZFPlayerController::RequestSpawnItem(FName ItemId, FVector ItemSpawnLocation)
+{
+	ServerSpawnItem_Implementation(ItemId, ItemSpawnLocation);
+}
+
+bool AFZFPlayerController::ServerSpawnItem_Validate(FName ItemId, FVector ItemSpawnLocation)
+{
+	return !ItemId.IsNone();
+}
+
+void AFZFPlayerController::ServerSpawnItem_Implementation(FName ItemId, FVector ItemSpawnLocation)
+{
+	SpawnManager = Cast<AFZFSpawnManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AFZFSpawnManager::StaticClass()));
+	if (SpawnManager)
+		SpawnManager->ServerSpawnItem(ItemId, ItemSpawnLocation);
+
+}
+
+
+
 TArray<APawn*> AFZFPlayerController::GetSpectatablePawns()
 {
 	TArray<APawn*> FoundPawns;
@@ -63,28 +86,28 @@ TArray<APawn*> AFZFPlayerController::GetSpectatablePawns()
 			}
 		}
 	}
-		return FoundPawns;
-	
+	return FoundPawns;
+
 }
 
-	// 서버 로직을 통과하기 전 검증 함수 
-	bool AFZFPlayerController::ServerRequestPurchase_Validate(AFZFStore* TargetStore, FName ItemId, float ItemCost)
+// 서버 로직을 통과하기 전 검증 함수 
+bool AFZFPlayerController::ServerRequestPurchase_Validate(AFZFStore* TargetStore, FName ItemId, float ItemCost)
+{
+	if (ItemCost < 0.0f)
 	{
-		if (ItemCost < 0.0f)
-		{
-			return false;
-		}
-
-		if (TargetStore == nullptr)
-		{
-			return false;
-		}
-
-		return true;
+		return false;
 	}
 
-	void AFZFPlayerController::ServerRequestPurchase_Implementation(AFZFStore* TargetStore, FName ItemId,
-	                                                                float ItemCost)
+	if (TargetStore == nullptr)
 	{
-		TargetStore->ProcessPurchase(this, ItemId, ItemCost);
+		return false;
 	}
+
+	return true;
+}
+
+void AFZFPlayerController::ServerRequestPurchase_Implementation(AFZFStore* TargetStore, FName ItemId,
+	float ItemCost)
+{
+	TargetStore->ProcessPurchase(this, ItemId, ItemCost);
+}

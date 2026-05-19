@@ -14,7 +14,8 @@ class PROJECT_404_API UFZFEquipmentItemData : public UFZFItemData
 
 public:
     float GetRange() { return Range; }
-
+    EEquipmentType GetItemType() {return EquipmentType;}
+    FName GetItemId() { return ItemId; }
 protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)

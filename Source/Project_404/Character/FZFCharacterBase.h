@@ -14,16 +14,16 @@ public:
 	// 생성자
 	AFZFCharacterBase();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 	// ASC 인터페이스 함수 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	// CharacterBase를 상속받은 클래스들의 ASC를 초기화 시키는 함수
 	virtual void InitAbilitySystem();
-public:
-	virtual void HandleDeath();
-	void TriggerDeathGameplayCue();
 
+public:
 	UFUNCTION()
 	virtual void OnRep_IsDead();
 
@@ -32,6 +32,12 @@ public:
 
 	// 몽타주 애니메이션 재생
 	virtual void PlayDeadAnimation();
+
+	FORCEINLINE bool IsDead() const { return bIsDead; }
+	// 체력이 0이 되었을 때, 호출되는 사망 처리 시작 함수
+	virtual void HandleDeath();
+
+	void TriggerDeathGameplayCue();
 
 protected:
 	// 읽기 가능, 수정 불가
@@ -46,10 +52,11 @@ protected:
 	// 초기에 캐릭터가 가질 GameAbility를 지정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
 	TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | State", ReplicatedUsing = OnRep_IsDead)
-	bool bIsDead = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,
+		Category = "Character | State",
+		ReplicatedUsing = OnRep_IsDead)
+	bool bIsDead = false;
 
 	// Dead Section
 protected:
@@ -58,6 +65,6 @@ protected:
 	TObjectPtr<class UAnimMontage> DeadMontage;
 
 	// 죽은 후 대기할 시간 값(단위: 초).
-	float DeadEventDelayTime = 5.0f;
 
+	float DeadEventDelayTime = 5.0f;
 };

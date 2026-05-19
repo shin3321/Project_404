@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Item/ItemTypes.h"
 #include "FZFSpawnManager.generated.h"
 
 UCLASS()
@@ -25,7 +26,7 @@ public:
 
 public:	
 	UFUNCTION(Server, Reliable, WithValidation)
-	void SpawnItem(FName ItemId, FVector SpawnLocation);
+	void ServerSpawnItem(FName ItemId, FVector SpawnLocation);
 		
 	
 private:
@@ -34,4 +35,7 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Monster")
 	TArray<TSubclassOf<class AFZFMonster>> MonsterClasses;
+
+	UPROPERTY(EditAnywhere, Category = "ItemTable")
+	UDataTable* ItemTable;
 };

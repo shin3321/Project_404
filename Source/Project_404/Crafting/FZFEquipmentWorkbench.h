@@ -119,4 +119,7 @@ private:
 private:
 	UPROPERTY()
 	TObjectPtr<AFZFItemBase> SpawnedItem;
+	
+	UPROPERTY()
+	AFZFCharacterPlayer* TargetInteractor;
 };

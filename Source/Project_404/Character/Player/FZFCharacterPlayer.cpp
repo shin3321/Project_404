@@ -204,13 +204,13 @@ void AFZFCharacterPlayer::BeginPlay()
 	FTimerHandle DetectionTimerHandle;
 	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
 
-	if (HUDWidgetClass)
-	{
-		HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
-		HUDWidget->AddToViewport();
-		HUDWidget->HideWidget();
-		HUDWidget->SetCrosshairNormal();
-	}
+	//if (HUDWidgetClass)
+	//{
+	//	HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
+	//	HUDWidget->AddToViewport();
+	//	HUDWidget->HideWidget();
+	//	HUDWidget->SetCrosshairNormal();
+	//}
 }
 
 void AFZFCharacterPlayer::Tick(float deltaTime)
@@ -250,22 +250,55 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 		// 시각적으로 표현하는 AvatarActor는 Player
 		ASC->InitAbilityActorInfo(PS, this);
 		AttributeSet = PS->GetPlayerSet();
-		for (const auto& StartupAbility : StartupAbilities)
+		if (HasAuthority())
 		{
-			FGameplayAbilitySpec StartSpec(StartupAbility);
-			ASC->GiveAbility(StartSpec);
-		}
-
-		if (PassiveRegenEffectClass)
-		{
-			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
-			EffectContext.AddSourceObject(this);
-
-			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(PassiveRegenEffectClass, 1.0f, EffectContext);
-			if (SpecHandle.IsValid())
+			for (const auto& StartupAbility : StartupAbilities)
 			{
-				// 서버에서 적용 시 클라이언트로 자동 복제됨
-				ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+				FGameplayAbilitySpec StartSpec(StartupAbility);
+				ASC->GiveAbility(StartSpec);
+			}
+
+			if (PassiveRegenEffectClass)
+			{
+				FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+				EffectContext.AddSourceObject(this);
+
+				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(PassiveRegenEffectClass, 1.0f, EffectContext);
+				if (SpecHandle.IsValid())
+				{
+					// 서버에서 적용 시 클라이언트로 자동 복제됨
+					ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+				}
+			}
+		}
+		// 오직 로컬 플레이어 일 때만 HUD 생성 및 델리게이트 구독 진행
+		if (IsLocallyControlled() && HUDWidgetClass)
+		{
+			// 기존에 만들어진 HUD가 있다면 중복 생성을 방지하기 위해 제거 후 재생성
+			if (HUDWidget)
+			{
+				HUDWidget->RemoveFromParent();
+				HUDWidget = nullptr;
+			}
+
+			HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
+			if (HUDWidget)
+			{
+				HUDWidget->AddToViewport();
+				HUDWidget->HideWidget();
+				HUDWidget->SetCrosshairNormal();
+
+				// 플레이어 전용 AttributeSet으로 다운캐스팅하여 안전하게 바인딩합니다.
+				if (UFZFPlayerSet* PlayerSet = Cast<UFZFPlayerSet>(AttributeSet))
+				{
+					// C++ 델리게이트와 HUD 업데이트 함수 다이내믹 바인딩 (구독 시작)
+					PlayerSet->OnHPChanged.AddDynamic(HUDWidget, &UFZFHUD::UpdateHpText);
+					PlayerSet->OnStaminaChanged.AddDynamic(HUDWidget, &UFZFHUD::UpdateStaminaBar);
+
+					// 초기 데이터 동기화 (게임 진입 즉시 만땅 상태 UI에 출력)
+					HUDWidget->UpdateHpText(PlayerSet->GetHP(), PlayerSet->GetMaxHP());
+					HUDWidget->UpdateStaminaBar(PlayerSet->GetStamina(), PlayerSet->GetMaxStamina());
+				}
 			}
 		}
 	}
@@ -295,6 +328,7 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::RunStart);
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFZFCharacterPlayer::RunEnd);
 
+		// Attack
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Attack);
 
 		// Interaction
@@ -395,6 +429,29 @@ void AFZFCharacterPlayer::SetArmMeshTransform(FVector Location, FRotator Rotatio
 void AFZFCharacterPlayer::SetArmMeshDefaultTransform()
 {
 	SetArmMeshTransform(FVector(-10.0f, 0.0f, -140.0f), FRotator(0.0f, -90.0f, 0.0f));
+}
+
+void AFZFCharacterPlayer::SetDead()
+{
+	Super::SetDead();
+
+	// 플레이어 전용 데스 이펙트(GE) 부여
+	if (UAbilitySystemComponent* ActiveASC = GetAbilitySystemComponent())
+	{
+		if (DeathGameplayEffectClass)
+		{
+			FGameplayEffectContextHandle EffectContext = ActiveASC->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle SpecHandle = ActiveASC->MakeOutgoingSpec(DeathGameplayEffectClass, 1.0f, EffectContext);
+			if (SpecHandle.IsValid())
+			{
+				// 이 한 줄로 모든 클라이언트에 State_Dead 태그와 GameplayCue가 자동 동기화됩니다.
+				ActiveASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
+	}
+	SetLifeSpan(3.0f);
 }
 
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
@@ -514,6 +571,51 @@ void AFZFCharacterPlayer::OnRep_PlayerState()
 	InitAbilitySystem();
 }
 
+void AFZFCharacterPlayer::OnRep_IsDead()
+{
+	Super::OnRep_IsDead();
+
+	if (bIsDead)
+	{
+		// 1인칭 시점 해결 (내 화면에서 죽는 모습을 보기 위해)
+		if (IsLocallyControlled())
+		{
+			// 1인칭 팔 매쉬 숨기기
+			if (ArmMesh)
+			{
+				ArmMesh->SetVisibility(false);
+			}
+
+			// 숨겨뒀던 3인칭 몸통을 내 화면에 보이게 켭니다.
+			if (GetMesh())
+			{
+				GetMesh()->SetOwnerNoSee(false);
+			}
+
+			if (Camera)
+			{
+				// 마우스 회전에 카메라가 강제로 고정되는 것을 풉니다.
+				Camera->bUsePawnControlRotation = false;
+
+				// 현재 카메라가 바라보고 있던 방향(월드 회전값)을 가져옵니다.
+				FRotator DeathRotation = Camera->GetComponentRotation();
+
+				// 고개가 옆으로 꺾이고(Roll), 살짝 바닥을 향하도록(Pitch) 각도를 덮어씌웁니다.
+				DeathRotation.Pitch = -15.0f; // 살짝 아래를 봄
+				DeathRotation.Roll = -75.0f;  // 오른쪽으로 75도 꺾임
+
+				Camera->SetWorldRotation(DeathRotation);
+
+				// 공중에 떠 있는 카메라를 바닥 근처로 툭 떨어뜨립니다.
+				// 캡슐 바닥 부근인 -60.0f 정도로 내려줍니다
+				FVector DeathLocation = Camera->GetRelativeLocation();
+				DeathLocation.Z = -60.0f;
+				Camera->SetRelativeLocation(DeathLocation);
+			}
+		}
+	}
+}
+
 void AFZFCharacterPlayer::DetectInteractable()
 {
 	if (!Camera)
@@ -607,9 +709,10 @@ void AFZFCharacterPlayer::HandleDeath()
 	// 	}
 	// 	PC->UnPossess();
 	// }
+	
+	// 이곳은 서버에서만 돕니다.
+	// 서버측 액터 소멸 타이머 설정
 	SetLifeSpan(3.0f);
-	SetActorEnableCollision(false);
-	GetCharacterMovement()->DisableMovement();
 }
 
 // 1번 슬롯 선택
