@@ -37,7 +37,8 @@ class PROJECT_404_API AFZFEquipmentWorkbench : public AActor, public IFZFInterac
 
 public:
 	AFZFEquipmentWorkbench();
-
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	bool SpawnResultItem(UFZFEquipmentRecipeData* Recipe);
 	AFZFItemBase* GetSpawnedItem() const { return SpawnedItem; }
 	void DestroySpawnedItem();
@@ -57,6 +58,10 @@ private:
 	// 재료를 슬롯에 넣기를 시도하는 함수.
 	bool TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData);
 
+	// 서버에게 실행해 달라고 요청하는 함수 (Server RPC)
+	UFUNCTION(Server, Reliable)
+	void Server_TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData);
+	
 	// 제작 버튼을 누르는 함수.
 	bool TryCraft();
 
@@ -109,13 +114,17 @@ private:
 private:
 	UPROPERTY()
 	TSubclassOf<AFZFItemBase> ResultItemActorClass;
-
-	UPROPERTY()
+	
+public:
+	UPROPERTY(ReplicatedUsing=OnRep_WorkbenchParts, Transient, VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UFZFCraftPartItemData> CurrentBasePart;
 
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing=OnRep_WorkbenchParts, Transient, VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UFZFCraftPartItemData> CurrentCorePart;
-
+	
+	// 클라이언트에서 변수 동기화 시 호출될 함수
+	UFUNCTION()
+	void OnRep_WorkbenchParts();
 private:
 	UPROPERTY()
 	TObjectPtr<AFZFItemBase> SpawnedItem;

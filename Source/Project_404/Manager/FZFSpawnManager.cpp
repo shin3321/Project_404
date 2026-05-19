@@ -2,12 +2,12 @@
 
 
 #include "Manager/FZFSpawnManager.h"
+#include "Character/Monster/FZFMonster.h"
 
-#include "ContentBrowserDataFilter.h"
-#include  "Character/Monster/FZFMonster.h"
-#include  "Item/FZFItemBase.h"
-#include "Engine/TargetPoint.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/TargetPoint.h"
+
+#include "Item/FZFItemBase.h"
 #include "Item/FZFItemRow.h"
 
 // Sets default values
@@ -56,7 +56,7 @@ void AFZFSpawnManager::BeginPlay()
 				if (ItemClass)
 				{
 					UE_LOG(LogTemp, Warning, TEXT("ItemClass: 스폰 위치: (%lf, %f, %lf)"), SpawnLocation.X, SpawnLocation.Y,
-						SpawnLocation.Z);
+					       SpawnLocation.Z);
 					GetWorld()->SpawnActor<AFZFItemBase>(ItemClass, SpawnLocation, SpawnRotation, SpawnParams);
 				}
 			}
@@ -76,7 +76,7 @@ void AFZFSpawnManager::BeginPlay()
 				if (MonsterClass)
 				{
 					UE_LOG(LogTemp, Warning, TEXT("MonsterClass: 스폰 위치: (%lf, %f, %lf)"), SpawnLocation.X,
-						SpawnLocation.Y, SpawnLocation.Z);
+					       SpawnLocation.Y, SpawnLocation.Z);
 					GetWorld()->SpawnActor<AFZFMonster>(MonsterClass, SpawnLocation, SpawnRotation, SpawnParams);
 				}
 			}
@@ -119,7 +119,8 @@ void AFZFSpawnManager::ServerSpawnItem_Implementation(FName ItemId, FVector Spaw
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 
-	AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
+	AActor* SpawnedItem = GetWorld()->SpawnActor<
+		AActor>(Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
 	if (AFZFItemBase* ItemBase = Cast<AFZFItemBase>(SpawnedItem))
 	{
 		// 중요: 스폰된 아이템에 데이터를 넣어주어야 상호작용 및 장착이가능합니다.
