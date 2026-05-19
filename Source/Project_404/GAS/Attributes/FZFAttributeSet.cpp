@@ -48,9 +48,6 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 {
 	Super::PostGameplayEffectExecute(Data);
 
-	UE_LOG(LogTemp, Log, TEXT("[GAS_Debug] 함수 진입! Attr: %s, 들어온 Damage 값: %.1f"),
-	       *Data.EvaluatedData.Attribute.GetName(), GetDamage());
-
 	// 이펙트를 유발한 가해자(공격자)의 정보와 GE 정보 추출
 	AActor* InstigatorActor = Data.EffectSpec.GetContext().GetInstigator();
 	const UGameplayEffect* AppliedGE = Data.EffectSpec.Def;
@@ -148,9 +145,5 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			}
 		}
 	}
-	// TODO : 다른 어트리뷰트 처리 로직 (힐 , 버프 등)
-	// else if(Data.EvaluatedData.Attribute == GetHealAttribute())
-	//{
-	// 힐 로직 처리
-	//}	
+
 }

@@ -30,9 +30,24 @@ void UFZFPlayerSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackDa
 {
 	Super::PostGameplayEffectExecute(Data);
 
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	{
+		// 부모에서 이미 HP 삭감 및 클램핑이 끝난 상태로 HUD에 발송
+		if (OnHPChanged.IsBound())
+		{
+			OnHPChanged.Broadcast(GetHP(), GetMaxHP());
+		}
+	}
+
 	// 실제 GE가 적용된 후 최종 수치를 다시 한번 제한 (매우 중요)
 	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
 	{
 		SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina()));
+
+		// 플레이어의 스테미나가 변경 될 때, HUD에 발송
+		if (OnStaminaChanged.IsBound())
+		{
+			OnStaminaChanged.Broadcast(GetStamina(), GetMaxStamina());
+		}
 	}
 }
