@@ -34,24 +34,40 @@ void AFZFCharacterBase::InitAbilitySystem()
 
 void AFZFCharacterBase::HandleDeath()
 {
-    if (bIsDead) return;
+    if (!HasAuthority() || bIsDead) return;
+    
     bIsDead = true;
-    
-    if (GetAbilitySystemComponent())
-    {
-        // 서버에서 태그 추가 (Loose Tag는 서버에서만 추가해도 GE나 다른 수단으로 동기화되지 않으면 클라이언트는 모를 수 있음)
-        // 하지만 사망 상태는 bIsDead 복제로 확인 가능
-        GetAbilitySystemComponent()->AddLooseGameplayTag(FZFGameplayTags::EVENT_CHARACTER_DEATH);        
-    }
-    
+
+    // 상태 정리 (무브먼트 차단 및 어빌리티 정리)
+    SetDead();
+
     // 사망 큐 실행 (서버에서 ExecuteGameplayCue 실행 시 모든 클라이언트로 복제됨)
     TriggerDeathGameplayCue();
+
+    //if (GetAbilitySystemComponent())
+    //{
+    //    // 서버에서 태그 추가 (Loose Tag는 서버에서만 추가해도 GE나 다른 수단으로 동기화되지 않으면 클라이언트는 모를 수 있음)
+    //    // 하지만 사망 상태는 bIsDead 복제로 확인 가능
+    //    GetAbilitySystemComponent()->AddLooseGameplayTag(FZFGameplayTags::EVENT_CHARACTER_DEATH);        
+    //}
+    //
 }
 
 void AFZFCharacterBase::OnRep_IsDead()
 {
     // 클라이언트에서 사망 시 처리할 추가 로직 (예: 콜리전 끄기, 애니메이션, 래그돌 등)
     // HandleDeath()가 서버에서 bIsDead를 true로 만들면 클라이언트에서 이 함수가 호출됨
+    if (bIsDead)
+    {
+        // 클라이언트 측 액터 물리 / 이동 컴포넌트 정리
+        if (GetCharacterMovement())
+        {
+            GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+        }
+
+        // 클라이언트 측 충돌 비활성화
+        SetActorEnableCollision(false);
+    }
 }
 
 void AFZFCharacterBase::TriggerDeathGameplayCue()
@@ -61,6 +77,7 @@ void AFZFCharacterBase::TriggerDeathGameplayCue()
         FGameplayCueParameters Parameters;
         Parameters.Location = GetActorLocation();
          
+        // GameplayCueNotify_Actor 또는 Static이 이 태그를 감지하여 몽타주를 재생하게함
         GetAbilitySystemComponent()->ExecuteGameplayCue(FZFGameplayTags::EVENT_CHARACTER_DEATH_Motion, Parameters);
     }
 }

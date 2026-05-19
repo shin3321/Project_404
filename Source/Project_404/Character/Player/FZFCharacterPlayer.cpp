@@ -546,6 +546,42 @@ void AFZFCharacterPlayer::OnRep_PlayerState()
 	InitAbilitySystem();
 }
 
+void AFZFCharacterPlayer::OnRep_IsDead()
+{
+	Super::OnRep_IsDead();
+
+	if (bIsDead)
+	{
+		// 모든 클라이언트 화면에서 콜리전 비활성화 및 이동 완전 차단
+		SetActorEnableCollision(false);
+		if (GetCharacterMovement())
+		{
+			GetCharacterMovement()->DisableMovement();
+		}
+
+		// 1인칭 시점 해결 (내 화면에서 죽는 모습을 보기위해)
+		if (IsLocallyControlled())
+		{
+			// 1인칭 팔 매쉬는 숨겨버립니다.
+			if (ArmMesh)
+			{
+				ArmMesh->SetVisibility(false);
+			}
+
+			if (GetMesh())
+			{
+				GetMesh()->SetOwnerNoSee(false);
+			}
+
+			// 추가로 죽었을 때, 입력을 완전히 막음
+			if(APlayerController* PC = Cast<APlayerController>(GetController()))
+			{
+				DisableInput(PC);
+			}
+		}
+	}
+}
+
 void AFZFCharacterPlayer::DetectInteractable()
 {
 	if (!Camera)
@@ -639,9 +675,10 @@ void AFZFCharacterPlayer::HandleDeath()
 	// 	}
 	// 	PC->UnPossess();
 	// }
+	
+	// 이곳은 서버에서만 돕니다.
+	// 서버측 액터 소멸 타이머 설정
 	SetLifeSpan(3.0f);
-	SetActorEnableCollision(false);
-	GetCharacterMovement()->DisableMovement();
 }
 
 // 1번 슬롯 선택
