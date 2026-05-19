@@ -141,7 +141,7 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 				{
 					if (!TargetCharacter->IsDead())
 					{
-						TargetCharacter->SetDead();
+						TargetCharacter->HandleDeath();
 					}
 				}
 			}

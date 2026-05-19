@@ -24,13 +24,8 @@ public:
 	virtual void InitAbilitySystem();
 
 public:
-	void TriggerDeathGameplayCue();
-
 	UFUNCTION()
 	virtual void OnRep_IsDead();
-
-	UFUNCTION(Server, Reliable)
-	void ServerSetDead();
 
 	// 죽음 처리 (Dead 몽타주 재생)
 	virtual void SetDead();
@@ -39,6 +34,10 @@ public:
 	virtual void PlayDeadAnimation();
 
 	FORCEINLINE bool IsDead() const { return bIsDead; }
+	// 체력이 0이 되었을 때, 호출되는 사망 처리 시작 함수
+	virtual void HandleDeath();
+
+	void TriggerDeathGameplayCue();
 
 protected:
 	// 읽기 가능, 수정 불가
@@ -59,7 +58,6 @@ protected:
 		ReplicatedUsing = OnRep_IsDead)
 	bool bIsDead = false;
 
-	void ExecuteDeathSequence();
 	// Dead Section
 protected:
 	// 죽음 몽타주
