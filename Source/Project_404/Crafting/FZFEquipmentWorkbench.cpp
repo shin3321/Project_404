@@ -15,10 +15,16 @@
 #include "Inventory/FZFInventoryComponent.h"
 #include "Utils/FZFUtils.h"
 
+#include "Manager/FZFSpawnManager.h"
+#include "Item/ItemTypes.h"
+#include"Character/Player/FZFPlayerController.h"
+
 
 AFZFEquipmentWorkbench::AFZFEquipmentWorkbench()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
+	SetReplicates(true);
 
 	ResultItemActorClass = AFZFItemBase::StaticClass();
 }
@@ -48,16 +54,16 @@ void AFZFEquipmentWorkbench::BeginPlay()
 	ResultMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("ResultPreviewMesh"));
 
 	auto SetupInteractionBox = [](UBoxComponent* Box)
-	{
-		if (Box == nullptr)
 		{
-			return;
-		}
+			if (Box == nullptr)
+			{
+				return;
+			}
 
-		Box->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		Box->SetCollisionResponseToAllChannels(ECR_Ignore);
-		Box->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
-	};
+			Box->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			Box->SetCollisionResponseToAllChannels(ECR_Ignore);
+			Box->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+		};
 
 	SetupInteractionBox(BasePartInteractionBoxRef);
 	SetupInteractionBox(CorePartInteractionBoxRef);
@@ -65,6 +71,7 @@ void AFZFEquipmentWorkbench::BeginPlay()
 	SetupInteractionBox(ResultInteractionBoxRef);
 
 	UpdatePreviewMeshes();
+
 }
 
 EFZFWorkbenchSlot AFZFEquipmentWorkbench::GetSlotFromHitComponent(UPrimitiveComponent* HitComponent) const
@@ -115,6 +122,7 @@ bool AFZFEquipmentWorkbench::TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlo
 		}
 
 		CurrentBasePart = CraftPartData;
+
 		break;
 	}
 
@@ -180,29 +188,39 @@ bool AFZFEquipmentWorkbench::SpawnResultItem(UFZFEquipmentRecipeData* Recipe)
 		return false;
 	}
 
+	FName ItemId = Recipe->ResultItem->GetItemId();
+
 	UWorld* World = GetWorld();
 	if (World == nullptr)
 		return false;
 
 	const FVector SpawnLocation = ResultMeshRef->GetComponentLocation();
 	const FRotator SpawnRotation = ResultMeshRef->GetComponentRotation();
-
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
+	if (TargetInteractor)
+	{
+		AFZFPlayerController* PC = Cast<AFZFPlayerController>(TargetInteractor->GetController());
+		if (PC)
+		{
+			PC->RequestSpawnItem(ItemId, SpawnLocation);
+			return true;
+		}
+	}
 
-	SpawnedItem = World->SpawnActor<AFZFItemBase>(
-		ResultItemActorClass,
-		SpawnLocation,
-		SpawnRotation,
-		SpawnParams
-	);
+	//SpawnedItem = World->SpawnActor<AFZFItemBase>(
+	//	ResultItemActorClass,
+	//	SpawnLocation,
+	//	SpawnRotation,
+	//	SpawnParams
+	//);
 
-	if (SpawnedItem == nullptr)
-		return false;
+	//if (SpawnedItem == nullptr)
+	//	return false;
 
-	SpawnedItem->InitializeItem(Recipe->ResultItem);
+	//SpawnedItem->InitializeItem(Recipe->ResultItem);
 
-	return true;
+	return false;
 }
 
 // Recipe데이터에 일치하는 것이 존재한다면 해당 Recipe를 반환하는 함수.
@@ -220,11 +238,11 @@ UFZFEquipmentRecipeData* AFZFEquipmentWorkbench::FindMatchedRecipe() const
 			continue;
 		}
 
-		 if (Recipe->BasePart == CurrentBasePart &&
-		     Recipe->CorePart == CurrentCorePart)
-		 {
-		     return Recipe;
-		 }
+		if (Recipe->BasePart == CurrentBasePart &&
+			Recipe->CorePart == CurrentCorePart)
+		{
+			return Recipe;
+		}
 	}
 
 	return nullptr;
@@ -271,7 +289,7 @@ void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiv
 {
 	if (!IsValid(Interactor))
 		return;
-
+	TargetInteractor = Interactor;
 	UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent();
 
 	UFZFItemData* HeldItemData = Inventory->GetSelectedItemData();
