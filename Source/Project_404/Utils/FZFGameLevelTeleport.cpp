@@ -89,11 +89,45 @@ void AFZFGameLevelTeleport::EnterLobbyLevel()
 		return;
 	}
 
-	FString LevelPath = TEXT("FZFGameLevel?listen");
+	// 로딩 화면을 띄운 뒤 레벨 이동
+	ShowLoadingAndTravel(TEXT("FZFGameLevel?listen"));
+}
 
+void AFZFGameLevelTeleport::TravelToLobbyLevel()
+{
 	if (GetWorld())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("=== Traveling to: %s ==="), *LevelPath);
-		GetWorld()->ServerTravel(LevelPath);
+		UE_LOG(LogTemp, Warning, TEXT("=== Traveling to: %s ==="), *PendingLevelPath);
+
+		// 저장된 레벨 경로로 이동
+		GetWorld()->ServerTravel(PendingLevelPath);
 	}
 }
+
+void AFZFGameLevelTeleport::ShowLoadingAndTravel(const FString& LevelPath)
+{
+	// 이동할 레벨 경로 저장
+	PendingLevelPath = LevelPath;
+
+	// 로딩 화면 위젯 생성
+	if (LoadingWidgetClass)
+	{
+		LoadingWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), LoadingWidgetClass);
+
+		if (LoadingWidgetInstance)
+		{
+			// 로딩 화면을 가장 위에 표시
+			LoadingWidgetInstance->AddToViewport(999);
+		}
+	}
+
+	// 로딩 화면을 잠깐 보여준 뒤 실제 레벨 이동
+	GetWorldTimerManager().SetTimer(
+		LevelTravelTimerHandle,
+		this,
+		&AFZFGameLevelTeleport::TravelToLobbyLevel,
+		3.0f,
+		false
+	);
+}
+
