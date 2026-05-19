@@ -147,9 +147,5 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			}
 		}
 	}
-	// TODO : 다른 어트리뷰트 처리 로직 (힐 , 버프 등)
-	// else if(Data.EvaluatedData.Attribute == GetHealAttribute())
-	//{
-	// 힐 로직 처리
-	//}	
+
 }

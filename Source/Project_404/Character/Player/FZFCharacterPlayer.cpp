@@ -204,13 +204,13 @@ void AFZFCharacterPlayer::BeginPlay()
 	FTimerHandle DetectionTimerHandle;
 	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &AFZFCharacterPlayer::DetectInteractable, 0.1f, true);
 
-	if (HUDWidgetClass)
-	{
-		HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
-		HUDWidget->AddToViewport();
-		HUDWidget->HideWidget();
-		HUDWidget->SetCrosshairNormal();
-	}
+	//if (HUDWidgetClass)
+	//{
+	//	HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
+	//	HUDWidget->AddToViewport();
+	//	HUDWidget->HideWidget();
+	//	HUDWidget->SetCrosshairNormal();
+	//}
 }
 
 void AFZFCharacterPlayer::Tick(float deltaTime)
@@ -268,6 +268,37 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 				ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
 			}
 		}
+
+		// 오직 로컬 플레이어 일 때만 HUD 생성 및 델리게이트 구독 진행
+		if (IsLocallyControlled() && HUDWidgetClass)
+		{
+			// 기존에 만들어진 HUD가 있다면 중복 생성을 방지하기 위해 제거 후 재생성
+			if (HUDWidget)
+			{
+				HUDWidget->RemoveFromParent();
+				HUDWidget = nullptr;
+			}
+
+			HUDWidget = CreateWidget<UFZFHUD>(GetWorld(), HUDWidgetClass);
+			if (HUDWidget)
+			{
+				HUDWidget->AddToViewport();
+				HUDWidget->HideWidget();
+				HUDWidget->SetCrosshairNormal();
+
+				// 플레이어 전용 AttributeSet으로 다운캐스팅하여 안전하게 바인딩합니다.
+				if (UFZFPlayerSet* PlayerSet = Cast<UFZFPlayerSet>(AttributeSet))
+				{
+					// C++ 델리게이트와 HUD 업데이트 함수 다이내믹 바인딩 (구독 시작)
+					PlayerSet->OnHPChanged.AddDynamic(HUDWidget, &UFZFHUD::UpdateHpText);
+					PlayerSet->OnStaminaChanged.AddDynamic(HUDWidget, &UFZFHUD::UpdateStaminaBar);
+
+					// 초기 데이터 동기화 (게임 진입 즉시 만땅 상태 UI에 출력)
+					HUDWidget->UpdateHpText(PlayerSet->GetHP(), PlayerSet->GetMaxHP());
+					HUDWidget->UpdateStaminaBar(PlayerSet->GetStamina(), PlayerSet->GetMaxStamina());
+				}
+			}
+		}
 	}
 }
 
@@ -295,6 +326,7 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::RunStart);
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFZFCharacterPlayer::RunEnd);
 
+		// Attack
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Attack);
 
 		// Interaction
