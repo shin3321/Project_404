@@ -1,12 +1,12 @@
 ﻿#include "Character/FZFCharacterBase.h"
 
-#include "Character/Player/FZFCharacterPlayer.h"
 #include "Net/UnrealNetwork.h"
 #include "GAS/FZFAbilitySystemComponent.h"
-#include "GameplayTagContainer.h"
 #include "GameplayTag/FZFGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/FZFAnimInstance.h"
+
+#include "Player/FZFPlayerController.h"
 
 AFZFCharacterBase::AFZFCharacterBase()
 {
@@ -43,7 +43,29 @@ void AFZFCharacterBase::HandleDeath()
 
     // 상태 정리 (무브먼트 차단 및 어빌리티 정리)
     SetDead();
+	
+    FTimerHandle SpectatorTimerHandle;
 
+	GetWorld()->GetTimerManager().SetTimer(
+		SpectatorTimerHandle,
+		FTimerDelegate::CreateWeakLambda(this, [this]()
+			{
+				// 2초 뒤에 이 블록이 실행됩니다.
+				if (AFZFPlayerController* PC = Cast<AFZFPlayerController>(GetController()))
+				{
+					// 관전 시작
+					PC->StartSpectator();
+
+					// 죽은 폰에서 빙의 해제
+					PC->UnPossess();
+
+					// 즉시 다른 플레이어를 찾아 시점 넘김
+					PC->ChangeSpectateTarget(0);
+				}
+			}),
+		2.0f,  // 2초 대기
+		false  // 반복하지 않음 (1회성)
+	);
 }
 
 void AFZFCharacterBase::OnRep_IsDead()

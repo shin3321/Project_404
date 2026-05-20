@@ -13,10 +13,24 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Components/SceneComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AFZFRobotWorkbench::AFZFRobotWorkbench()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
+	SetReplicates(true);
+}
+
+void AFZFRobotWorkbench::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AFZFRobotWorkbench, CurrentBodyPart);
+	DOREPLIFETIME(AFZFRobotWorkbench, CurrentRLegPart);
+	DOREPLIFETIME(AFZFRobotWorkbench, CurrentLLegPart);
+	DOREPLIFETIME(AFZFRobotWorkbench, CurrentRArmPart);
+	DOREPLIFETIME(AFZFRobotWorkbench, CurrentLArmPart);
 }
 
 namespace
@@ -158,6 +172,12 @@ FText AFZFRobotWorkbench::GetInteractableName(UPrimitiveComponent* HitComponent)
 	}
 }
 
+void AFZFRobotWorkbench::OnRep_RobotWorkbenchParts()
+{
+	UpdatePreviewMeshes();
+
+}
+
 EFZFRobotWorkbenchSlot AFZFRobotWorkbench::GetSlotFromHitComponent(UPrimitiveComponent* HitComponent) const
 {
 	// 라인트레이스에 맞은 컴포넌트가 없으면 슬롯 없음 처리
@@ -233,17 +253,32 @@ void AFZFRobotWorkbench::PlayInsertPartEffect(USceneComponent* EffectPoint)
 
 bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 {
-	// 선택한 아이템 데이터가 없으면 실패
+	if (HasAuthority())
+	{
+		// 이미 서버라면 바로 실행
+		Server_TryInsertRobotPart_Implementation(ItemData);
+	}
+	else
+	{
+		// 클라이언트라면 서버에 요청을 보냄
+		Server_TryInsertRobotPart(ItemData);
+	}
+	return true;
+}
+
+void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* ItemData)
+{
+		// 선택한 아이템 데이터가 없으면 실패
 	if (ItemData == nullptr)
 	{
-		return false;
+		return ;
 	}
 
 	// 선택한 아이템이 로봇 부품 데이터인지 확인
 	UFZFRobotPartItemData* RobotPartData = Cast<UFZFRobotPartItemData>(ItemData);
 	if (RobotPartData == nullptr)
 	{
-		return false;
+		return ;
 	}
 
 	// 몸통 부품이면 몸통 위치에 넣는다.
@@ -251,7 +286,7 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 	{
 		if (CurrentBodyPart != nullptr)
 		{
-			return false;
+			return ;
 		}
 
 		CurrentBodyPart = RobotPartData;
@@ -266,7 +301,7 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 		// 원하는 위치용 SceneComponent에서 파티클 재생
 		PlayInsertPartEffect(BodyEffectPointRef);
 
-		return true;
+		return ;
 	}
 
 	// 왼팔 부품이면 왼팔 위치에 넣는다.
@@ -274,7 +309,7 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 	{
 		if (CurrentLArmPart != nullptr)
 		{
-			return false;
+			return ;
 		}
 
 		CurrentLArmPart = RobotPartData;
@@ -287,7 +322,7 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 
 		PlayInsertPartEffect(LArmEffectPointRef);
 
-		return true;
+		return;
 	}
 
 	// 오른팔 부품이면 오른팔 위치에 넣는다.
@@ -295,7 +330,7 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 	{
 		if (CurrentRArmPart != nullptr)
 		{
-			return false;
+			return;
 		}
 
 		CurrentRArmPart = RobotPartData;
@@ -308,7 +343,7 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 
 		PlayInsertPartEffect(RArmEffectPointRef);
 
-		return true;
+		return;
 	}
 
 	// 왼다리 부품이면 왼다리 위치에 넣는다.
@@ -316,7 +351,7 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 	{
 		if (CurrentLLegPart != nullptr)
 		{
-			return false;
+			return;
 		}
 
 		CurrentLLegPart = RobotPartData;
@@ -328,7 +363,7 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 		}
 
 		PlayInsertPartEffect(LLegEffectPointRef);
-		return true;
+		return;
 	}
 
 	// 오른다리 부품이면 오른다리 위치에 넣는다.
@@ -336,7 +371,7 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 	{
 		if (CurrentRLegPart != nullptr)
 		{
-			return false;
+			return;
 		}
 
 		CurrentRLegPart = RobotPartData;
@@ -349,11 +384,11 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 
 		PlayInsertPartEffect(RLegEffectPointRef);
 
-		return true;
+		return ;
 	}
 
 	// 로봇 부품 태그가 아니면 실패
-	return false;
+	return ;
 }
 
 bool AFZFRobotWorkbench::TryCraftRobot()
@@ -367,7 +402,6 @@ bool AFZFRobotWorkbench::TryCraftRobot()
 	// 왼팔 부품이 없으면 조립 실패
 	if (CurrentLArmPart == nullptr)
 	{
-		return false;
 	}
 
 	// 오른팔 부품이 없으면 조립 실패

@@ -32,6 +32,10 @@ public:
 	// 인벤토리 컴포넌트에 접근할 수 있도록 Getter 추가 (GA에서 사용)
 	UFZFInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 
+	// 관전 시점 처리
+	virtual void BecomeViewTarget(APlayerController* PC) override;
+	virtual void EndViewTarget(APlayerController* PC) override;
+
 	// 팔 매쉬 Getter
 	FORCEINLINE USkeletalMeshComponent* GetArmMesh() const { return ArmMesh; }
 

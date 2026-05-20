@@ -616,6 +616,48 @@ void AFZFCharacterPlayer::OnRep_IsDead()
 	}
 }
 
+void AFZFCharacterPlayer::BecomeViewTarget(APlayerController* PC)
+{
+	Super::BecomeViewTarget(PC);
+
+	// 로컬 컨트롤러가 나를 관전하기 시작했을 때 (내가 관전 대상이 됨)
+	if (PC && PC->IsLocalController() && !IsLocallyControlled())
+	{
+		// 관전자가 나를 볼 때도 내가 보는 것과 똑같이 보이게 함
+		// 전신 메시 숨기기
+		if (GetMesh())
+		{
+			GetMesh()->SetHiddenInGame(true);
+		}
+
+		// 1인칭 팔 메시 보이기
+		if (ArmMesh)
+		{
+			ArmMesh->SetOnlyOwnerSee(true);
+			ArmMesh->SetHiddenInGame(true);
+		}
+	}
+}
+
+void AFZFCharacterPlayer::EndViewTarget(APlayerController* PC)
+{
+	Super::EndViewTarget(PC);
+
+	// 관전이 끝났을 때 원래대로 복구
+	if (PC && PC->IsLocalController() && !IsLocallyControlled())
+	{
+		if (GetMesh())
+		{
+			GetMesh()->SetHiddenInGame(false);
+		}
+
+		if (ArmMesh)
+		{
+			ArmMesh->SetOnlyOwnerSee(true);
+		}
+	}
+}
+
 void AFZFCharacterPlayer::DetectInteractable()
 {
 	if (!Camera)
@@ -683,36 +725,12 @@ void AFZFCharacterPlayer::DetectInteractable()
 void AFZFCharacterPlayer::HandleDeath()
 {
 	Super::HandleDeath();
-	//
-	// if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	// {
-	// 	// 살아 있는 플레이어 찾기
-	// 	AActor* TargetActor = nullptr;
-	// 	if (AGameStateBase* GS = GetWorld()->GetGameState())
-	// 	{
-	// 		for (APlayerState* PS : GS->PlayerArray)
-	// 		{
-	// 			if (PS && PS!= GetPlayerState())
-	// 			{
-	// 				if (APawn* OtherPawn = PS->GetPawn())
-	// 				{
-	// 					TargetActor = OtherPawn;
-	// 					break;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	if (TargetActor)
-	// 	{
-	// 		// 다른 플레이어의 뷰로 전환
-	// 		PC->SetViewTargetWithBlend(TargetActor, 0.5f);
-	// 	}
-	// 	PC->UnPossess();
-	// }
 	
-	// 이곳은 서버에서만 돕니다.
-	// 서버측 액터 소멸 타이머 설정
-	SetLifeSpan(3.0f);
+	// 서버측 액터 소멸 타이머 설정 (사망 애니메이션 등을 고려하여 3초 후 제거)
+	if (HasAuthority())
+	{
+		SetLifeSpan(3.0f);
+	}
 }
 
 // 1번 슬롯 선택
