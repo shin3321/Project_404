@@ -43,4 +43,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	TObjectPtr<UAnimSequence> CurrentIdleAnim;
+
+	// 캐릭터가 바라보는 방향 기준, 실제 이동 방향의 각도 (-180 ~ 180)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float Direction;
 };

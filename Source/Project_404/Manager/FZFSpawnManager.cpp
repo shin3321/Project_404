@@ -2,12 +2,12 @@
 
 
 #include "Manager/FZFSpawnManager.h"
+#include "Character/Monster/FZFMonster.h"
 
-#include "ContentBrowserDataFilter.h"
-#include  "Character/Monster/FZFMonster.h"
-#include  "Item/FZFItemBase.h"
-#include "Engine/TargetPoint.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/TargetPoint.h"
+
+#include "Item/FZFItemBase.h"
 #include "Item/FZFItemRow.h"
 
 // Sets default values
@@ -84,6 +84,16 @@ void AFZFSpawnManager::BeginPlay()
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("스폰 가능한 지역이 없습니다"));
+
+	ItemTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Project404/Item/DT_ItemTable"));
+	if (ItemTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemTable이 생성되었습니다"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemTable이 생성되지 않았습니다"));
+	}
 }
 
 // Called every frame
@@ -92,25 +102,25 @@ void AFZFSpawnManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AFZFSpawnManager::SpawnItem_Implementation(FName ItemId, FVector SpawnLocation)
+void AFZFSpawnManager::ServerSpawnItem_Implementation(FName ItemId, FVector SpawnLocation)
 {
 	if (!HasAuthority()) return;
-// IItemInterface::Execute_InitItem(SpawnedItem, ItemData);
-	UDataTable* ItemTable = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(),nullptr, TEXT("/Game/Project404/Item/DT_FZFItemTable.DT_FZFItemTable")));
+	// IItemInterface::Execute_InitItem(SpawnedItem, ItemData);
 	if (!ItemTable) return;
-	
+
 	FFZFItemRow* Row = ItemTable->FindRow<FFZFItemRow>(ItemId, TEXT("AMyCharacter::Server_SpawnItem"));
-	if (!Row || !Row->ItemActorClass) 
+	if (!Row || !Row->ItemActorClass)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("해당 키에 매핑된 아이템 클래스가 없습니다: %s"), *ItemId.ToString());
 		return;
 	}
-	
+
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 
-	AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
+	AActor* SpawnedItem = GetWorld()->SpawnActor<
+		AActor>(Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
 	if (AFZFItemBase* ItemBase = Cast<AFZFItemBase>(SpawnedItem))
 	{
 		// 중요: 스폰된 아이템에 데이터를 넣어주어야 상호작용 및 장착이가능합니다.
@@ -123,7 +133,7 @@ void AFZFSpawnManager::SpawnItem_Implementation(FName ItemId, FVector SpawnLocat
 	}
 }
 
-bool AFZFSpawnManager::SpawnItem_Validate(FName ItemId, FVector SpawnLocation)
+bool AFZFSpawnManager::ServerSpawnItem_Validate(FName ItemId, FVector SpawnLocation)
 {
 	return !ItemId.IsNone();
 }

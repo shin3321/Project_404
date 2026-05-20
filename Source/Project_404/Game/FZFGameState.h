@@ -10,12 +10,10 @@
 UENUM(BlueprintType)
 enum class EGamePhase : uint8
 {
-	// 탐험 시간
-	Exploration,
-	// 거점 집결
-	Gathering,
-	// 하루 종료
-	EndDay
+	Base		UMETA(DisplayName = "거점"),
+	InGame		UMETA(DisplayName = "InGame State"),
+	BossPhase1	UMETA(DisplayName = "Boss Phase1"),
+	BossPhase2	UMETA(DisplayName = "Boss Phase2")
 };
 
 UCLASS()
@@ -27,19 +25,30 @@ public:
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	virtual void BeginPlay() override;
+	
 	UFZFRoomManager* GetRoomManager() const { return RoomManagerComponent; }
+
+public:	
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPhase, BlueprintReadOnly, Category = "Game Phase")
+	EGamePhase CurrentPhase;
+	
+	// 서버가 이 값을 변경하는 함수
+	void ChangeGamePhase(EGamePhase NewPhase);
+	
+	UFUNCTION()
+	void OnRep_CurrentPhase();
+	
+	// 내부적으로 BGM을 교체하는 로직
+	void UpdateBGMByPhase(EGamePhase Phase);
+
 protected:
 	UPROPERTY()
 	UFZFRoomManager* RoomManagerComponent;
-
 public:
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	int32 CurrentDay = 1;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	int32 RemainingRimeSeconds = 1200;
-	
-	UPROPERTY(Replicated, BlueprintReadOnly)
-	EGamePhase CurrentPhase = EGamePhase::Gathering;
 };

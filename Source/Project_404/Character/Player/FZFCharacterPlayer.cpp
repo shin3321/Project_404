@@ -250,25 +250,27 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 		// 시각적으로 표현하는 AvatarActor는 Player
 		ASC->InitAbilityActorInfo(PS, this);
 		AttributeSet = PS->GetPlayerSet();
-		for (const auto& StartupAbility : StartupAbilities)
+		if (HasAuthority())
 		{
-			FGameplayAbilitySpec StartSpec(StartupAbility);
-			ASC->GiveAbility(StartSpec);
-		}
-
-		if (PassiveRegenEffectClass)
-		{
-			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
-			EffectContext.AddSourceObject(this);
-
-			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(PassiveRegenEffectClass, 1.0f, EffectContext);
-			if (SpecHandle.IsValid())
+			for (const auto& StartupAbility : StartupAbilities)
 			{
-				// 서버에서 적용 시 클라이언트로 자동 복제됨
-				ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+				FGameplayAbilitySpec StartSpec(StartupAbility);
+				ASC->GiveAbility(StartSpec);
+			}
+
+			if (PassiveRegenEffectClass)
+			{
+				FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+				EffectContext.AddSourceObject(this);
+
+				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(PassiveRegenEffectClass, 1.0f, EffectContext);
+				if (SpecHandle.IsValid())
+				{
+					// 서버에서 적용 시 클라이언트로 자동 복제됨
+					ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+				}
 			}
 		}
-
 		// 오직 로컬 플레이어 일 때만 HUD 생성 및 델리게이트 구독 진행
 		if (IsLocallyControlled() && HUDWidgetClass)
 		{
@@ -433,6 +435,7 @@ void AFZFCharacterPlayer::SetDead()
 {
 	Super::SetDead();
 
+	// 플레이어 전용 데스 이펙트(GE) 부여
 	if (UAbilitySystemComponent* ActiveASC = GetAbilitySystemComponent())
 	{
 		if (DeathGameplayEffectClass)
@@ -448,6 +451,7 @@ void AFZFCharacterPlayer::SetDead()
 			}
 		}
 	}
+	SetLifeSpan(3.0f);
 }
 
 void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
@@ -567,6 +571,51 @@ void AFZFCharacterPlayer::OnRep_PlayerState()
 	InitAbilitySystem();
 }
 
+void AFZFCharacterPlayer::OnRep_IsDead()
+{
+	Super::OnRep_IsDead();
+
+	if (bIsDead)
+	{
+		// 1인칭 시점 해결 (내 화면에서 죽는 모습을 보기 위해)
+		if (IsLocallyControlled())
+		{
+			// 1인칭 팔 매쉬 숨기기
+			if (ArmMesh)
+			{
+				ArmMesh->SetVisibility(false);
+			}
+
+			// 숨겨뒀던 3인칭 몸통을 내 화면에 보이게 켭니다.
+			if (GetMesh())
+			{
+				GetMesh()->SetOwnerNoSee(false);
+			}
+
+			if (Camera)
+			{
+				// 마우스 회전에 카메라가 강제로 고정되는 것을 풉니다.
+				Camera->bUsePawnControlRotation = false;
+
+				// 현재 카메라가 바라보고 있던 방향(월드 회전값)을 가져옵니다.
+				FRotator DeathRotation = Camera->GetComponentRotation();
+
+				// 고개가 옆으로 꺾이고(Roll), 살짝 바닥을 향하도록(Pitch) 각도를 덮어씌웁니다.
+				DeathRotation.Pitch = -15.0f; // 살짝 아래를 봄
+				DeathRotation.Roll = -75.0f;  // 오른쪽으로 75도 꺾임
+
+				Camera->SetWorldRotation(DeathRotation);
+
+				// 공중에 떠 있는 카메라를 바닥 근처로 툭 떨어뜨립니다.
+				// 캡슐 바닥 부근인 -60.0f 정도로 내려줍니다
+				FVector DeathLocation = Camera->GetRelativeLocation();
+				DeathLocation.Z = -60.0f;
+				Camera->SetRelativeLocation(DeathLocation);
+			}
+		}
+	}
+}
+
 void AFZFCharacterPlayer::DetectInteractable()
 {
 	if (!Camera)
@@ -629,6 +678,41 @@ void AFZFCharacterPlayer::DetectInteractable()
 			HUDWidget->SetCrosshairNormal();
 		}
 	}
+}
+// 죽음 로직
+void AFZFCharacterPlayer::HandleDeath()
+{
+	Super::HandleDeath();
+	//
+	// if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	// {
+	// 	// 살아 있는 플레이어 찾기
+	// 	AActor* TargetActor = nullptr;
+	// 	if (AGameStateBase* GS = GetWorld()->GetGameState())
+	// 	{
+	// 		for (APlayerState* PS : GS->PlayerArray)
+	// 		{
+	// 			if (PS && PS!= GetPlayerState())
+	// 			{
+	// 				if (APawn* OtherPawn = PS->GetPawn())
+	// 				{
+	// 					TargetActor = OtherPawn;
+	// 					break;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	if (TargetActor)
+	// 	{
+	// 		// 다른 플레이어의 뷰로 전환
+	// 		PC->SetViewTargetWithBlend(TargetActor, 0.5f);
+	// 	}
+	// 	PC->UnPossess();
+	// }
+	
+	// 이곳은 서버에서만 돕니다.
+	// 서버측 액터 소멸 타이머 설정
+	SetLifeSpan(3.0f);
 }
 
 // 1번 슬롯 선택

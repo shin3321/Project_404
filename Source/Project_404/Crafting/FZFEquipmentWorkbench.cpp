@@ -15,12 +15,26 @@
 #include "Inventory/FZFInventoryComponent.h"
 #include "Utils/FZFUtils.h"
 
+#include "Item/ItemTypes.h"
+#include"Character/Player/FZFPlayerController.h"
+#include "Net/UnrealNetwork.h"
+
 
 AFZFEquipmentWorkbench::AFZFEquipmentWorkbench()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
+	SetReplicates(true);
 
 	ResultItemActorClass = AFZFItemBase::StaticClass();
+}
+
+void AFZFEquipmentWorkbench::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AFZFEquipmentWorkbench, CurrentBasePart);
+	DOREPLIFETIME(AFZFEquipmentWorkbench, CurrentCorePart);
 }
 
 void AFZFEquipmentWorkbench::DestroySpawnedItem()
@@ -89,58 +103,77 @@ EFZFWorkbenchSlot AFZFEquipmentWorkbench::GetSlotFromHitComponent(UPrimitiveComp
 
 bool AFZFEquipmentWorkbench::TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData)
 {
+	if (HasAuthority())
+	{
+		// 이미 서버라면 바로 실행
+		Server_TryInsertMaterialToSlot_Implementation(TargetSlot, ItemData);
+	}
+	else
+	{
+		// 클라이언트라면 서버에 요청을 보냄
+		Server_TryInsertMaterialToSlot(TargetSlot, ItemData);
+	}
+	return true;
+}
+
+void AFZFEquipmentWorkbench::Server_TryInsertMaterialToSlot_Implementation(EFZFWorkbenchSlot TargetSlot,
+	UFZFItemData* ItemData)
+{		
 	if (ItemData == nullptr)
 	{
-		return false;
+		return ;
 	}
 
 	UFZFCraftPartItemData* CraftPartData = Cast<UFZFCraftPartItemData>(ItemData);
 	if (CraftPartData == nullptr)
 	{
-		return false;
+		return ;
 	}
 
 	switch (TargetSlot)
 	{
 	case EFZFWorkbenchSlot::BaseSlot:
-	{
-		if (CraftPartData->SlotType != ECraftSlotType::BasePart)
 		{
-			return false;
-		}
+			if (CraftPartData->SlotType != ECraftSlotType::BasePart)
+			{
+				return;
+			}
 
-		if (CurrentBasePart != nullptr)
-		{
-			return false;
-		}
+			if (CurrentBasePart != nullptr)
+			{
+				return;
+			}
 
-		CurrentBasePart = CraftPartData;
-		break;
-	}
+			CurrentBasePart = CraftPartData;
+
+			break;
+		}
 
 	case EFZFWorkbenchSlot::CoreSlot:
-	{
-		if (CraftPartData->SlotType != ECraftSlotType::CorePart)
 		{
-			return false;
+			if (CraftPartData->SlotType != ECraftSlotType::CorePart)
+			{
+				return;
+			}
+
+			if (CurrentCorePart != nullptr)
+			{
+				return;
+			}
+
+			CurrentCorePart = CraftPartData;
+			break;
 		}
-
-		if (CurrentCorePart != nullptr)
-		{
-			return false;
-		}
-
-		CurrentCorePart = CraftPartData;
-		break;
-	}
-
 	default:
-		return false;
+		return;
 	}
-
 	UpdatePreviewMeshes();
+	
+}
 
-	return true;
+void AFZFEquipmentWorkbench::OnRep_WorkbenchParts()
+{	
+	UpdatePreviewMeshes();
 }
 
 bool AFZFEquipmentWorkbench::TryCraft()
@@ -180,29 +213,26 @@ bool AFZFEquipmentWorkbench::SpawnResultItem(UFZFEquipmentRecipeData* Recipe)
 		return false;
 	}
 
+	FName ItemId = Recipe->ResultItem->GetItemId();
+
 	UWorld* World = GetWorld();
 	if (World == nullptr)
 		return false;
 
 	const FVector SpawnLocation = ResultMeshRef->GetComponentLocation();
 	const FRotator SpawnRotation = ResultMeshRef->GetComponentRotation();
-
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
-
-	SpawnedItem = World->SpawnActor<AFZFItemBase>(
-		ResultItemActorClass,
-		SpawnLocation,
-		SpawnRotation,
-		SpawnParams
-	);
-
-	if (SpawnedItem == nullptr)
-		return false;
-
-	SpawnedItem->InitializeItem(Recipe->ResultItem);
-
-	return true;
+	if (TargetInteractor)
+	{
+		AFZFPlayerController* PC = Cast<AFZFPlayerController>(TargetInteractor->GetController());
+		if (PC)
+		{
+			PC->RequestSpawnItem(ItemId, SpawnLocation);
+			return true;
+		}
+	}
+	return false;
 }
 
 // Recipe데이터에 일치하는 것이 존재한다면 해당 Recipe를 반환하는 함수.
@@ -220,11 +250,11 @@ UFZFEquipmentRecipeData* AFZFEquipmentWorkbench::FindMatchedRecipe() const
 			continue;
 		}
 
-		 if (Recipe->BasePart == CurrentBasePart &&
-		     Recipe->CorePart == CurrentCorePart)
-		 {
-		     return Recipe;
-		 }
+		if (Recipe->BasePart == CurrentBasePart &&
+			Recipe->CorePart == CurrentCorePart)
+		{
+			return Recipe;
+		}
 	}
 
 	return nullptr;
@@ -271,7 +301,7 @@ void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiv
 {
 	if (!IsValid(Interactor))
 		return;
-
+	TargetInteractor = Interactor;
 	UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent();
 
 	UFZFItemData* HeldItemData = Inventory->GetSelectedItemData();
@@ -282,16 +312,16 @@ void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiv
 	{
 	case EFZFWorkbenchSlot::BaseSlot:
 	case EFZFWorkbenchSlot::CoreSlot:
-	{
-		if (TryInsertMaterialToSlot(HitSlot, HeldItemData) == false)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Failed to insert material into workbench slot."));
-			return;
-		}
+			if (TryInsertMaterialToSlot(HitSlot, HeldItemData) == false)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Failed to insert material into workbench slot."));
+				return;
+			}
 
-		Inventory->RemoveSelectedItem();
-		break;
-	}
+			Inventory->RemoveSelectedItem();
+			break;
+		}
 	case EFZFWorkbenchSlot::Crafting:
 		if (TryCraft() == false)
 		{

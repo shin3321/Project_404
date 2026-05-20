@@ -36,13 +36,13 @@ protected:
 	//void LoadLevelAsync();
 	//void OnLevelLoaded();
 
+	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Network")
 	void OnAllPlayersReady();
 
-	//virtual void Logout(AController* Exiting) override;
-public:
-	void NavigateItemRelocate();
+	UFUNCTION()
+	void BossDefeated();
 
 protected:
 	class AFZFGameState* GameState;
@@ -51,14 +51,12 @@ protected:
 	FTimerHandle DayTimerHandle;
 	void UpdateGameCLock();
 
-	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "GameEvent")
-	void StartNewDay();
-
-
 protected:
 	// 현재 접속 중인 플레이어 수A
 	int32 CurrentPlayerCount = 0;
 
 	// 최대 허용 인원 
 	int32 MaxPlayers = 4;
+	
+	bool bIsGameOver = false;
 };
