@@ -3,10 +3,7 @@
 
 #include "Utils/Boss/FZFBossBombActor.h"
 #include "Components/BoxComponent.h"
-#include "Character/Monster/Boss/FZFTestBoss.h"
 #include "Character/Player/FZFCharacterPlayer.h"
-#include "Kismet/GameplayStatics.h"
-#include "Particles/ParticleSystem.h"
 #include "NiagaraFunctionLibrary.h"
 
 // Sets default values
@@ -91,6 +88,7 @@ void AFZFBossBombActor::MulticastExplode_Implementation()
 	// 이 함수는 서버의 지시를 받아 모든 클라이언트(및 Listen Server)에서 실행됩니다.
 	if (ExplosionFX)
 	{
+		
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionFX, GetActorLocation());
 	}
 }
