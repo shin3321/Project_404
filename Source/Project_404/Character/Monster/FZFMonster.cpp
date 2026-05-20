@@ -233,6 +233,7 @@ void AFZFMonster::InitAttributesFromData()
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackAreaRadius, MonsterData->AttackAreaRadius);
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackAreaHalfHeight, MonsterData->AttackAreaHalfHeight);
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackSpeed, MonsterData->AttackSpeed);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_PullStrength, MonsterData->PullStrength);
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_BT_DetectRange, MonsterData->DetectRange);
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_BT_TurnSpeed, MonsterData->TurnSpeed);
 

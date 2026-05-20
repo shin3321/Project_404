@@ -94,9 +94,12 @@ public:
 	float AttackAreaHalfHeight;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
 	float AttackSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
+	float PullStrength;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|BT")
 	float DetectRange;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|BT")
 	float TurnSpeed;
+	
 };

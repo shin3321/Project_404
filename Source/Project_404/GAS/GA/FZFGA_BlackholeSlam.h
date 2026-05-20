@@ -22,13 +22,12 @@ public:
 
 protected:
 
+	// 0.1초마다 주변 플레이어를 당기는 핵심 로직
+	void PullTargets();
+
 	// Pulling 종료 후 점프 시작
 	UFUNCTION()
 	void OnPullFinished();
-
-	// 착지 시, 데미지 이벤트 발생 
-	UFUNCTION()
-	void OnSlamHitEventReceived(FGameplayEventData Payload);
 
 	// 몽타주 재생 종료
 	UFUNCTION()
@@ -36,17 +35,19 @@ protected:
 
 	// 스킬 설정 변수들
 	UPROPERTY(EditDefaultsOnly, Category = "Blackhole")
-	float PullDuration = 2.0f;
+	float PullDuration = 1.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Blackhole")
+	float PullStrength = 400.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Blackhole")
 	float SlamRadius = 500.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Blackhole")
-	TSubclassOf<class UGameplayEffect> SlamDamageEffect;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Blackhole")
 	class UAnimMontage* BlackholeSlamMontage;
 
 private:
-	FTimerHandle PullTimerHandle;
+	// 타이머를 역할별로 분리
+	FTimerHandle PullTimerHandle; // 끌어당기는 Timer
+	FTimerHandle PhaseTimerHandle; // Phase 전환 Timer
 };

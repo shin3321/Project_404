@@ -18,6 +18,8 @@ public:
 	ATTRIBUTE_ACCESSORS(UFZFMonsterSet, DetectRange);
 	// 회전 속도 (Turn Speed)
 	ATTRIBUTE_ACCESSORS(UFZFMonsterSet, TurnSpeed);
+	// 끌어당기는 힘(Pull Strength)
+	ATTRIBUTE_ACCESSORS(UFZFMonsterSet, PullStrength);
 
 protected:
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
@@ -28,4 +30,7 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData TurnSpeed;
+	
+	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData PullStrength;
 };
