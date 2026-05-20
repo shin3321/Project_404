@@ -3,8 +3,11 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameFramework/Character.h"
+#include "Character/Player/FZFCharacterPlayer.h"
 #include "Physics/FZFCollision.h"
 #include "Components/CapsuleComponent.h"
+#include "Inventory/FZFHeldItemComponent.h"
+#include "FZFHeldItemActor.h"
 
 AFZFTA_LaserSweep::AFZFTA_LaserSweep()
 {
@@ -38,21 +41,39 @@ FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 	float AttackRadius = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackRadiusAttribute());
 
 	// 시작 위치(Start)와 방향(Forward) 결정
-	FVector Start;
+	FVector Start = FVector::ZeroVector;
 	FVector Forward = Character->GetActorForwardVector();
 
 	if (bUseSocket && !StartSocketName.IsNone())
 	{
-		// 몬스터의 손이나 총구 소켓 위치를 시작점으로 설정
-		Start = Character->GetMesh()->GetSocketLocation(StartSocketName);
+		AFZFCharacterPlayer* CharacterPlayer = Cast<AFZFCharacterPlayer>(Character);
+
+		if (CharacterPlayer)
+		{
+			const UFZFHeldItemComponent* HeldItemComponent = CharacterPlayer->GetHeldItemComponent();
+
+			if (HeldItemComponent)
+			{
+				FVector CameraLocation;
+				FRotator CameraRotation;
+				Character->GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+				Start = CameraLocation;
+				Forward = CameraRotation.Vector();
+			}
+		}
+		else
+		{
+			Start = Character->GetMesh()->GetSocketLocation(StartSocketName);
+			Forward = Character->GetActorForwardVector();
+		}
 	}
 	else
 	{
-		// 소켓 미사용 시, 기존 방식 (캐릭터 캡슐)
 		Start = Character->GetActorLocation() + Forward * Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
 	}
 
-	const FVector End = Start + Forward * AttackRange;
+	FVector End = Start + Forward * AttackRange;
 
 	// 판정 실행
 	TArray<FHitResult> HitResults;
