@@ -7,12 +7,24 @@
 #include "Animation/FZFAnimInstance.h"
 
 #include "Player/FZFPlayerController.h"
+#include "Manager/FZFSoundManager.h"
 
 AFZFCharacterBase::AFZFCharacterBase()
 {
 	// 네트워크 설정
 	bReplicates = true;
 	SetReplicateMovement(true);
+
+}
+
+void AFZFCharacterBase::BeginPlay()
+{
+	Super::BeginPlay();
+	SoundManager = GetGameInstance()->GetSubsystem<UFZFSoundManager>();
+	if (SoundManager)
+	{
+		UE_LOG(LogTemp, Log, TEXT("SoundManager가 생성되었습니다."))
+	}
 }
 
 void AFZFCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

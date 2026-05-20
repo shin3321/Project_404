@@ -33,7 +33,7 @@ public:
 	UFZFInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 
 	// 관전 시점 처리
-	virtual void BecomeViewTarget(APlayerController* PC) override;
+	virtual void BecomeViewTarget(APlayerController* PC) override; 
 	virtual void EndViewTarget(APlayerController* PC) override;
 
 	// 팔 매쉬 Getter
@@ -191,5 +191,19 @@ protected:
 	// 에디터에서 GE_Death를 할당할 변수
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class UGameplayEffect> DeathGameplayEffectClass;
+	
+protected:
+	// 서버에서 실행될 RPC
+	UFUNCTION(Server, Unreliable)
+	void ServerPlaySound(FName RowName, FVector Location);
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlaySound(FName RowName, FVector Location);
+	
+private:
+	FVector LastFootstepLocation;
+	UPROPERTY(EditDefaultsOnly, Category= "Sound")
+	float FootstepDistance = 250.f;
+	
 };
 

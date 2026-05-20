@@ -50,8 +50,6 @@ public:
 	// 관전 대상 전환 (1: 다음, -1: 이전)
 	void ChangeSpectateTarget(int32 Direction);	
 private:
-
-
 	void SpectateNext();
 	void SpectatePrev();
 	

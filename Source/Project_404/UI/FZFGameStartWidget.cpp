@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "SocketSubsystem.h"
 #include "IPAddress.h"
+#include  "Manager/FZFSoundManager.h"
 
 void UFZFGameStartWidget::NativeConstruct()
 {
@@ -27,13 +28,39 @@ void UFZFGameStartWidget::OnHostStartClicked()
 {
 	FString MyIP = GetLocalIPAddress();
 	UE_LOG(LogTemp, Warning, TEXT("Host IP Address: %s"), *MyIP);
-
-	// Todo 로비 레벨 띄우기
-	UGameplayStatics::OpenLevel(GetWorld(), TEXT("/Game/Project404/Map/Lobby"), true, TEXT("listen"));
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		UFZFSoundManager* SoundManager = GI->GetSubsystem<UFZFSoundManager>();
+		if (SoundManager)
+		{
+			SoundManager->PlaySFX(FName("ButtonSFX"));
+		}
+	}
+	
+	FTimerHandle WaitHandle;
+    
+	// 0.5초 뒤에 람다식 내부의 코드가 실행됨
+	GetWorld()->GetTimerManager().SetTimer(WaitHandle, FTimerDelegate::CreateWeakLambda(this, [this]()
+	{
+		// 로비 레벨 띄우기
+		if (UWorld* World = GetWorld())
+		{
+			UGameplayStatics::OpenLevel(World, TEXT("/Game/Project404/Map/Lobby"), true, TEXT("listen"));
+		}
+	}), 0.5f, false);
 }
 
 void UFZFGameStartWidget::OnGuestStartClicked()
 {
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		UFZFSoundManager* SoundManager = GI->GetSubsystem<UFZFSoundManager>();
+		if (SoundManager)
+		{
+			SoundManager->PlaySFX(FName("ButtonSFX"));
+		}
+	}
+	
 	if (IPAddressETB)
 	{
 		FString TargetIP = IPAddressETB->GetText().ToString();
