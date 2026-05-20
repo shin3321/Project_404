@@ -50,7 +50,9 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_Attack);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_MaxAttack);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackRange);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackAreaRadius);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackRadius);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackAreaHalfHeight);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackSpeed);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_DetectRange);
@@ -63,6 +65,8 @@ namespace FZFGameplayTags
 
 	// 공격 판정 체크
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_AttackHitCheck);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_Ranged_AttackHitCheck);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_Melee_AttackHitCheck);
 	
 	// 죽음
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Character_Death);

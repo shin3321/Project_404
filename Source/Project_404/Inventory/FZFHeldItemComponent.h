@@ -32,6 +32,8 @@ public:
 
     FGameplayTag GetCurrentAttackTag() { return  CurrentEquippedTag; }
 
+    FORCEINLINE AFZFHeldItemActor* GetHeldItemActor() const { return CurrentHeldItem; }
+
 protected:
     virtual void BeginPlay() override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

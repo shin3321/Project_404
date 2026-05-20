@@ -50,6 +50,10 @@ public:
 	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, AttackRange);
 	// 공격 반경 (Attack Radius)
 	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, AttackRadius);
+	// 공격 Area 반경 (Attack Area Radius)
+	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, AttackAreaRadius);
+	// 공격 Area 높이 반경 (Attack Area Half Height)
+	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, AttackAreaHalfHeight);
 	// 공격 속도 (Attack Speed)
 	ATTRIBUTE_ACCESSORS(UFZFAttributeSet, AttackSpeed);
 
@@ -104,6 +108,12 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackRadius;
+
+	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData AttackAreaRadius;
+
+	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData AttackAreaHalfHeight;
 	
 	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackSpeed;

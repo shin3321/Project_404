@@ -173,7 +173,17 @@ void AFZFMonster::InitAbilitySystem()
 		ASC->InitAbilityActorInfo(this, this);
 
 		// ASC로부터 MonsterSet을 찾아 캐싱
-		MonsterAttributeSet = const_cast<UFZFMonsterSet*>(ASC->GetSet<UFZFMonsterSet>());
+		const UFZFMonsterSet* FoundMonsterSet = ASC->GetSet<UFZFMonsterSet>();
+
+		if (FoundMonsterSet)
+		{
+			MonsterAttributeSet = const_cast<UFZFMonsterSet*>(FoundMonsterSet);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[%s] ASC에서 UFZFMonsterSet 못 찾음"), *GetName());
+		}
+
 		if (MonsterAttributeSet == nullptr)
 		{
 			UE_LOG(LogTemp, Error, TEXT("[%s] MonsterAttributeSet 로드 실패!"), *GetName());
@@ -215,14 +225,16 @@ void AFZFMonster::InitAttributesFromData()
 
 	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
 
-	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Stat.MaxHp")), MonsterData->MaxHp);
-	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Move.MaxMovementSpeed")), MonsterData->MaxMovementSpeed);
-	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Attack.MaxAttack")), MonsterData->MaxAttack);
-	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Attack.AttackRange")), MonsterData->AttackRange);
-	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Attack.AttackRadius")), MonsterData->AttackRadius);
-	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.Attack.AttackSpeed")), MonsterData->AttackSpeed);
-	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.BT.DetectRange")), MonsterData->DetectRange);
-	Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.BT.TurnSpeed")), MonsterData->TurnSpeed);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Stat_MaxHp, MonsterData->MaxHp);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Move_MaxMovementSpeed, MonsterData->MaxMovementSpeed);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_MaxAttack, MonsterData->MaxAttack);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackRange, MonsterData->AttackRange);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackRadius, MonsterData->AttackRadius);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackAreaRadius, MonsterData->AttackAreaRadius);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackAreaHalfHeight, MonsterData->AttackAreaHalfHeight);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackSpeed, MonsterData->AttackSpeed);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_BT_DetectRange, MonsterData->DetectRange);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_BT_TurnSpeed, MonsterData->TurnSpeed);
 
 	FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
 }
@@ -247,6 +259,13 @@ float AFZFMonster::GetAIDetectRange()
 // 공격 사거리
 float AFZFMonster::GetAIAttackRange()
 {
+	if (!MonsterAttributeSet)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] MonsterAttributeSet is null"), *GetName());
+		return 0.f;
+	}
+
+
 	// GAS AttributeSet에서 수치 가져오기
 	return MonsterAttributeSet->GetAttackRange();
 }

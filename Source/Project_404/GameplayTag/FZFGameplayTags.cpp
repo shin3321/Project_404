@@ -50,6 +50,8 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_MaxAttack, "Data.Attack.MaxAttack");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackRange, "Data.Attack.AttackRange");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackRadius, "Data.Attack.AttackRadius");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackAreaRadius, "Data.Attack.AttackAreaRadius");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackAreaHalfHeight, "Data.Attack.AttackAreaHalfHeight");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackSpeed, "Data.Attack.AttackSpeed");
 
 	UE_DEFINE_GAMEPLAY_TAG(Data_BT_DetectRange, "Data.BT.DetectRange");
@@ -58,6 +60,8 @@ namespace FZFGameplayTags
 
 	// 공격 판정 체크
 	UE_DEFINE_GAMEPLAY_TAG(Event_Character_AttackHitCheck, "Event.Character.AttackHitCheck");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Character_Ranged_AttackHitCheck, "Event.Character.Ranged.AttackHitCheck");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Character_Melee_AttackHitCheck, "Event.Character.Melee.AttackHitCheck");
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Character_Death, "GameplayCue.Character.Death");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dead, "State.Dead");
