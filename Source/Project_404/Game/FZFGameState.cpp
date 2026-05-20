@@ -28,7 +28,7 @@ void AFZFGameState::BeginPlay()
 		{
 			if (UFZFSoundManager* SoundManager = GI->GetSubsystem<UFZFSoundManager>())
 			{
-				//SoundManager->PlayBGM(FName("Lobby"));
+				SoundManager->PlayBGM(FName("LobbyLevel"));
 			}
 		}
 	}
@@ -58,11 +58,11 @@ void AFZFGameState::UpdateBGMByPhase(EGamePhase Phase)
 	case EGamePhase::Base:
 		SoundManager->PlayBGM(FName("Base"));
 		break;
-	case EGamePhase::BossPhase1:
-		SoundManager->PlayBGM(FName("BossPhase1"));
+	case EGamePhase::BossLevel_1:
+		SoundManager->PlayBGM(FName("BossLevel_1"));
 		break;
-	case EGamePhase::BossPhase2:
-		SoundManager->PlayBGM(FName("BossPhase2"));
+	case EGamePhase::BossLevel_2:
+		SoundManager->PlayBGM(FName("BossLevel_2"));
 		break;
 	}
 }

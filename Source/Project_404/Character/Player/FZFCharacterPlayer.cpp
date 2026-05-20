@@ -17,19 +17,19 @@
 #include "Interface/FZFInteractableInterface.h"
 #include "Animation/FZFPlayerAnimInstance.h"
 
-#include "Kismet/GameplayStatics.h"
-#include "Game/FZFGameMode.h"
 #include "Inventory/FZFHUD.h"
 #include "Inventory/FZFHeldItemComponent.h"
 #include "Components/PrimitiveComponent.h"
+
+#include  "Manager/FZFSoundManager.h"
 
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
 	// 기본 설정
 	// 컨트롤러의 회전 값을 받아서 설정하는 옵션 비활성화
-	bUseControllerRotationPitch = false;	// Y축 회전, 위아래는 카메라만 까딱이게 함 (캡슐 통째로 눕지 않게)
-	bUseControllerRotationYaw = true;		// Z축 회전, 마우스 좌우 회전 시 캐릭터 몸통(캡슐)도 같이 회전 
-	bUseControllerRotationRoll = false;		// X축 회전
+	bUseControllerRotationPitch = false; // Y축 회전, 위아래는 카메라만 까딱이게 함 (캡슐 통째로 눕지 않게)
+	bUseControllerRotationYaw = true; // Z축 회전, 마우스 좌우 회전 시 캐릭터 몸통(캡슐)도 같이 회전 
+	bUseControllerRotationRoll = false; // X축 회전
 
 	PrimaryActorTick.bCanEverTick = true;
 	// 무브먼트 설정
@@ -52,9 +52,11 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	// 메시 에셋 지정
 
 	// 전신 매쉬
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMeshRef(TEXT("/Game/Project404/Character/Player/SkeletalMesh/SK_SciFITrooper-01.SK_SciFITrooper-01"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMeshRef(
+		TEXT("/Game/Project404/Character/Player/SkeletalMesh/SK_SciFITrooper-01.SK_SciFITrooper-01"));
 	// 팔 매쉬
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ArmMeshRef(TEXT("/Game/Project404/Character/Player/SkeletalMesh/2_Hand.2_Hand"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ArmMeshRef(
+		TEXT("/Game/Project404/Character/Player/SkeletalMesh/2_Hand.2_Hand"));
 
 	if (GetMesh() && CharacterMeshRef.Succeeded())
 	{
@@ -71,7 +73,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 
 	// 팔 매시 위치 및 회전
 	SetArmMeshDefaultTransform();
-	
+
 	// 팔 전용 메쉬 할당
 	if (ArmMeshRef.Succeeded())
 	{
@@ -83,49 +85,56 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	GetCharacterMovement()->GravityScale = 1.6f; // 중력 배율
 
 	// ArmMesh ABP 설정
-	static ConstructorHelpers::FClassFinder<UAnimInstance> ArmABPRef(TEXT("/Game/Project404/Character/Player/Animation/ABP_Hand.ABP_Hand_C"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> ArmABPRef(
+		TEXT("/Game/Project404/Character/Player/Animation/ABP_Hand.ABP_Hand_C"));
 
 	if (ArmABPRef.Succeeded())
 	{
 		ArmMesh->SetAnimInstanceClass(ArmABPRef.Class);
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultMappingContextRef(TEXT("/Game/Project404/Input/IMC_Default.IMC_Default"));
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultMappingContextRef(
+		TEXT("/Game/Project404/Input/IMC_Default.IMC_Default"));
 	if (DefaultMappingContextRef.Succeeded())
 	{
 		// 기본 IMC 할당
 		DefaultMappingContext = DefaultMappingContextRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Game/Project404/Input/Actions/IA_Move.IA_Move"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Move.IA_Move"));
 	if (MoveActionRef.Succeeded())
 	{
 		// 1인칭용 MoveAction 변수에 할당
 		MoveAction = MoveActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(TEXT("/Game/Project404/Input/Actions/IA_Look.IA_Look"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Look.IA_Look"));
 	if (LookActionRef.Succeeded())
 	{
 		// 1인칭용 LookAction 변수에 할당
 		LookAction = LookActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionRef(TEXT("/Game/Project404/Input/Actions/IA_Interact.IA_Interact"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> InteractActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Interact.IA_Interact"));
 	if (InteractActionRef.Succeeded())
 	{
 		// 상호작용 변수에 할당
 		InteractAction = InteractActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> DropItemActionRef(TEXT("/Game/Project404/Input/Actions/IA_DropItem.IA_DropItem"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> DropItemActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_DropItem.IA_DropItem"));
 	if (DropItemActionRef.Succeeded())
 	{
 		// 상호작용 변수에 할당
 		DropItemAction = InteractActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Project404/Input/Actions/IA_Jump.IA_Jump"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Jump.IA_Jump"));
 
 	if (JumpActionRef.Succeeded())
 	{
@@ -133,14 +142,16 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 		JumpAction = JumpActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(TEXT("/Game/Project404/Input/Actions/IA_Run.IA_Run"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Run.IA_Run"));
 	if (RunActionRef.Succeeded())
 	{
 		// 달리기 액션
 		RunAction = RunActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionRef(TEXT("/Game/Project404/Input/Actions/IA_Attack.IA_Attack"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Attack.IA_Attack"));
 	if (AttackActionRef.Succeeded())
 	{
 		// 공격 액션
@@ -150,33 +161,38 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	// GAS
 	// 의도적으로 nullptr로 밀어줌 -> PlayerState의 ASC값을 대입할거라서 혼선방지용
 	ASC = nullptr;
-	
+
 	// Inventory 추가
 	InventoryComponent = CreateDefaultSubobject<UFZFInventoryComponent>(TEXT("InventoryComponent"));
 
 
 	// 슬롯 1~5 입력 액션 에셋 로드
-	static ConstructorHelpers::FObjectFinder<UInputAction> Slot1ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot1.IA_Slot1"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot1ActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Slot1.IA_Slot1"));
 	if (Slot1ActionRef.Succeeded())
 	{
 		Slot1Action = Slot1ActionRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> Slot2ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot2.IA_Slot2"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot2ActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Slot2.IA_Slot2"));
 	if (Slot2ActionRef.Succeeded())
 	{
 		Slot2Action = Slot2ActionRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> Slot3ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot3.IA_Slot3"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot3ActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Slot3.IA_Slot3"));
 	if (Slot3ActionRef.Succeeded())
 	{
 		Slot3Action = Slot3ActionRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> Slot4ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot4.IA_Slot4"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot4ActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Slot4.IA_Slot4"));
 	if (Slot4ActionRef.Succeeded())
 	{
 		Slot4Action = Slot4ActionRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> Slot5ActionRef(TEXT("/Game/Project404/Input/Actions/IA_Slot5.IA_Slot5"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> Slot5ActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_Slot5.IA_Slot5"));
 	if (Slot5ActionRef.Succeeded())
 	{
 		Slot5Action = Slot5ActionRef.Object;
@@ -263,7 +279,8 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 				FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 				EffectContext.AddSourceObject(this);
 
-				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(PassiveRegenEffectClass, 1.0f, EffectContext);
+				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(
+					PassiveRegenEffectClass, 1.0f, EffectContext);
 				if (SpecHandle.IsValid())
 				{
 					// 서버에서 적용 시 클라이언트로 자동 복제됨
@@ -332,18 +349,24 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Attack);
 
 		// Interaction
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::Interact);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this,
+		                                   &AFZFCharacterPlayer::Interact);
 
 		// DropItem
-		EnhancedInputComponent->BindAction(DropItemAction, ETriggerEvent::Started, this, &AFZFCharacterPlayer::DropSelectedItem);
+		EnhancedInputComponent->BindAction(DropItemAction, ETriggerEvent::Started, this,
+		                                   &AFZFCharacterPlayer::DropSelectedItem);
 
 		// 숫자키 입력과 슬롯 선택 함수 연결
-		EnhancedInputComponent->BindAction(Slot1Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot1);
-		EnhancedInputComponent->BindAction(Slot2Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot2);
-		EnhancedInputComponent->BindAction(Slot3Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot3);
-		EnhancedInputComponent->BindAction(Slot4Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot4);
-		EnhancedInputComponent->BindAction(Slot5Action, ETriggerEvent::Started, this, &AFZFCharacterPlayer::SelectSlot5);
-
+		EnhancedInputComponent->BindAction(Slot1Action, ETriggerEvent::Started, this,
+		                                   &AFZFCharacterPlayer::SelectSlot1);
+		EnhancedInputComponent->BindAction(Slot2Action, ETriggerEvent::Started, this,
+		                                   &AFZFCharacterPlayer::SelectSlot2);
+		EnhancedInputComponent->BindAction(Slot3Action, ETriggerEvent::Started, this,
+		                                   &AFZFCharacterPlayer::SelectSlot3);
+		EnhancedInputComponent->BindAction(Slot4Action, ETriggerEvent::Started, this,
+		                                   &AFZFCharacterPlayer::SelectSlot4);
+		EnhancedInputComponent->BindAction(Slot5Action, ETriggerEvent::Started, this,
+		                                   &AFZFCharacterPlayer::SelectSlot5);
 	}
 }
 
@@ -359,7 +382,8 @@ void AFZFCharacterPlayer::ApplyMappingContext(UInputMappingContext* InMappingCon
 	// 컨트롤러 및 서브시스템 가져오기
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = ULocalPlayer::GetSubsystem<
+			UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			if (InputSystem)
 			{
@@ -377,7 +401,6 @@ void AFZFCharacterPlayer::ApplyMappingContext(UInputMappingContext* InMappingCon
 			}
 		}
 	}
-
 }
 
 void AFZFCharacterPlayer::PawnClientRestart()
@@ -387,9 +410,9 @@ void AFZFCharacterPlayer::PawnClientRestart()
 	if (GetCharacterMovement())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Movement Mode: %d"),
-			(int32)GetCharacterMovement()->MovementMode);
+		       (int32)GetCharacterMovement()->MovementMode);
 		UE_LOG(LogTemp, Warning, TEXT("Max Walk Speed: %f"),
-			GetCharacterMovement()->MaxWalkSpeed);
+		       GetCharacterMovement()->MaxWalkSpeed);
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("PawnClientRestart"));
@@ -443,7 +466,8 @@ void AFZFCharacterPlayer::SetDead()
 			FGameplayEffectContextHandle EffectContext = ActiveASC->MakeEffectContext();
 			EffectContext.AddSourceObject(this);
 
-			FGameplayEffectSpecHandle SpecHandle = ActiveASC->MakeOutgoingSpec(DeathGameplayEffectClass, 1.0f, EffectContext);
+			FGameplayEffectSpecHandle SpecHandle = ActiveASC->MakeOutgoingSpec(
+				DeathGameplayEffectClass, 1.0f, EffectContext);
 			if (SpecHandle.IsValid())
 			{
 				// 이 한 줄로 모든 클라이언트에 State_Dead 태그와 GameplayCue가 자동 동기화됩니다.
@@ -471,6 +495,16 @@ void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 	// 계산된 방향과 입력된 크기(MovementVector)를 조합하여 캐릭터를 실제로 이동
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
+
+	if (GetCharacterMovement()->IsMovingOnGround())
+	{
+		float DistanceMoved = FVector::Dist(GetActorLocation(), LastFootstepLocation);
+		if (DistanceMoved > FootstepDistance)
+		{
+			ServerPlaySound(TEXT("PlayerFoot_Road"), GetActorLocation());
+			LastFootstepLocation = GetActorLocation();
+		}
+	}
 }
 
 void AFZFCharacterPlayer::Look(const FInputActionValue& Value)
@@ -513,11 +547,18 @@ void AFZFCharacterPlayer::DropSelectedItem()
 
 void AFZFCharacterPlayer::RunStart()
 {
-
 	if (ASC)
 	{
-		
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Run));
+	}
+	if (GetCharacterMovement()->IsMovingOnGround())
+	{
+		float DistanceMoved = FVector::Dist(GetActorLocation(), LastFootstepLocation);
+		if (DistanceMoved > FootstepDistance)
+		{
+			ServerPlaySound(TEXT("Footstep"), GetActorLocation());
+			LastFootstepLocation = GetActorLocation();
+		}
 	}
 }
 
@@ -527,7 +568,7 @@ void AFZFCharacterPlayer::RunEnd()
 	{
 		// GameplayTagContainer를 단일 태그로 직접 초기화
 		const FGameplayTagContainer RunTag(FZFGameplayTags::Ability_Action_Run);
-		
+
 		// 해당 태그를 가진 어빌리티들을 취소(주소값을 전달하여 불필요한 복사 방지)
 		ASC->CancelAbilities(&RunTag);
 	}
@@ -544,7 +585,6 @@ void AFZFCharacterPlayer::JumpStart()
 void AFZFCharacterPlayer::JumpEnd()
 {
 	StopJumping();
-
 }
 
 void AFZFCharacterPlayer::Attack()
@@ -557,6 +597,8 @@ void AFZFCharacterPlayer::Attack()
 	{
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
 	}
+	
+	ServerPlaySound(TEXT("Weapon_LaserGun"), GetActorLocation());
 }
 
 void AFZFCharacterPlayer::OnRep_PlayerState()
@@ -602,7 +644,7 @@ void AFZFCharacterPlayer::OnRep_IsDead()
 
 				// 고개가 옆으로 꺾이고(Roll), 살짝 바닥을 향하도록(Pitch) 각도를 덮어씌웁니다.
 				DeathRotation.Pitch = -15.0f; // 살짝 아래를 봄
-				DeathRotation.Roll = -75.0f;  // 오른쪽으로 75도 꺾임
+				DeathRotation.Roll = -75.0f; // 오른쪽으로 75도 꺾임
 
 				Camera->SetWorldRotation(DeathRotation);
 
@@ -721,15 +763,44 @@ void AFZFCharacterPlayer::DetectInteractable()
 		}
 	}
 }
+
 // 죽음 로직
 void AFZFCharacterPlayer::HandleDeath()
 {
 	Super::HandleDeath();
-	
+
 	// 서버측 액터 소멸 타이머 설정 (사망 애니메이션 등을 고려하여 3초 후 제거)
 	if (HasAuthority())
 	{
 		SetLifeSpan(3.0f);
+	}
+}
+
+void AFZFCharacterPlayer::ServerPlaySound_Implementation(FName RowName, FVector Location)
+{
+	MulticastPlaySound(RowName, Location);
+}
+
+void AFZFCharacterPlayer::MulticastPlaySound_Implementation(FName RowName, FVector Location)
+{
+	if (SoundManager)
+	{
+		if (RowName == "PlayerFoot_Road")
+		{
+			SoundManager->PlaySFXAtLocation("PlayerFoot_Road", Location);
+		}
+		else if (RowName == "Weapon_LaserGun")
+		{
+			SoundManager->PlaySFXAtLocation("Weapon_LaserGun", Location);
+		}
+		else if (RowName == "Weapon_pickaxe")
+		{
+			SoundManager->PlaySFXAtLocation("Weapon_pickaxe", Location);
+		}
+		else if (RowName == "PlayerDamage")
+		{
+			SoundManager->PlaySFXAtLocation("PlayerDamage", Location);
+		}
 	}
 }
 

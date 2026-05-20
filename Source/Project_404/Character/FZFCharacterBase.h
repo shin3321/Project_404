@@ -13,7 +13,7 @@ class PROJECT_404_API AFZFCharacterBase : public ACharacter, public IAbilitySyst
 public:
 	// 생성자
 	AFZFCharacterBase();
-
+	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
@@ -67,4 +67,6 @@ protected:
 	// 죽은 후 대기할 시간 값(단위: 초).
 
 	float DeadEventDelayTime = 5.0f;
+	
+	class UFZFSoundManager* SoundManager;
 };
