@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Animation/FZFAnimInstance.h"
@@ -7,21 +7,21 @@
 
 UFZFAnimInstance::UFZFAnimInstance()
 {
-	// ÀÌµ¿À» ÆÇ´ÜÇÒ ¶§ »ç¿ëÇÒ °ª.
+	// ì´ë™ì„ íŒë‹¨í•  ë•Œ ì‚¬ìš©í•  ê°’.
 	MovingThreshold = 3.0f;
 
-	//// Á¡ÇÁ ÁßÀÎÁö ÆÇ´ÜÇÒ ±âÁØ °ª.
-	//JumpingThreshold = 100.0f;
+	// ì í”„ ì¤‘ì¸ì§€ íŒë‹¨í•  ê¸°ì¤€ ê°’.
+	JumpingThreshold = 100.0f;
 }
 
 void UFZFAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	// ¾Ö´Ï¸ŞÀÌ¼ÇÀ» ¼ÒÀ¯ÇÏ´Â Ä³¸¯ÅÍ ÀúÀå.
+	// ì• ë‹ˆë©”ì´ì…˜ì„ ì†Œìœ í•˜ëŠ” ìºë¦­í„° ì €ì¥.
 	Owner = Cast<ACharacter>(GetOwningActor());
 
-	// Ä³¸¯ÅÍ ¹«ºê¸ÕÆ® ÄÄÆ÷³ÍÆ® ÀúÀå.
+	// ìºë¦­í„° ë¬´ë¸Œë¨¼íŠ¸ ì»´í¬ë„ŒíŠ¸ ì €ì¥.
 	if (Owner)
 	{
 		Movement = Owner->GetCharacterMovement();
@@ -32,22 +32,25 @@ void UFZFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	// ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı¿¡ »ç¿ëÇÒ °ª ¼³Á¤.
-	if (Movement)
+	// ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒì— ì‚¬ìš©í•  ê°’ ì„¤ì •.
+	if (Movement && Owner)
 	{
-		// ÇöÀç ¼Óµµ.
+		// í˜„ì¬ ì†ë„.
 		Velocity = Movement->Velocity;
 
-		// Áö¸é¿¡¼­ ÀÌµ¿ÇÏ´Â ¼Ó·Â(ºü¸£±â).
+		// ì§€ë©´ì—ì„œ ì´ë™í•˜ëŠ” ì†ë ¥(ë¹ ë¥´ê¸°).
 		GroundSpeed = Velocity.Size2D();
 
-		// ÀÌµ¿/Á¤Áö »óÅÂ ¼³Á¤.
+		// ì´ë™/ì •ì§€ ìƒíƒœ ì„¤ì •.
 		bIsIdle = GroundSpeed < MovingThreshold;
 
-		//// °øÁß¿¡ ¶° ÀÖ´ÂÁö È®ÀÎ.
-		//bIsFalling = Movement->IsFalling();
+		// ê³µì¤‘ì— ë–  ìˆëŠ”ì§€ í™•ì¸.
+		bIsFalling = Movement->IsFalling();
 
-		//// Á¡ÇÁ ÁßÀÎÁö ÆÇ´Ü.
-		//bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
+		// Zì¶• ì†ë„ ì €ì¥
+		VelocityZ = Velocity.Z;
+
+		// ì í”„ ì¤‘ì¸ì§€ íŒë‹¨.
+		bIsJumping = (bIsFalling && (VelocityZ > JumpingThreshold));
 	}
 }

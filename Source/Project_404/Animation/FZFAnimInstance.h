@@ -45,18 +45,23 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	uint8 bIsIdle : 1;
 
+	// 떨어지고 있는지 확인하는 변수.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	uint8 bIsFalling : 1;
+
+	// 점프해서 위로 솟구치던 속도
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	float VelocityZ;
+
 	// 이동 여부를 판단할 때 사용할 문턱 값.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	float MovingThreshold;
 
-	//// 점프 확인용 변수.
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
-	//uint8 bIsFalling : 1;
+	// 점프 하고 있는 중인지 확인하는 변수
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	uint8 bIsJumping : 1;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
-	//uint8 bIsJumping : 1;
-
-	//// 점프 여부를 판단할 때 사용할 문턱 값.
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
-	//float JumpingThreshold;
+	// 점프 여부를 판단할 때 사용할 문턱 값.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	float JumpingThreshold;
 };
