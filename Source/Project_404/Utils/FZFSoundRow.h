@@ -13,7 +13,7 @@ struct FFZFSoundRow : public FTableRowBase
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
-	USoundBase* BGMAsset;
+	USoundBase* SoundAsset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	float FadeInTime = 1.0f;

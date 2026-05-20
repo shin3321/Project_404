@@ -1,8 +1,7 @@
 ﻿#include "Utils/FZFGameLevelTeleport.h"
-#include "EnhancedInputSubsystems.h"
-#include "EnhancedInputComponent.h"
 #include "Character/FZFCharacterBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Manager/FZFSoundManager.h"
 
 // Sets default values
 AFZFGameLevelTeleport::AFZFGameLevelTeleport()
@@ -78,6 +77,14 @@ void AFZFGameLevelTeleport::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AA
 void AFZFGameLevelTeleport::OnTeleportKeyPressed()
 {
 	UE_LOG(LogTemp, Warning, TEXT("=== OnTeleportKeyPressed Called ==="));
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		UFZFSoundManager* SoundManager = GI->GetSubsystem<UFZFSoundManager>();
+		if (SoundManager)
+		{
+			SoundManager->PlaySFX(FName("ButtonSFX"));
+		}
+	}
 	EnterLobbyLevel();
 }
 

@@ -60,6 +60,8 @@ namespace FZFGameplayTags
 
 	// 공격 판정 체크
 	UE_DEFINE_GAMEPLAY_TAG(Event_Character_AttackHitCheck, "Event.Character.AttackHitCheck");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Character_Ranged_AttackHitCheck, "Event.Character.Ranged.AttackHitCheck");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Character_Melee_AttackHitCheck, "Event.Character.Melee.AttackHitCheck");
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Character_Death, "GameplayCue.Character.Death");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dead, "State.Dead");

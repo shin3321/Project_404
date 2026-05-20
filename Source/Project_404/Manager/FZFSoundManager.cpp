@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Manager/FZFSoundManager.h"
 #include "Components/AudioComponent.h"
@@ -9,7 +9,7 @@ UFZFSoundManager::UFZFSoundManager()
 	static ConstructorHelpers::FObjectFinder<UDataTable> DT_Sound(TEXT("/Game/Project404/Utils/DT_SoundTable"));
 	if (DT_Sound.Succeeded())
 	{
-		BGMDataTable = DT_Sound.Object;
+		SoundDataTable = DT_Sound.Object;
 	}
 }
 
@@ -30,15 +30,15 @@ void UFZFSoundManager::Deinitialize()
 
 void UFZFSoundManager::PlayBGM(FName RowName)
 {
-	if (!BGMDataTable)
+	if (!SoundDataTable)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("BGM DataTable is NULL"));
+		UE_LOG(LogTemp, Warning, TEXT("Sound DataTable is NULL"));
 		return;
 	}
 	static const FString ContextString(TEXT("PlayBGM"));
-	FFZFSoundRow* SoundRow = BGMDataTable->FindRow<FFZFSoundRow>(RowName, ContextString);
+	FFZFSoundRow* SoundRow = SoundDataTable->FindRow<FFZFSoundRow>(RowName, ContextString);
 	
-	if (SoundRow && SoundRow->BGMAsset)
+	if (SoundRow && SoundRow->SoundAsset)
 	{
 		if (CurrentAudioComponent && CurrentAudioComponent->IsPlaying())
 		{
@@ -47,7 +47,7 @@ void UFZFSoundManager::PlayBGM(FName RowName)
 		}
 		if (UWorld* World = GetWorld())
 		{
-			CurrentAudioComponent = UGameplayStatics::CreateSound2D(World, SoundRow->BGMAsset, SoundRow->VolumeMultiplier,1.0f, 0.0f, nullptr, true);
+			CurrentAudioComponent = UGameplayStatics::CreateSound2D(World, SoundRow->SoundAsset, SoundRow->VolumeMultiplier,1.0f, 0.0f, nullptr, true);
 			if (CurrentAudioComponent)
 			{
 				CurrentAudioComponent->bIsUISound = true;
@@ -67,5 +67,53 @@ void UFZFSoundManager::StopBGM(float FadeOutTime)
 	{
 		CurrentAudioComponent->FadeOut(FadeOutTime, 0.0f);
 		CurrentAudioComponent = nullptr;
+	}
+}
+
+void UFZFSoundManager::PlaySFX(FName RowName)
+{
+	if (!SoundDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Sound DataTable is NULL"));
+		return;
+	}
+
+	static const FString ContextString(TEXT("PlaySFX"));
+	FFZFSoundRow* SoundRow = SoundDataTable->FindRow<FFZFSoundRow>(RowName, ContextString);
+
+	if (SoundRow && SoundRow->SoundAsset)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			UGameplayStatics::PlaySound2D(World, SoundRow->SoundAsset, SoundRow->VolumeMultiplier);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SFX Row '%s' not found or Asset is missing!"), *RowName.ToString());
+	}
+}
+
+void UFZFSoundManager::PlaySFXAtLocation(FName RowName, FVector Location)
+{
+	if (!SoundDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Sound DataTable is NULL"));
+		return;
+	}
+
+	static const FString ContextString(TEXT("PlaySFXAtLocation"));
+	FFZFSoundRow* SoundRow = SoundDataTable->FindRow<FFZFSoundRow>(RowName, ContextString);
+
+	if (SoundRow && SoundRow->SoundAsset)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			UGameplayStatics::PlaySoundAtLocation(World, SoundRow->SoundAsset, Location, SoundRow->VolumeMultiplier);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SFX Row '%s' not found or Asset is missing!"), *RowName.ToString());
 	}
 }

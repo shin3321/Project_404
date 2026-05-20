@@ -65,6 +65,8 @@ namespace FZFGameplayTags
 
 	// 공격 판정 체크
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_AttackHitCheck);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_Ranged_AttackHitCheck);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_Melee_AttackHitCheck);
 	
 	// 죽음
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Character_Death);
