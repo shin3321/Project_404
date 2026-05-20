@@ -50,7 +50,9 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_Attack);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_MaxAttack);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackRange);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackAreaRadius);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackRadius);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackAreaHalfHeight);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackSpeed);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_DetectRange);

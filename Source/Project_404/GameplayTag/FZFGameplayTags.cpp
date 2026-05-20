@@ -50,6 +50,8 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_MaxAttack, "Data.Attack.MaxAttack");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackRange, "Data.Attack.AttackRange");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackRadius, "Data.Attack.AttackRadius");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackAreaRadius, "Data.Attack.AttackAreaRadius");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackAreaHalfHeight, "Data.Attack.AttackAreaHalfHeight");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackSpeed, "Data.Attack.AttackSpeed");
 
 	UE_DEFINE_GAMEPLAY_TAG(Data_BT_DetectRange, "Data.BT.DetectRange");
