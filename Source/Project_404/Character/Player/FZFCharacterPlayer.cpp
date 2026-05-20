@@ -683,36 +683,12 @@ void AFZFCharacterPlayer::DetectInteractable()
 void AFZFCharacterPlayer::HandleDeath()
 {
 	Super::HandleDeath();
-	//
-	// if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	// {
-	// 	// 살아 있는 플레이어 찾기
-	// 	AActor* TargetActor = nullptr;
-	// 	if (AGameStateBase* GS = GetWorld()->GetGameState())
-	// 	{
-	// 		for (APlayerState* PS : GS->PlayerArray)
-	// 		{
-	// 			if (PS && PS!= GetPlayerState())
-	// 			{
-	// 				if (APawn* OtherPawn = PS->GetPawn())
-	// 				{
-	// 					TargetActor = OtherPawn;
-	// 					break;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	if (TargetActor)
-	// 	{
-	// 		// 다른 플레이어의 뷰로 전환
-	// 		PC->SetViewTargetWithBlend(TargetActor, 0.5f);
-	// 	}
-	// 	PC->UnPossess();
-	// }
 	
-	// 이곳은 서버에서만 돕니다.
-	// 서버측 액터 소멸 타이머 설정
-	SetLifeSpan(3.0f);
+	// 서버측 액터 소멸 타이머 설정 (사망 애니메이션 등을 고려하여 3초 후 제거)
+	if (HasAuthority())
+	{
+		SetLifeSpan(3.0f);
+	}
 }
 
 // 1번 슬롯 선택

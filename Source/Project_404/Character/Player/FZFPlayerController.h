@@ -30,29 +30,35 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Shop")
 	void RequestPurchase(class AFZFStore* TargetStore, FName ItemId, float ItemCost);
 
-	void LoadAndSyncPlayerData();
+	// 입력 바인딩 함수
+	virtual void SetupInputComponent() override;
 
 public:
-	// 관전 대상 전환 (1: 다음, -1: 이전)
-	void ChangeSpectateTarget(int32 Direction);	
-
+	// 관전 시작 함수
+	void StartSpectator();
+public:
 	UFUNCTION()
 	void RequestSpawnItem(FName ItemId, FVector ItemSpawnLocation);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSpawnItem(FName ItemId, FVector ItemSpawnLocation);
-
-
-protected:
-	int32 SpectateIndex = 0;
-	TArray<APawn*> GetSpectatablePawns();
-	
-	
 	// 실제로 서버로 넘어가서 실행될 RPC 함수
 	// Reliable: 반드시 도착하도록 보장 (결제 같은 중요 로직에 필수)
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRequestPurchase(class AFZFStore* TargetStore, FName ItemId, float ItemCost);
+	
+private:
+	// 관전 대상 전환 (1: 다음, -1: 이전)
+	void ChangeSpectateTarget(int32 Direction);
 
+	void SpectateNext();
+	void SpectatePrev();
+	
+public:
+	UPROPERTY(Replicated)
+	bool bIsSpectating = false;
+	
 protected:
 	class AFZFSpawnManager* SpawnManager;
+	int32 SpectateIndex = 0;
 };
