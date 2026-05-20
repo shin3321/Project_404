@@ -89,6 +89,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
 	float AttackRadius;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
+	float AttackAreaRadius;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
+	float AttackAreaHalfHeight;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
 	float AttackSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|BT")

@@ -6,6 +6,7 @@
 #include "Interface/FZFMonsterAIInterface.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "FZFAI.h"
+#include "DrawDebugHelpers.h"
 
 UBTService_UpdateAttackPos::UBTService_UpdateAttackPos()
 {
@@ -22,6 +23,7 @@ void UBTService_UpdateAttackPos::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
 	if (!ControllingPawn)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("No ControllingPawn"));
 		return;
 	}
 
@@ -29,12 +31,14 @@ void UBTService_UpdateAttackPos::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 	UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
 	if (!Blackboard)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("No Blackboard"));
 		return;
 	}
 
 	APawn* Target = Cast<APawn>(Blackboard->GetValueAsObject(BBKEY_TARGET));
 	if (!Target)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("No Target"));
 		return;
 	}
 
@@ -42,6 +46,7 @@ void UBTService_UpdateAttackPos::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 	IFZFMonsterAIInterface* AIPawn = Cast<IFZFMonsterAIInterface>(ControllingPawn);
 	if (!AIPawn)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("No AIPawn Interface"));
 		return;
 	}
 
@@ -59,6 +64,65 @@ void UBTService_UpdateAttackPos::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 
 	// AttackPos 설정
 	FVector AttackPos = TargetLoc + DirFromTargetToMonster * DesiredDistance;
+
+	/* 몬스터 공격 감지 범위 + 공격 사거리 시각 디버깅 코드 -> 지우지 마세요! */
+	/*
+	// 빨강 = 몬스터 위치(GetActorLocation)
+	DrawDebugSphere(
+		GetWorld(),
+		MonsterLoc,
+		40.f,
+		12,
+		FColor::Red,
+		false,
+		5.0f
+	);
+
+	// 초록 = 타겟 위치
+	DrawDebugSphere(
+		GetWorld(),
+		TargetLoc,
+		40.f,
+		12,
+		FColor::Green,
+		false,
+		5.0f
+	);
+
+	// 파랑 = 계산된 AttackPos
+	DrawDebugSphere(
+		GetWorld(),
+		AttackPos,
+		40.f,
+		12,
+		FColor::Blue,
+		false,
+		5.0f
+	);
+
+	// 선 연결
+	DrawDebugLine(
+		GetWorld(),
+		MonsterLoc,
+		TargetLoc,
+		FColor::Yellow,
+		false,
+		5.0f,
+		0,
+		3.f
+	);
+
+	DrawDebugLine(
+		GetWorld(),
+		TargetLoc,
+		AttackPos,
+		FColor::Cyan,
+		false,
+		5.0f,
+		0,
+		3.f
+	); 
+	*/
 
 	UE_LOG(LogTemp, Warning, TEXT("Desired: %.1f, CurrentDist: %.1f, AttackPos: %s"),
 		DesiredDistance,
