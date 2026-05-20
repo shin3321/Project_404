@@ -5,6 +5,7 @@
 #include "AIController.h"
 #include "FZFAI.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "DrawDebugHelpers.h"
 
 UBTDecorator_AttackInRange::UBTDecorator_AttackInRange()
 {
@@ -49,6 +50,45 @@ bool UBTDecorator_AttackInRange::CalculateRawConditionValue(
 	// 계산한 결과가 공격 범위 안에 있는지 확인.
 	float AttackDetectRange = AIPawn->GetAIAttackDetectRange();
 	bResult = (DistanceToTarget <= AttackDetectRange);
+
+	/* 감지 범위 확인 디버깅 코드 -> 지우지 마세요! */
+	
+	FVector MonsterLoc = ControllingPawn->GetActorLocation();
+	FVector TargetLoc = Target->GetActorLocation();
+
+	// 원통 변수
+	float Radius = AttackDetectRange;
+	float HalfHeight = 300.f; // 원통 높이 절반
+
+	FVector Bottom = MonsterLoc - FVector(0, 0, HalfHeight);
+	FVector Top = MonsterLoc + FVector(0, 0, HalfHeight);
+
+	float DistanceToTarget1 = FVector::Dist2D(MonsterLoc, TargetLoc);
+
+	DrawDebugCylinder(
+		ControllingPawn->GetWorld(),
+		Bottom,
+		Top,
+		Radius,
+		32,
+		bResult ? FColor::Blue : FColor::Red,
+		false,
+		0.2f,
+		0,
+		3.f
+	);
+
+	DrawDebugLine(
+		ControllingPawn->GetWorld(),
+		MonsterLoc,
+		TargetLoc,
+		DistanceToTarget1 <= AttackDetectRange ? FColor::Blue : FColor::Red,
+		false,
+		5.0f,
+		0,
+		5.f
+	);
+	
 
 	return bResult;
 }
