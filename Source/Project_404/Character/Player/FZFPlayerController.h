@@ -46,10 +46,11 @@ public:
 	// Reliable: 반드시 도착하도록 보장 (결제 같은 중요 로직에 필수)
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRequestPurchase(class AFZFStore* TargetStore, FName ItemId, float ItemCost);
-	
-private:
+
 	// 관전 대상 전환 (1: 다음, -1: 이전)
-	void ChangeSpectateTarget(int32 Direction);
+	void ChangeSpectateTarget(int32 Direction);	
+private:
+
 
 	void SpectateNext();
 	void SpectatePrev();

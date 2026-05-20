@@ -616,6 +616,48 @@ void AFZFCharacterPlayer::OnRep_IsDead()
 	}
 }
 
+void AFZFCharacterPlayer::BecomeViewTarget(APlayerController* PC)
+{
+	Super::BecomeViewTarget(PC);
+
+	// 로컬 컨트롤러가 나를 관전하기 시작했을 때 (내가 관전 대상이 됨)
+	if (PC && PC->IsLocalController() && !IsLocallyControlled())
+	{
+		// 관전자가 나를 볼 때도 내가 보는 것과 똑같이 보이게 함
+		// 전신 메시 숨기기
+		if (GetMesh())
+		{
+			GetMesh()->SetHiddenInGame(true);
+		}
+
+		// 1인칭 팔 메시 보이기
+		if (ArmMesh)
+		{
+			ArmMesh->SetOnlyOwnerSee(true);
+			ArmMesh->SetHiddenInGame(true);
+		}
+	}
+}
+
+void AFZFCharacterPlayer::EndViewTarget(APlayerController* PC)
+{
+	Super::EndViewTarget(PC);
+
+	// 관전이 끝났을 때 원래대로 복구
+	if (PC && PC->IsLocalController() && !IsLocallyControlled())
+	{
+		if (GetMesh())
+		{
+			GetMesh()->SetHiddenInGame(false);
+		}
+
+		if (ArmMesh)
+		{
+			ArmMesh->SetOnlyOwnerSee(true);
+		}
+	}
+}
+
 void AFZFCharacterPlayer::DetectInteractable()
 {
 	if (!Camera)
