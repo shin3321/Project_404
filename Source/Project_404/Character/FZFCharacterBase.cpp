@@ -7,12 +7,24 @@
 #include "Animation/FZFAnimInstance.h"
 
 #include "Player/FZFPlayerController.h"
+#include "Manager/FZFSoundManager.h"
 
 AFZFCharacterBase::AFZFCharacterBase()
 {
 	// 네트워크 설정
 	bReplicates = true;
 	SetReplicateMovement(true);
+
+}
+
+void AFZFCharacterBase::BeginPlay()
+{
+	Super::BeginPlay();
+	SoundManager = GetGameInstance()->GetSubsystem<UFZFSoundManager>();
+	if (SoundManager)
+	{
+		UE_LOG(LogTemp, Log, TEXT("SoundManager가 생성되었습니다."))
+	}
 }
 
 void AFZFCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -44,15 +56,28 @@ void AFZFCharacterBase::HandleDeath()
     // 상태 정리 (무브먼트 차단 및 어빌리티 정리)
     SetDead();
 	
-	// 관전자 모드로 전환
-	if (AFZFPlayerController* PC = Cast<AFZFPlayerController>(GetController()))
-	{
-		// 관전 시작 (뷰 타겟 변경 등)
-		PC->StartSpectator(); 
+    FTimerHandle SpectatorTimerHandle;
 
-		// 죽은 폰에서 빙의 해제
-		PC->UnPossess();
-	}
+	GetWorld()->GetTimerManager().SetTimer(
+		SpectatorTimerHandle,
+		FTimerDelegate::CreateWeakLambda(this, [this]()
+			{
+				// 2초 뒤에 이 블록이 실행됩니다.
+				if (AFZFPlayerController* PC = Cast<AFZFPlayerController>(GetController()))
+				{
+					// 관전 시작
+					PC->StartSpectator();
+
+					// 죽은 폰에서 빙의 해제
+					PC->UnPossess();
+
+					// 즉시 다른 플레이어를 찾아 시점 넘김
+					PC->ChangeSpectateTarget(0);
+				}
+			}),
+		2.0f,  // 2초 대기
+		false  // 반복하지 않음 (1회성)
+	);
 }
 
 void AFZFCharacterBase::OnRep_IsDead()

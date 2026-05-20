@@ -28,13 +28,21 @@ public:
 	// BGM 정지 함수
 	UFUNCTION(BlueprintCallable, Category = "FZFAudio")
 	void StopBGM(float FadeOutTime = 1.0f);
+
+	// SFX 재생 함수 (2D)
+	UFUNCTION(BlueprintCallable, Category = "FZFAudio")
+	void PlaySFX(FName RowName);
+
+	// SFX 재생 함수 (3D - 특정 위치)
+	UFUNCTION(BlueprintCallable, Category = "FZFAudio")
+	void PlaySFXAtLocation(FName RowName, FVector Location);
 	
 protected:
 	// 로드된 데이터 테이블을 보관할 포인터
 	UPROPERTY()
-	UDataTable* BGMDataTable;
+	UDataTable* SoundDataTable;
 
-	// 현재 재생 중인 오디오 컴포넌트 추적용
+	// 현재 재생 중인 오디오 컴포넌트 추적용 (BGM용)
 	UPROPERTY(Transient)
 	UAudioComponent* CurrentAudioComponent;
 	

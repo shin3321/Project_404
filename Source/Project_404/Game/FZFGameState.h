@@ -10,10 +10,11 @@
 UENUM(BlueprintType)
 enum class EGamePhase : uint8
 {
+	MainLevel	UMETA(DisplayName = "메인 레벨"),
 	Base		UMETA(DisplayName = "거점"),
 	InGame		UMETA(DisplayName = "InGame State"),
-	BossPhase1	UMETA(DisplayName = "Boss Phase1"),
-	BossPhase2	UMETA(DisplayName = "Boss Phase2")
+	BossLevel_1	UMETA(DisplayName = "Boss Phase1"),
+	BossLevel_2	UMETA(DisplayName = "Boss Phase2")
 };
 
 UCLASS()
