@@ -1,16 +1,16 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AI/FZFAIController.h"
+#include "AI/Boss/FZFBossAIController.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BehaviorTree.h"
-#include "AI/FZFAI.h"
+#include "AI/Boss/FZFBossAI.h"
 #include "Interface/FZFMonsterAIInterface.h"
 
-AFZFAIController::AFZFAIController()
+AFZFBossAIController::AFZFBossAIController()
 {
 	// 사용할 블랙보드 애셋 로드.
 	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBAssetRef(
@@ -23,7 +23,7 @@ AFZFAIController::AFZFAIController()
 	}
 }
 
-void AFZFAIController::RunAI()
+void AFZFBossAIController::RunAI()
 {
 	// 서버에서만 돌게 예외처리
 	if (!HasAuthority())
@@ -61,7 +61,7 @@ void AFZFAIController::RunAI()
 	}
 }
 
-void AFZFAIController::StopAI()
+void AFZFBossAIController::StopAI()
 {
 	UBehaviorTreeComponent* BTComponent = Cast<UBehaviorTreeComponent>(BrainComponent);
 
@@ -71,7 +71,7 @@ void AFZFAIController::StopAI()
 	}
 }
 
-void AFZFAIController::OnPossess(APawn* InPawn)
+void AFZFBossAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
