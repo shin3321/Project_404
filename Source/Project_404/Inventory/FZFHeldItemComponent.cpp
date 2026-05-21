@@ -43,6 +43,11 @@ void UFZFHeldItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(UFZFHeldItemComponent, CurrentHeldItemData);
 }
 
+FGameplayTag UFZFHeldItemComponent::GetCurrentAttackTag() const
+{
+    return CurrentHeldItemData ? CurrentHeldItemData->ItemAbilityTag : FGameplayTag::EmptyTag;
+}
+
 AFZFCharacterPlayer* UFZFHeldItemComponent::GetOwnerCharacter() const
 {
     return Cast<AFZFCharacterPlayer>(GetOwner());

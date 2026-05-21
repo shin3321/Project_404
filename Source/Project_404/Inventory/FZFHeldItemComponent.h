@@ -30,7 +30,7 @@ public:
     //GA에서 현재 아이템 정보를 참조할 수 있도록 Getter 추가
     FORCEINLINE UFZFItemData* GetCurrentItemData() const { return CurrentHeldItemData; }
 
-    FGameplayTag GetCurrentAttackTag() { return  CurrentEquippedTag; }
+    FGameplayTag GetCurrentAttackTag() const;
 
     FORCEINLINE AFZFHeldItemActor* GetHeldItemActor() const { return CurrentHeldItem; }
 
