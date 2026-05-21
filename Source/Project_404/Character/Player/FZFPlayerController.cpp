@@ -100,7 +100,14 @@ void AFZFPlayerController::SpectatePrev()
 
 void AFZFPlayerController::RequestSpawnItem(FName ItemId, FVector ItemSpawnLocation, FRotator SpawnRotation)
 {
-	ServerSpawnItem_Implementation(ItemId, ItemSpawnLocation, SpawnRotation);
+	if (HasAuthority())
+	{
+		ServerSpawnItem_Implementation(ItemId, ItemSpawnLocation, SpawnRotation);
+	}
+	else
+	{
+		ServerSpawnItem(ItemId, ItemSpawnLocation, SpawnRotation);
+	}
 }
 
 bool AFZFPlayerController::ServerSpawnItem_Validate(FName ItemId, FVector ItemSpawnLocation, FRotator SpawnRotation)

@@ -10,13 +10,31 @@
 #include "Kismet/GameplayStatics.h"
 #include "Manager/FZFSpawnManager.h"
 
+#include "Net/UnrealNetwork.h"
+
 // 인벤토리 컴포넌트 생성자
 UFZFInventoryComponent::UFZFInventoryComponent()
 {
     // 이 컴포넌트는 Tick 사용 안 함
     PrimaryComponentTick.bCanEverTick = false;
 
+    SetIsReplicatedByDefault(true);
     InventoryItems.SetNum(MaxItemCount);
+}
+
+void UFZFInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(UFZFInventoryComponent, InventoryItems);
+}
+
+void UFZFInventoryComponent::OnRep_InventoryItems()
+{
+    if (InventoryWidget)
+    {
+        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
+    }
 }
 
 void UFZFInventoryComponent::InitializeComponent()
@@ -28,6 +46,12 @@ void UFZFInventoryComponent::InitializeComponent()
 
 bool UFZFInventoryComponent::AddItem(UFZFItemData* InItemData)
 {
+    // 서버에서만 실제 데이터를 추가하도록 강제
+    if (!GetOwner()->HasAuthority())
+    {
+        return true; // 클라이언트에서는 일단 성공한 것처럼 리턴 (상호작용 종료를 위해)
+    }
+
     if (!InItemData)
     {
         return false;
@@ -51,13 +75,11 @@ bool UFZFInventoryComponent::AddItem(UFZFItemData* InItemData)
         return false;
     }
 
-    // 빈 슬롯에 아이템 넣기
+    // 서버에서 배열 수정 -> 자동으로 클라이언트에 복제됨
     InventoryItems[EmptySlotIndex] = InItemData;
 
-    if (InventoryWidget)
-    {
-        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
-    }
+    // 서버(리스닝 서버 호스트)의 UI 갱신 및 데이터 복제 트리거를 위해 직접 호출
+    OnRep_InventoryItems();
 
     // 현재 선택된 슬롯에 아이템이 들어왔으면 바로 손에 들기
     if (SelectedSlotIndex == EmptySlotIndex)
@@ -209,7 +231,6 @@ void UFZFInventoryComponent::DropSelectedItem()
 
 
     // 이 InventoryComponent를 가지고 있는 Owner 가져오기
-    // 보통 플레이어 캐릭터 또는 플레이어 Pawn
     AActor* OwnerActor = GetOwner();
     if (!OwnerActor)
     {
@@ -217,61 +238,43 @@ void UFZFInventoryComponent::DropSelectedItem()
     }
 
     // 플레이어 위치 기준으로 아이템을 버릴 위치 계산
-    // 현재 위치에서 앞쪽으로 150만큼 떨어진 곳에 생성
     FVector DropLocation =
         OwnerActor->GetActorLocation() +
         OwnerActor->GetActorForwardVector() * 150.0f;
 
-    // 아이템이 바닥 근처에 생기도록 Z값 살짝 낮춤
     DropLocation.Z -= 50.0f;
 
-    // 플레이어가 바라보는 방향으로 아이템 회전 설정
     FRotator DropRotation = OwnerActor->GetActorRotation();
     FName ItemId = SelectedItemData->ItemId;
+    int32 SlotIndexToClear = SelectedSlotIndex;
+
+    // [중요] 클라이언트에서 배열을 직접 비우지 않고 서버에게 요청합니다.
+    // 서버로부터 복제된 데이터가 도착하면 OnRep에 의해 UI가 갱신됩니다.
+
+    // 서버에게 실제 스폰 및 서버 측 인벤토리 갱신 요청
     if (GetOwner()->HasAuthority())
     {
-        // 서버라면
-        ServerDropItem_Implementation(ItemId, DropLocation, DropRotation);
+        ServerDropItem_Implementation(ItemId, DropLocation, DropRotation, SlotIndexToClear);
     }
     else
     {
-        ServerDropItem(ItemId, DropLocation, DropRotation);
+        ServerDropItem(ItemId, DropLocation, DropRotation, SlotIndexToClear);
     }
-    
-    // // 월드에 다시 BP 아이템 Actor 생성
-    // AFZFItemBase* DroppedActor = GetWorld()->SpawnActor<AFZFItemBase>(
-    //     AFZFItemBase::StaticClass(),
-    //     DropLocation,
-    //     DropRotation
-    // );
-
-    // // Spawn 실패하면 종료
-    // if (!DroppedActor)
-    // {
-    //     UE_LOG(LogTemp, Warning, TEXT("Failed to spawn dropped item actor"));
-    //     return;
-    // }
-    //
-    // DroppedActor->InitializeItem(SelectedItemData);
-
-    // 인벤토리 배열에서 선택된 아이템 제거
-    // 배열 크기는 유지하고 해당 슬롯만 비움
-    InventoryItems[SelectedSlotIndex] = nullptr;
-
-    // UI 갱신
-    if (InventoryWidget)
-    {
-        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
-    }
-
-    // 현재 선택 슬롯 기준으로 손에 든 아이템 갱신
-    // 버린 슬롯이 비었으면 손 아이템도 제거됨
-    UpdateHeldItemBySelectedSlot();
 }
 
 void UFZFInventoryComponent::ServerDropItem_Implementation(FName InItemId, FVector SpawnLoc,
-    FRotator SpawnRot)
+    FRotator SpawnRot, int32 SlotIndex)
 {
+    // 서버측 인벤토리 명시적 갱신
+    if (InventoryItems.IsValidIndex(SlotIndex))
+    {
+        InventoryItems[SlotIndex] = nullptr;
+        
+        // 서버 측 UI 갱신 및 데이터 복제 트리거
+        OnRep_InventoryItems();
+        UpdateHeldItemBySelectedSlot();
+    }
+
     AFZFCharacterPlayer* OwnerPlayer = Cast<AFZFCharacterPlayer>(GetOwner());
     if (OwnerPlayer)
     {
