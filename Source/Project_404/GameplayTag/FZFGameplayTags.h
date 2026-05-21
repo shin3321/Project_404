@@ -37,6 +37,7 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Walk);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Run);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Jump);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Block_Jump);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Stamina_NoRegen);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
@@ -59,6 +60,7 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackRadius);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackAreaHalfHeight);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackSpeed);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_PullStrength);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_DetectRange);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_TurnSpeed);

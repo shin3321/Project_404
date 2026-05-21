@@ -4,6 +4,7 @@
 UFZFPlayerSet::UFZFPlayerSet()
 {
 	InitMovementSpeed(300.0f);
+	InitMaxMovementSpeed(GetMovementSpeed());
 	InitStamina(100.0f);
 	InitMaxStamina(GetStamina());
 	InitAttackSpeed(1.0f);

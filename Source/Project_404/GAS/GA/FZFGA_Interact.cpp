@@ -93,7 +93,9 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
 
 	if (!bHit)
+	{
 		return;
+	}
 
 	UPrimitiveComponent* HitComponent = Hit.GetComponent();
 	AActor* HitActor = Hit.GetActor();
@@ -104,7 +106,9 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	}
 
 	if (!IsValid(HitActor))
+	{
 		return;
+	}
 
 	if (IFZFInteractableInterface* Interactable = Cast<IFZFInteractableInterface>(HitActor))
 	{

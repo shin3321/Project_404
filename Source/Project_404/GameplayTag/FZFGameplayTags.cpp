@@ -32,6 +32,7 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Walk,"State.Movement.Walk");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Run,"State.Movement.Run");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Jump,"State.Movement.Jump");
+	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Block_Jump,"State.Movement.Block.Jump");
 	
 	UE_DEFINE_GAMEPLAY_TAG(State_Stamina_NoRegen,"State.Stamina.NoRegen");
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_DroppingItem,"State.Action.DroppingItem");
@@ -58,6 +59,7 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackAreaRadius, "Data.Attack.AttackAreaRadius");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackAreaHalfHeight, "Data.Attack.AttackAreaHalfHeight");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackSpeed, "Data.Attack.AttackSpeed");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_PullStrength, "Data.Attack.PullStrength");
 
 	UE_DEFINE_GAMEPLAY_TAG(Data_BT_DetectRange, "Data.BT.DetectRange");
 	UE_DEFINE_GAMEPLAY_TAG(Data_BT_TurnSpeed, "Data.BT.TurnSpeed");
