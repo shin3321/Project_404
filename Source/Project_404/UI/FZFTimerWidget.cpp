@@ -12,7 +12,7 @@ void UFZFTimerWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	{
 		if (TimerText)
 		{
-			TimerText->SetText(FormatTime(GameState->RemainingRimeSeconds));
+			TimerText->SetText(FormatTime(GameState->RemainingTimeSeconds));
 		}
 	}
 }

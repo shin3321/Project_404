@@ -23,5 +23,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	float VolumeMultiplier = 1.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundAttenuation* AttenuationAsset;
 };
 

@@ -151,6 +151,12 @@ bool AFZFGameMode::ReadyToStartMatch_Implementation()
 	return true;
 }
 
+void AFZFGameMode::StartNewDay_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("A new day has started"));
+	GetWorldTimerManager().SetTimer(DayTimerHandle, this, &AFZFGameMode::UpdateGameCLock, 1.0f, true);
+}
+
 void AFZFGameMode::OnAllPlayersReady()
 {
 	auto CurrentState = GetMatchState();
@@ -165,9 +171,9 @@ void AFZFGameMode::OnAllPlayersReady()
 void AFZFGameMode::UpdateGameCLock()
 {
 	if (!GameState) return;
-	if (GameState->RemainingRimeSeconds)
+	if (GameState->RemainingTimeSeconds)
 	{
-		GameState->RemainingRimeSeconds--;
+		GameState->RemainingTimeSeconds--;
 	}
 }
 
