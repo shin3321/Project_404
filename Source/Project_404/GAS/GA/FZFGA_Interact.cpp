@@ -18,6 +18,8 @@ UFZFGA_Interact::UFZFGA_Interact()
 
 void UFZFGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
 	// 연타 방지 확장 설계 (짧은 딜레이 주기)
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{

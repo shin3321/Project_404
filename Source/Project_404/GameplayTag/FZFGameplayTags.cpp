@@ -6,6 +6,9 @@ namespace FZFGameplayTags
 	// 이를 통해 코드에서 문자열 오타 없이 안전하게 태그를 참조할 수 있습니다.
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Interact,"Ability.Action.Interact");
 
+	// 곡괭이 Q키 상호작용.
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_TogglePickaxe,"Ability.Action.TogglePickaxe");
+
 	//아이템 버리기
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_DropItem, "Ability.Action.DropItem");
 
