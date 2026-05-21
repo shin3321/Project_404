@@ -34,7 +34,7 @@ void UFZFGA_TogglePickaxe::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 	// 현재 아이템을 들고 있는지 체크.
 	UFZFItemData* ItemData = AvatarActor->GetHeldItemComponent()->GetCurrentItemData();
-	if (!IsValid(ItemData))
+	if (IsValid(ItemData))
 	{
 		UFZFEquipmentItemData* HeldItemData = Cast<UFZFEquipmentItemData>(ItemData);
 		
