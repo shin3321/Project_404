@@ -71,6 +71,13 @@ bool UFZFInventoryComponent::AddItem(UFZFItemData* InItemData)
 // 인벤토리 위젯을 화면에 표시하는 함수
 void UFZFInventoryComponent::ShowInventory()
 {
+    // 로컬 플레이어인 경우에만 위젯 생성 및 표시
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
+    {
+        return;
+    }
+
     // 생성할 인벤토리 위젯 클래스가 없으면 종료
     if (!InventoryWidgetClass)
     {

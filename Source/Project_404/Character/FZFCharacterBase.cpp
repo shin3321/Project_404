@@ -5,6 +5,7 @@
 #include "GameplayTag/FZFGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/FZFAnimInstance.h"
+#include "Game/FZFGameState.h"
 
 #include "Player/FZFPlayerController.h"
 #include "Manager/FZFSoundManager.h"
@@ -78,6 +79,13 @@ void AFZFCharacterBase::HandleDeath()
 		2.0f,  // 2초 대기
 		false  // 반복하지 않음 (1회성)
 	);
+	AFZFGameState* GameState = Cast<AFZFGameState>(GetWorld()->GetGameState());
+	
+	if (GameState->GetCurrentPhase() == EGamePhase:: BossLevel_1 && GameState->GetCurrentPhase() == EGamePhase:: BossLevel_2)
+	{
+		//GameState->DeadPlayer();
+	}
+	
 }
 
 void AFZFCharacterBase::OnRep_IsDead()
