@@ -12,7 +12,7 @@ UFZFPlayerSet::UFZFPlayerSet()
 	// Todo : 무기 데이터
 	InitAttackRange(800);
 	InitAttackRadius(30);
-	InitAttack(50);
+	InitAttack(5.0f);
 }
 
 void UFZFPlayerSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
