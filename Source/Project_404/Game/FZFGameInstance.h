@@ -13,10 +13,14 @@ UCLASS()
 class PROJECT_404_API UFZFGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "FZFGame")
-	bool GetWinGame(){return bWinGame;}
-	
+	bool GetWinGame() { return bWinGame; }
+
 	UPROPERTY(BlueprintReadWrite, Category = "Game Data")
-	bool bWinGame = false;	
+	bool bWinGame = false;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Game Data")
+	bool bEnterBossLevel = false;
 };
