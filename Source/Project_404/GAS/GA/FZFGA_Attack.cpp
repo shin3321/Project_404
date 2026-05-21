@@ -94,24 +94,56 @@ void UFZFGA_Attack::PlayPlayerAttack(AFZFCharacterPlayer* CharacterPlayer,float 
 		return;
 	}
 
-	const float Duration = TargetMesh->GetAnimInstance()->Montage_Play(AttackMontage, AttackSpeed);
+	// [중요] GAS 내부 ActorInfo의 SkeletalMeshComponent를 현재 타겟 메시로 일시 변경합니다.
+	// 이렇게 해야 PlayMontageAndWait 태스크가 기본 Mesh 대신 ArmMesh 등 우리가 원하는 메시에 애니메이션을 복제/재생합니다.
+	FGameplayAbilityActorInfo* MutableActorInfo = const_cast<FGameplayAbilityActorInfo*>(ActorInfo);
+	TWeakObjectPtr<USkeletalMeshComponent> OriginalMesh = MutableActorInfo->SkeletalMeshComponent;
+	MutableActorInfo->SkeletalMeshComponent = TargetMesh;
 
-	if (Duration <= 0.f)
+	// 기존 Montage_Play와 WaitDelay를 하나로 합친 PlayMontageAndWait 태스크 생성
+	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this,
+		TEXT("PlayerAttackTask"),
+		AttackMontage,
+		AttackSpeed,
+		NAME_None,
+		false // bStopWhenAbilityEnds (어빌리티 종료 시 애니메이션을 멈출지 여부)
+	);
+
+	// 태스크 생성이 끝나면 ActorInfo를 원래 상태로 복구해 줍니다 (사후 사이드 이펙트 방지)
+	MutableActorInfo->SkeletalMeshComponent = OriginalMesh;
+
+	if (!MontageTask)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(this, Duration);
+	// 몬스터와 동일하게 애니메이션 상태 델리게이트 바인딩
+	MontageTask->OnCompleted.AddDynamic(this, &UFZFGA_Attack::OnMontageCompleted);
+	MontageTask->OnInterrupted.AddDynamic(this, &UFZFGA_Attack::OnMontageInterrupted);
+	MontageTask->OnCancelled.AddDynamic(this, &UFZFGA_Attack::OnMontageInterrupted);
 
-	if (!WaitTask)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
+	// 태스크 활성화 (이 시점에 애니메이션이 재생되고 대기가 시작됩니다)
+	MontageTask->ReadyForActivation();
+	//const float Duration = TargetMesh->GetAnimInstance()->Montage_Play(AttackMontage, AttackSpeed);
 
-	WaitTask->OnFinish.AddDynamic(this, &UFZFGA_Attack::OnMontageCompleted);
-	WaitTask->ReadyForActivation();
+	//if (Duration <= 0.f)
+	//{
+	//	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+	//	return;
+	//}
+
+	//UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(this, Duration);
+
+	//if (!WaitTask)
+	//{
+	//	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+	//	return;
+	//}
+
+	//WaitTask->OnFinish.AddDynamic(this, &UFZFGA_Attack::OnMontageCompleted);
+	//WaitTask->ReadyForActivation();
 }
 
 void UFZFGA_Attack::PlayMonsterAttack(class AFZFMonster* Monster, float AttackSpeed, const FGameplayAbilitySpecHandle Handle,
