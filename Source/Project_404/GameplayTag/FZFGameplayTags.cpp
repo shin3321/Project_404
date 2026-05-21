@@ -38,6 +38,9 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_DroppingItem,"State.Action.DroppingItem");
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_Attack,"State.Action.Attack");
 
+	// 디버프 상태 부여 태그
+	UE_DEFINE_GAMEPLAY_TAG(State_Debuff_Stun,"State.Debuff.Stun");
+
 	// 내가 현재 착용하고 있는 무기에 따른 상태
 	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Pickaxe,"State.Equip.Pickaxe");
 	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Rifle,"State.Equip.Rifle");
