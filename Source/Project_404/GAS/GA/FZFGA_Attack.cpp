@@ -186,15 +186,22 @@ void UFZFGA_Attack::PlayMonsterAttack(class AFZFMonster* Monster, float AttackSp
 void UFZFGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
-	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+	if (ActorInfo && ActorInfo->AvatarActor.IsValid())
 	{
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+		{
+			if (Character->GetCharacterMovement())
+			{
+				Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+			}
+		}
+
+		if (AFZFMonster* Monster = Cast<AFZFMonster>(ActorInfo->AvatarActor.Get()))
+		{
+			Monster->NotifyAttackActionEnd();
+		}
 	}
 
-	if (AFZFMonster* Monster = Cast<AFZFMonster>(ActorInfo->AvatarActor.Get()))
-	{
-		Monster->NotifyAttackActionEnd();
-	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

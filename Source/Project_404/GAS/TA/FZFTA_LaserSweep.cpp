@@ -65,7 +65,6 @@ FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 		else
 		{
 			Start = Character->GetMesh()->GetSocketLocation(StartSocketName);
-			Forward = Character->GetActorForwardVector();
 		}
 	}
 	else
