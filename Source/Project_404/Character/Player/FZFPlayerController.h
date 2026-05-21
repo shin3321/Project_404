@@ -28,7 +28,6 @@ protected:
 	// 위젯의 구매 버튼을 누르면 클라이언트가 이 함수를 호출합니다.
 	// Reliable: 패킷 유실을 막아 반드시 도착하게 합니다.
 	UFUNCTION(BlueprintCallable, Category = "Shop")
-	void RequestPurchase(class AFZFStore* TargetStore, FName ItemId, float ItemCost);
 
 	// 입력 바인딩 함수
 	virtual void SetupInputComponent() override;
@@ -38,14 +37,11 @@ public:
 	void StartSpectator();
 public:
 	UFUNCTION()
-	void RequestSpawnItem(FName ItemId, FVector ItemSpawnLocation);
+	void RequestSpawnItem(FName ItemId, FVector ItemSpawnLocation, FRotator SpawnRotation);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSpawnItem(FName ItemId, FVector ItemSpawnLocation);
 	// 실제로 서버로 넘어가서 실행될 RPC 함수
-	// Reliable: 반드시 도착하도록 보장 (결제 같은 중요 로직에 필수)
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRequestPurchase(class AFZFStore* TargetStore, FName ItemId, float ItemCost);
+	void ServerSpawnItem(FName ItemId, FVector ItemSpawnLocation, FRotator SpawnRotation);
 
 	// 관전 대상 전환 (1: 다음, -1: 이전)
 	void ChangeSpectateTarget(int32 Direction);	

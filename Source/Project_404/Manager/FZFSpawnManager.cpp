@@ -10,6 +10,8 @@
 #include "Item/FZFItemBase.h"
 #include "Item/FZFItemRow.h"
 
+#include "Game/FZFGameInstance.h"
+
 // Sets default values
 AFZFSpawnManager::AFZFSpawnManager()
 {
@@ -28,8 +30,23 @@ void AFZFSpawnManager::BeginPlay()
 		return;
 	}
 
-	TArray<AActor*> SpawnPoints;
+	UFZFGameInstance* GameInstance = Cast<UFZFGameInstance>(GetWorld()->GetGameInstance());
+	if (!GameInstance)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GameInstance is NULL"));
+	}
 
+	ItemTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Project404/Item/DT_ItemTable"));
+	if (ItemTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemTable이 생성되었습니다"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemTable이 생성되지 않았습니다"));
+	}
+
+	TArray<AActor*> SpawnPoints;
 	// 시작 위치 설정
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATargetPoint::StaticClass(), SpawnPoints);
 	if (SpawnPoints.Num() > 0)
@@ -80,20 +97,38 @@ void AFZFSpawnManager::BeginPlay()
 					GetWorld()->SpawnActor<AFZFMonster>(MonsterClass, SpawnLocation, SpawnRotation, SpawnParams);
 				}
 			}
+			else if (SpawnPoint->ActorHasTag("StorageItemSlot"))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("창고 아이템 스폰 지역을 찾았습니다"));
+				for (int i = 0; i < GameInstance->StorageItems.Num(); ++i)
+				{
+					FName ItemKey = GameInstance->StorageItems[i];
+					FFZFItemRow* Row = ItemTable->FindRow<FFZFItemRow>(
+						ItemKey, TEXT("AFZFSpawnManager::SpawnStorageItem"));
+					if (!Row || !Row->ItemActorClass)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("해당 키에 매핑된 아이템 클래스가 없습니다: %s"), *ItemKey.ToString());
+						return;
+					}
+
+					UE_LOG(LogTemp, Warning, TEXT("MonsterClass: 스폰 위치: (%lf, %f, %lf)"), SpawnLocation.X,
+					       SpawnLocation.Y, SpawnLocation.Z);
+					AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(
+						Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
+					if (AFZFItemBase* ItemBase = Cast<AFZFItemBase>(SpawnedItem))
+					{
+						ItemBase->InitializeItem(Row->ItemData);
+					}
+					if (SpawnedItem)
+					{
+						// 스폰된 아이템 액터에 런타임 데이터 세팅이 필요하다면 여기서 수행
+					}
+				}
+			}
 		}
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("스폰 가능한 지역이 없습니다"));
-
-	ItemTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Project404/Item/DT_ItemTable"));
-	if (ItemTable)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemTable이 생성되었습니다"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemTable이 생성되지 않았습니다"));
-	}
 }
 
 // Called every frame
@@ -102,7 +137,7 @@ void AFZFSpawnManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AFZFSpawnManager::ServerSpawnItem_Implementation(FName ItemId, FVector SpawnLocation)
+void AFZFSpawnManager::ServerSpawnItem_Implementation(FName ItemId, FVector SpawnLocation, FRotator SpawnRotation)
 {
 	if (!HasAuthority()) return;
 	// IItemInterface::Execute_InitItem(SpawnedItem, ItemData);
@@ -117,7 +152,6 @@ void AFZFSpawnManager::ServerSpawnItem_Implementation(FName ItemId, FVector Spaw
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	FRotator SpawnRotation = FRotator::ZeroRotator;
 
 	AActor* SpawnedItem = GetWorld()->SpawnActor<
 		AActor>(Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
@@ -133,7 +167,7 @@ void AFZFSpawnManager::ServerSpawnItem_Implementation(FName ItemId, FVector Spaw
 	}
 }
 
-bool AFZFSpawnManager::ServerSpawnItem_Validate(FName ItemId, FVector SpawnLocation)
+bool AFZFSpawnManager::ServerSpawnItem_Validate(FName ItemId, FVector SpawnLocation, FRotator SpawnRotation)
 {
 	return !ItemId.IsNone();
 }

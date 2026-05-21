@@ -5,6 +5,9 @@
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Interface/FZFInteractableInterface.h"
 #include "Camera/CameraComponent.h"
+#include "Item/Store/FZFStoreItemBase.h"
+
+#include  "Game/FZFGameState.h"
 
 UFZFGA_Interact::UFZFGA_Interact()
 {
@@ -18,6 +21,8 @@ UFZFGA_Interact::UFZFGA_Interact()
 
 void UFZFGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
 	// 연타 방지 확장 설계 (짧은 딜레이 주기)
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -49,11 +54,25 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 		return;
 
 	}
-	// 라인트레이스 시작 위치를 카메라 위치로 설정
-	FVector Start = CameraComp->GetComponentLocation();
+	// 라인트레이스 시작 위치와 방향 설정 (서버에서도 정확한 방향을 얻기 위해 수정)
+	FVector Start;
+	FVector Direction;
+
+	if (Player->IsLocallyControlled())
+	{
+		Start = CameraComp->GetComponentLocation();
+		Direction = CameraComp->GetForwardVector();
+	}
+	else
+	{
+		// 서버에서 원격 클라이언트의 시점을 계산
+		// 카메라 컴포넌트의 위치는 복제되지만, 회전(특히 Pitch)은 Sync가 안 될 수 있으므로 ControlRotation을 사용합니다.
+		Start = CameraComp->GetComponentLocation();
+		Direction = Player->GetControlRotation().Vector();
+	}
 
 	// 카메라가 바라보는 방향으로 500.f 거리만큼 끝 위치 설정
-	FVector End = Start + (CameraComp->GetForwardVector() * TraceDistance);
+	FVector End = Start + (Direction * TraceDistance);
 
 	// 라인트레이스 충돌 결과를 저장할 변수
 	FHitResult Hit;
@@ -74,7 +93,9 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
 
 	if (!bHit)
+	{
 		return;
+	}
 
 	UPrimitiveComponent* HitComponent = Hit.GetComponent();
 	AActor* HitActor = Hit.GetActor();
@@ -85,10 +106,33 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	}
 
 	if (!IsValid(HitActor))
+	{
 		return;
+	}
 
 	if (IFZFInteractableInterface* Interactable = Cast<IFZFInteractableInterface>(HitActor))
 	{
 		Interactable->Interact(Player, HitComponent);
+	}
+	
+	
+	
+	if (HasAuthority(&CurrentActivationInfo))
+	{
+		AFZFStoreItemBase* Item = Cast<AFZFStoreItemBase>(HitActor);
+		if (Item)
+		{
+			AFZFGameState* GameState = Cast<AFZFGameState>(GetWorld()->GetGameState());
+			int32 ItemCost = Item->GetCost();
+			if (GameState)
+			{
+				GameState->SharedMoney -= ItemCost;
+			
+				if (GetWorld()->GetNetMode() == NM_ListenServer && CurrentActorInfo->IsLocallyControlled())
+				{
+					GameState->OnRep_SharedMoney(); 
+				}
+			}
+		}
 	}
 }

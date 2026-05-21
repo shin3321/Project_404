@@ -6,6 +6,9 @@ namespace FZFGameplayTags
 	// 이를 통해 코드에서 문자열 오타 없이 안전하게 태그를 참조할 수 있습니다.
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Interact,"Ability.Action.Interact");
 
+	// 곡괭이 Q키 상호작용.
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_TogglePickaxe,"Ability.Action.TogglePickaxe");
+
 	//아이템 버리기
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_DropItem, "Ability.Action.DropItem");
 
@@ -21,12 +24,15 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Rifle, "Ability.Action.Attack.Rifle");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Sword, "Ability.Action.Attack.Sword");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Pistol, "Ability.Action.Attack.Pistol");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Apply_Revive, "Ability.Action.Apply.Revive");
 
 
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Idle,"State.Movement.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Walk,"State.Movement.Walk");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Run,"State.Movement.Run");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Jump,"State.Movement.Jump");
+	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Block_Jump,"State.Movement.Block.Jump");
 	
 	UE_DEFINE_GAMEPLAY_TAG(State_Stamina_NoRegen,"State.Stamina.NoRegen");
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_DroppingItem,"State.Action.DroppingItem");
@@ -53,6 +59,7 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackAreaRadius, "Data.Attack.AttackAreaRadius");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackAreaHalfHeight, "Data.Attack.AttackAreaHalfHeight");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_AttackSpeed, "Data.Attack.AttackSpeed");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Attack_PullStrength, "Data.Attack.PullStrength");
 
 	UE_DEFINE_GAMEPLAY_TAG(Data_BT_DetectRange, "Data.BT.DetectRange");
 	UE_DEFINE_GAMEPLAY_TAG(Data_BT_TurnSpeed, "Data.BT.TurnSpeed");

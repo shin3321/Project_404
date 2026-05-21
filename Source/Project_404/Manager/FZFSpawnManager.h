@@ -24,11 +24,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-public:	
+public:	 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSpawnItem(FName ItemId, FVector SpawnLocation);
-		
-	
+	void ServerSpawnItem(FName ItemId, FVector SpawnLocation, FRotator SpawnRotation);
+
 private:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	TArray<TSubclassOf<class AFZFItemBase>> ItemClasses;

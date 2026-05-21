@@ -3,9 +3,12 @@
 #include "FZFInventoryWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "FZFHeldItemComponent.h"
+#include "Character/Player/FZFCharacterPlayer.h"
+#include "Character/Player/FZFPlayerController.h"
 #include "Item/FZFItemData.h"
 #include "Item/FZFItemBase.h"
-#include "Inventory/FZFItemDataComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Manager/FZFSpawnManager.h"
 
 // 인벤토리 컴포넌트 생성자
 UFZFInventoryComponent::UFZFInventoryComponent()
@@ -14,6 +17,12 @@ UFZFInventoryComponent::UFZFInventoryComponent()
     PrimaryComponentTick.bCanEverTick = false;
 
     InventoryItems.SetNum(MaxItemCount);
+}
+
+void UFZFInventoryComponent::InitializeComponent()
+{
+    Super::InitializeComponent();
+    SpawnManager = Cast<AFZFSpawnManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AFZFSpawnManager::StaticClass()));
 }
 
 
@@ -62,6 +71,13 @@ bool UFZFInventoryComponent::AddItem(UFZFItemData* InItemData)
 // 인벤토리 위젯을 화면에 표시하는 함수
 void UFZFInventoryComponent::ShowInventory()
 {
+    // 로컬 플레이어인 경우에만 위젯 생성 및 표시
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
+    {
+        return;
+    }
+
     // 생성할 인벤토리 위젯 클래스가 없으면 종료
     if (!InventoryWidgetClass)
     {
@@ -211,22 +227,32 @@ void UFZFInventoryComponent::DropSelectedItem()
 
     // 플레이어가 바라보는 방향으로 아이템 회전 설정
     FRotator DropRotation = OwnerActor->GetActorRotation();
-
-    // 월드에 다시 BP 아이템 Actor 생성
-    AFZFItemBase* DroppedActor = GetWorld()->SpawnActor<AFZFItemBase>(
-        AFZFItemBase::StaticClass(),
-        DropLocation,
-        DropRotation
-    );
-
-    // Spawn 실패하면 종료
-    if (!DroppedActor)
+    FName ItemId = SelectedItemData->ItemId;
+    if (GetOwner()->HasAuthority())
     {
-        UE_LOG(LogTemp, Warning, TEXT("Failed to spawn dropped item actor"));
-        return;
+        // 서버라면
+        ServerDropItem_Implementation(ItemId, DropLocation, DropRotation);
     }
+    else
+    {
+        ServerDropItem(ItemId, DropLocation, DropRotation);
+    }
+    
+    // // 월드에 다시 BP 아이템 Actor 생성
+    // AFZFItemBase* DroppedActor = GetWorld()->SpawnActor<AFZFItemBase>(
+    //     AFZFItemBase::StaticClass(),
+    //     DropLocation,
+    //     DropRotation
+    // );
 
-    DroppedActor->InitializeItem(SelectedItemData);
+    // // Spawn 실패하면 종료
+    // if (!DroppedActor)
+    // {
+    //     UE_LOG(LogTemp, Warning, TEXT("Failed to spawn dropped item actor"));
+    //     return;
+    // }
+    //
+    // DroppedActor->InitializeItem(SelectedItemData);
 
     // 인벤토리 배열에서 선택된 아이템 제거
     // 배열 크기는 유지하고 해당 슬롯만 비움
@@ -241,4 +267,18 @@ void UFZFInventoryComponent::DropSelectedItem()
     // 현재 선택 슬롯 기준으로 손에 든 아이템 갱신
     // 버린 슬롯이 비었으면 손 아이템도 제거됨
     UpdateHeldItemBySelectedSlot();
+}
+
+void UFZFInventoryComponent::ServerDropItem_Implementation(FName InItemId, FVector SpawnLoc,
+    FRotator SpawnRot)
+{
+    AFZFCharacterPlayer* OwnerPlayer = Cast<AFZFCharacterPlayer>(GetOwner());
+    if (OwnerPlayer)
+    {
+        AFZFPlayerController* PC = Cast<AFZFPlayerController>(OwnerPlayer->GetController());
+        if (PC)
+        {
+            PC->RequestSpawnItem(InItemId, SpawnLoc, SpawnRot);
+        }
+    }
 }

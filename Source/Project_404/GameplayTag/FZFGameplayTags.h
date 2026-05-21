@@ -10,6 +10,9 @@ namespace FZFGameplayTags
 	// .cpp 파일에 정의된 태그를 다른 클래스에서도 참조할 수 있도록 외부에 공개
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Interact);
 
+	// 곡괭이 장착 및 해제.
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_TogglePickaxe);
+
 	// 아이템 버리기
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_DropItem);
 
@@ -26,12 +29,15 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Sword);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Pistol);
 	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Apply_Revive);
+	
 	
 	// 움직임 상태 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Idle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Walk);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Run);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Jump);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Block_Jump);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Stamina_NoRegen);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
@@ -54,6 +60,7 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackRadius);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackAreaHalfHeight);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_AttackSpeed);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Attack_PullStrength);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_DetectRange);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_BT_TurnSpeed);
