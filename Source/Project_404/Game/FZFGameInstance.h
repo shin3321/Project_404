@@ -13,7 +13,11 @@ UCLASS()
 class PROJECT_404_API UFZFGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-
+public:
+	UFUNCTION(BlueprintCallable, Category = "Game Data")
+	void AddStorageItem(const FName ItemId);
+	
+	
 public:
 	UFUNCTION(BlueprintCallable, Category = "FZFGame")
 	bool GetWinGame() { return bWinGame; }
@@ -23,4 +27,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Game Data")
 	bool bEnterBossLevel = false;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Item Data")
+	TArray<FName> StorageItems; 
 };

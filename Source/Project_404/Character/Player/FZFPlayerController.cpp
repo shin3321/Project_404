@@ -2,7 +2,6 @@
 
 #include "Character/FZFCharacterBase.h"
 #include "Character/Player/FZFCharacterPlayer.h"
-#include "Shop/FZFStore.h"
 
 #include "Manager/FZFSpawnManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -17,11 +16,6 @@ void AFZFPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AFZFPlayerController, bIsSpectating);
-}
-
-void AFZFPlayerController::RequestPurchase(AFZFStore* TargetStore, FName ItemId, float ItemCost)
-{
-	ServerRequestPurchase(TargetStore, ItemId, ItemCost);
 }
 
 void AFZFPlayerController::SetupInputComponent()
@@ -104,42 +98,19 @@ void AFZFPlayerController::SpectatePrev()
 
 }
 
-void AFZFPlayerController::RequestSpawnItem(FName ItemId, FVector ItemSpawnLocation)
+void AFZFPlayerController::RequestSpawnItem(FName ItemId, FVector ItemSpawnLocation, FRotator SpawnRotation)
 {
-	ServerSpawnItem_Implementation(ItemId, ItemSpawnLocation);
+	ServerSpawnItem_Implementation(ItemId, ItemSpawnLocation, SpawnRotation);
 }
 
-bool AFZFPlayerController::ServerSpawnItem_Validate(FName ItemId, FVector ItemSpawnLocation)
+bool AFZFPlayerController::ServerSpawnItem_Validate(FName ItemId, FVector ItemSpawnLocation, FRotator SpawnRotation)
 {
 	return !ItemId.IsNone();
 }
 
-void AFZFPlayerController::ServerSpawnItem_Implementation(FName ItemId, FVector ItemSpawnLocation)
+void AFZFPlayerController::ServerSpawnItem_Implementation(FName ItemId, FVector ItemSpawnLocation, FRotator SpawnRotation)
 {
 	SpawnManager = Cast<AFZFSpawnManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AFZFSpawnManager::StaticClass()));
 	if (SpawnManager)
-		SpawnManager->ServerSpawnItem(ItemId, ItemSpawnLocation);
-}
-
-
-// 서버 로직을 통과하기 전 검증 함수 
-bool AFZFPlayerController::ServerRequestPurchase_Validate(AFZFStore* TargetStore, FName ItemId, float ItemCost)
-{
-	if (ItemCost < 0.0f)
-	{
-		return false;
-	}
-
-	if (TargetStore == nullptr)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-void AFZFPlayerController::ServerRequestPurchase_Implementation(AFZFStore* TargetStore, FName ItemId,
-	float ItemCost)
-{
-	TargetStore->ProcessPurchase(this, ItemId, ItemCost);
+		SpawnManager->ServerSpawnItem(ItemId, ItemSpawnLocation, SpawnRotation);
 }

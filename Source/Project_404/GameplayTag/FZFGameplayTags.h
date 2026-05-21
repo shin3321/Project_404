@@ -26,6 +26,8 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Sword);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Pistol);
 	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Apply_Revive);
+	
 	
 	// 움직임 상태 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Idle);

@@ -2,7 +2,7 @@
 
 
 #include "Game/FZFLobbyGameMode.h"
-#include "manager/FZFSpawnManager.h"
+#include "Manager/FZFSpawnManager.h"
 
 AFZFLobbyGameMode::AFZFLobbyGameMode()
 {
@@ -26,7 +26,6 @@ void AFZFLobbyGameMode::BeginPlay()
 			UE_LOG(LogTemp, Warning, TEXT("서버: 스폰 매니저가 성공적으로 동적 생성되었습니다."));
 		}
 	}
-	
 }
 
 void AFZFLobbyGameMode::Tick(float DeltaTime)

@@ -5,6 +5,9 @@
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Interface/FZFInteractableInterface.h"
 #include "Camera/CameraComponent.h"
+#include "Item/Store/FZFStoreItemBase.h"
+
+#include  "Game/FZFGameState.h"
 
 UFZFGA_Interact::UFZFGA_Interact()
 {
@@ -90,5 +93,24 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	if (IFZFInteractableInterface* Interactable = Cast<IFZFInteractableInterface>(HitActor))
 	{
 		Interactable->Interact(Player, HitComponent);
+	}
+	
+	if (HasAuthority(&CurrentActivationInfo))
+	{
+		AFZFStoreItemBase* Item = Cast<AFZFStoreItemBase>(HitActor);
+		if (Item)
+		{
+			AFZFGameState* GameState = Cast<AFZFGameState>(GetWorld()->GetGameState());
+			int32 ItemCost = Item->GetCost();
+			if (GameState)
+			{
+				GameState->SharedMoney -= ItemCost;
+			
+				if (GetWorld()->GetNetMode() == NM_ListenServer && CurrentActorInfo->IsLocallyControlled())
+				{
+					GameState->OnRep_SharedMoney(); 
+				}
+			}
+		}
 	}
 }

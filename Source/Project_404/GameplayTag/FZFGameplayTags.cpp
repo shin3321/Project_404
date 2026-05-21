@@ -21,6 +21,8 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Rifle, "Ability.Action.Attack.Rifle");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Sword, "Ability.Action.Attack.Sword");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Pistol, "Ability.Action.Attack.Pistol");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Apply_Revive, "Ability.Action.Apply.Revive");
 
 
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Idle,"State.Movement.Idle");

@@ -269,7 +269,7 @@ bool AFZFEquipmentWorkbench::SpawnResultItem(UFZFEquipmentRecipeData* Recipe)
 		AFZFPlayerController* PC = Cast<AFZFPlayerController>(TargetInteractor->GetController());
 		if (PC)
 		{
-			PC->RequestSpawnItem(ItemId, SpawnLocation);
+			PC->RequestSpawnItem(ItemId, SpawnLocation, SpawnRotation);
 			return true;
 		}
 	}

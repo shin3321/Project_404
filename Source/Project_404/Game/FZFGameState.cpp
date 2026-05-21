@@ -18,7 +18,13 @@ void AFZFGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	 
 	DOREPLIFETIME(AFZFGameState, CurrentPhase);
 	DOREPLIFETIME(AFZFGameState, CurrentDay);
-    DOREPLIFETIME(AFZFGameState, RemainingTimeSeconds);
+    DOREPLIFETIME(AFZFGameState, RemainingTimeSeconds); 
+    DOREPLIFETIME(AFZFGameState, SharedMoney); 
+}
+
+void AFZFGameState::OnRep_SharedMoney()
+{
+	
 }
 
 void AFZFGameState::BeginPlay()

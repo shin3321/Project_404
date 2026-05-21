@@ -3,3 +3,7 @@
 
 #include "Game/FZFGameInstance.h"
 
+void UFZFGameInstance::AddStorageItem(const FName ItemId)
+{
+	StorageItems.Add(ItemId);
+}

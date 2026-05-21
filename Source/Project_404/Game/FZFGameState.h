@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
-#include "Manager/FZFRoomManager.h"
 #include "FZFGameState.generated.h"
 
 UENUM(BlueprintType)
@@ -28,8 +27,6 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void BeginPlay() override;
 	
-	UFZFRoomManager* GetRoomManager() const { return RoomManagerComponent; }
-
 public:	
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentPhase, BlueprintReadOnly, Category = "Game Phase")
 	EGamePhase CurrentPhase;
@@ -42,14 +39,19 @@ public:
 	
 	// 내부적으로 BGM을 교체하는 로직
 	void UpdateBGMByPhase(EGamePhase Phase);
+	
+	UPROPERTY(ReplicatedUsing=OnRep_SharedMoney, Transient)
+	int32 SharedMoney;
 
-protected:
-	UPROPERTY()
-	UFZFRoomManager* RoomManagerComponent;
+	UFUNCTION()
+	void OnRep_SharedMoney();
+	
 public:
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	int32 CurrentDay = 1;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	int32 RemainingTimeSeconds = 1200;
+	
+	
 };
