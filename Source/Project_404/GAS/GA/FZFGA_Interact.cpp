@@ -54,11 +54,25 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 		return;
 
 	}
-	// 라인트레이스 시작 위치를 카메라 위치로 설정
-	FVector Start = CameraComp->GetComponentLocation();
+	// 라인트레이스 시작 위치와 방향 설정 (서버에서도 정확한 방향을 얻기 위해 수정)
+	FVector Start;
+	FVector Direction;
+
+	if (Player->IsLocallyControlled())
+	{
+		Start = CameraComp->GetComponentLocation();
+		Direction = CameraComp->GetForwardVector();
+	}
+	else
+	{
+		// 서버에서 원격 클라이언트의 시점을 계산
+		// 카메라 컴포넌트의 위치는 복제되지만, 회전(특히 Pitch)은 Sync가 안 될 수 있으므로 ControlRotation을 사용합니다.
+		Start = CameraComp->GetComponentLocation();
+		Direction = Player->GetControlRotation().Vector();
+	}
 
 	// 카메라가 바라보는 방향으로 500.f 거리만큼 끝 위치 설정
-	FVector End = Start + (CameraComp->GetForwardVector() * TraceDistance);
+	FVector End = Start + (Direction * TraceDistance);
 
 	// 라인트레이스 충돌 결과를 저장할 변수
 	FHitResult Hit;
@@ -96,6 +110,8 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	{
 		Interactable->Interact(Player, HitComponent);
 	}
+	
+	
 	
 	if (HasAuthority(&CurrentActivationInfo))
 	{
