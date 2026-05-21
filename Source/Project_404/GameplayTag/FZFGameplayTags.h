@@ -32,6 +32,7 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Walk);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Run);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Jump);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Block_Jump);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Stamina_NoRegen);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
