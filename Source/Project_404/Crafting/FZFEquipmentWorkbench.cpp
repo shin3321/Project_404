@@ -22,7 +22,7 @@
 
 AFZFEquipmentWorkbench::AFZFEquipmentWorkbench()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 	SetReplicates(true);
 
@@ -60,6 +60,8 @@ void AFZFEquipmentWorkbench::BeginPlay()
 	BasePartMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("BasePartPreviewMesh"));
 	CorePartMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("CorePartPreviewMesh"));
 	ResultMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("ResultPreviewMesh"));
+	CorePartFrameMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("CorePartFrame"));
+	BasePartFrameMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("BasePartFrame"));
 
 	auto SetupInteractionBox = [](UBoxComponent* Box)
 	{
@@ -79,6 +81,39 @@ void AFZFEquipmentWorkbench::BeginPlay()
 	SetupInteractionBox(ResultInteractionBoxRef);
 
 	UpdatePreviewMeshes();
+}
+
+void AFZFEquipmentWorkbench::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bRotateBasePartFrame && IsValid(BasePartFrameMeshRef))
+	{
+		const float DeltaYaw = BasePartFrameRotateSpeed * DeltaTime;
+
+		BasePartFrameMeshRef->AddWorldRotation(
+			FRotator(0.0f, DeltaYaw, 0.0f)
+		);
+	}
+
+	if (bRotateCorePartFrame && IsValid(CorePartFrameMeshRef))
+	{
+		const float DeltaYaw = CorePartFrameRotateSpeed * DeltaTime;
+
+		CorePartFrameMeshRef->AddWorldRotation(
+			FRotator(0.0f, DeltaYaw, 0.0f)
+		);
+	}
+}
+
+void AFZFEquipmentWorkbench::SetBasePartFrameRotating(bool bShouldRotate)
+{
+	bRotateBasePartFrame = bShouldRotate;
+}
+
+void AFZFEquipmentWorkbench::SetCorePartFrameRotating(bool bShouldRotate)
+{
+	bRotateCorePartFrame = bShouldRotate;
 }
 
 EFZFWorkbenchSlot AFZFEquipmentWorkbench::GetSlotFromHitComponent(UPrimitiveComponent* HitComponent) const
@@ -146,6 +181,8 @@ void AFZFEquipmentWorkbench::Server_TryInsertMaterialToSlot_Implementation(EFZFW
 
 			CurrentBasePart = CraftPartData;
 
+			SetBasePartFrameRotating(true);
+
 			break;
 		}
 
@@ -162,6 +199,9 @@ void AFZFEquipmentWorkbench::Server_TryInsertMaterialToSlot_Implementation(EFZFW
 			}
 
 			CurrentCorePart = CraftPartData;
+
+			SetCorePartFrameRotating(true);
+
 			break;
 		}
 	default:
@@ -198,6 +238,7 @@ bool AFZFEquipmentWorkbench::TryCraft()
 	CurrentCorePart = nullptr;
 
 	UpdatePreviewMeshes();
+	ResetWorkbench();
 
 	return true;
 }
@@ -365,4 +406,15 @@ FText AFZFEquipmentWorkbench::GetInteractableName(UPrimitiveComponent* HitCompon
 	default:
 		return FText::GetEmpty();
 	}
+}
+
+void AFZFEquipmentWorkbench::ResetWorkbench()
+{
+	CurrentBasePart = nullptr;
+	CurrentCorePart = nullptr;
+
+	UpdatePreviewMeshes();
+
+	SetBasePartFrameRotating(false);
+	SetCorePartFrameRotating(false);
 }
