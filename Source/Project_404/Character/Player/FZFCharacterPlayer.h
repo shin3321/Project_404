@@ -51,6 +51,10 @@ public:
 
 	virtual void SetDead() override;
 
+	// 곡괭이 장착 및 해제.
+	void EquipPickaxe();
+	void UnEquipPickaxe();
+
 	// 현재 들고있는 아이템을 가져오기 위한 Get함수.
 	UFZFHeldItemComponent* GetHeldItemComponent() const { return HeldItemComponent; }
 
@@ -79,6 +83,8 @@ protected:
 	// 상호작용 함수
 	void Interact();
 
+	// 곡괭이 함수.
+	void TogglePickaxe();
 
 	// 선택된 인벤토리 아이템을 버리는 입력 처리 함수
 	void DropSelectedItem();
@@ -133,6 +139,9 @@ protected:
 	TObjectPtr<UInputAction> InteractAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
+	TObjectPtr<UInputAction> PickaxeAction;
+
+	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
 	TObjectPtr<UInputAction> DropItemAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
@@ -140,7 +149,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Input, BlueprintReadOnly)
 	TObjectPtr<UInputAction> AttackAction;
-
 
 	// Interact Section
 protected:
@@ -183,6 +191,9 @@ protected:
 	// 선택된 인벤토리 아이템을 손에 들게 처리하는 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UFZFHeldItemComponent> HeldItemComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+	TObjectPtr<class UFZFItemData> PickaxeData = nullptr;
 
 
 	// GameplayEffect Section 

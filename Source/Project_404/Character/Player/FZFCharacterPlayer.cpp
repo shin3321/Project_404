@@ -158,6 +158,14 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 		AttackAction = AttackActionRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> PickaxeActionRef(
+		TEXT("/Game/Project404/Input/Actions/IA_TogglePickaxe.IA_TogglePickaxe"));
+	if (PickaxeActionRef.Succeeded())
+	{
+		// 곡괭이 액션.
+		PickaxeAction = PickaxeActionRef.Object;
+	}
+
 	// GAS
 	// 의도적으로 nullptr로 밀어줌 -> PlayerState의 ASC값을 대입할거라서 혼선방지용
 	ASC = nullptr;
@@ -352,6 +360,10 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this,
 		                                   &AFZFCharacterPlayer::Interact);
 
+		// Interaction
+		EnhancedInputComponent->BindAction(PickaxeAction, ETriggerEvent::Started, this,
+		                                   &AFZFCharacterPlayer::TogglePickaxe);
+
 		// DropItem
 		EnhancedInputComponent->BindAction(DropItemAction, ETriggerEvent::Started, this,
 		                                   &AFZFCharacterPlayer::DropSelectedItem);
@@ -531,6 +543,29 @@ void AFZFCharacterPlayer::Interact()
 		// Native Tag를 직접 전달
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Interact));
 	}
+}
+
+void AFZFCharacterPlayer::TogglePickaxe()
+{
+	// ASC가 유효한지 확인
+	if (ASC)
+	{
+		// "Ability.Action.TogglePickaxe" 태그를 가진 Gameplay Ability를 실행
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_TogglePickaxe));
+	}
+}
+
+void AFZFCharacterPlayer::EquipPickaxe()
+{
+	// 손에 들고 있는 아이템 해제 후 도끼 생성.
+	InventoryComponent->SelectSlot(-1);
+	HeldItemComponent->HoldItem(PickaxeData);
+}
+
+void AFZFCharacterPlayer::UnEquipPickaxe()
+{
+	// 현재 들고있는 곡괭이 해제.
+	HeldItemComponent->ClearHeldItem();
 }
 
 void AFZFCharacterPlayer::DropSelectedItem()
