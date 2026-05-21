@@ -70,4 +70,7 @@ protected:
 	// 실제 레벨 이동 실행 함수
 	UFUNCTION()
 	void TravelToLobbyLevel();
+	
+	UPROPERTY()
+	class UFZFGameInstance* GameInstance;
 };
