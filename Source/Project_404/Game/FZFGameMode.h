@@ -35,7 +35,8 @@ protected:
 	virtual bool ReadyToStartMatch_Implementation() override;
 	//void LoadLevelAsync();
 	//void OnLevelLoaded();
-
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "GameEvent")
+	void StartNewDay();
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Network")

@@ -17,6 +17,8 @@ void AFZFGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	 
 	DOREPLIFETIME(AFZFGameState, CurrentPhase);
+	DOREPLIFETIME(AFZFGameState, CurrentDay);
+    DOREPLIFETIME(AFZFGameState, RemainingRimeSeconds);
 }
 
 void AFZFGameState::BeginPlay()

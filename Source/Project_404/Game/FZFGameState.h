@@ -51,5 +51,5 @@ public:
 	int32 CurrentDay = 1;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
-	int32 RemainingRimeSeconds = 1200;
+	int32 RemainingTimeSeconds = 1200;
 };
