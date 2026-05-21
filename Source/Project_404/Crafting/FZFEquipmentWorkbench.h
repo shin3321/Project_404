@@ -49,6 +49,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 private:
 	UFZFEquipmentRecipeData* FindMatchedRecipe() const;
@@ -131,4 +132,36 @@ private:
 	
 	UPROPERTY()
 	AFZFCharacterPlayer* TargetInteractor;
+
+// 제작대 효과.
+protected:
+	// Blueprint 안에 있는 CorePartFrame Mesh를 연결
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Workbench|Frame")
+	TObjectPtr<UStaticMeshComponent> CorePartFrameMeshRef;
+
+	// Blueprint 안에 있는 BasePartFrame Mesh를 연결
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Workbench|Frame")
+	TObjectPtr<UStaticMeshComponent> BasePartFrameMeshRef;
+
+	// BasePartFrame 회전 여부
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Workbench|Frame")
+	bool bRotateBasePartFrame = false;
+
+	// CorePartFrame 회전 여부
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Workbench|Frame")
+	bool bRotateCorePartFrame = false;
+
+	// BasePartFrame Z축 회전 속도, 초당 도 단위
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Workbench|Frame")
+	float BasePartFrameRotateSpeed = 90.0f;
+
+	// BasePartFrame Z축 회전 속도, 초당 도 단위
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Workbench|Frame")
+	float CorePartFrameRotateSpeed = 120.0f;
+
+protected:
+
+	void SetBasePartFrameRotating(bool bShouldRotate);
+	void SetCorePartFrameRotating(bool bShouldRotate);
+	void ResetWorkbench();
 };
