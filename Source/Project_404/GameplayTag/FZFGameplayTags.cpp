@@ -72,4 +72,8 @@ namespace FZFGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Character_Death, "GameplayCue.Character.Death");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dead, "State.Dead");
+
+	// 무기별 쿨타임 설정
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Attack_Sword, "Cooldown.Attack.Sword");
+
 }

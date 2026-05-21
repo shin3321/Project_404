@@ -79,4 +79,8 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Character_Death);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
 
+	// 쿨타임 설정
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Attack_Sword);
+
+
 }
