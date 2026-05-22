@@ -28,6 +28,7 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Rifle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Sword);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Pistol);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_BarrierStaff);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Apply_Revive);
 	
 	
@@ -83,6 +84,4 @@ namespace FZFGameplayTags
 
 	// 쿨타임 설정
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Attack_Sword);
-
-
 }
