@@ -111,7 +111,7 @@ void AFZFSpawnManager::BeginPlay()
 						return;
 					}
 
-					UE_LOG(LogTemp, Warning, TEXT("MonsterClass: 스폰 위치: (%lf, %f, %lf)"), SpawnLocation.X,
+					UE_LOG(LogTemp, Warning, TEXT("창고 아이템 스폰: 스폰 위치: (%lf, %f, %lf)"), SpawnLocation.X,
 					       SpawnLocation.Y, SpawnLocation.Z);
 					AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(
 						Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
