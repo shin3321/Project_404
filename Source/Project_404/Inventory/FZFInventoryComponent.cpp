@@ -229,7 +229,6 @@ void UFZFInventoryComponent::DropSelectedItem()
         return;
     }
 
-
     // 이 InventoryComponent를 가지고 있는 Owner 가져오기
     AActor* OwnerActor = GetOwner();
     if (!OwnerActor)
