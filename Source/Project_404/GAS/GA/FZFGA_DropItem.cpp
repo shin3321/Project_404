@@ -1,6 +1,9 @@
 ﻿#include "GAS/GA/FZFGA_DropItem.h"
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Inventory/FZFInventoryComponent.h"
+#include "Inventory/FZFHeldItemComponent.h"
+#include "Item/FZFItemData.h"
+#include "Item/Equipment/FZFEquipmentItemData.h"
 
 UFZFGA_DropItem::UFZFGA_DropItem()
 {
@@ -46,6 +49,17 @@ void UFZFGA_DropItem::DropSelectedItem()
     if (!InventoryComponent)
     {
         return;
+    }
+
+    UFZFItemData* HeldItemData = Player->GetHeldItemComponent()->GetCurrentItemData();
+    if (!IsValid(HeldItemData))
+        return;
+
+    // 도끼의 경우 버릴 수 없도록 예외처리.
+    if (UFZFEquipmentItemData* EquipmentItemData = Cast<UFZFEquipmentItemData>(HeldItemData))
+    {
+        if (IsValid(EquipmentItemData) && EquipmentItemData->GetItemType() == EEquipmentType::Pickaxe)
+            return;
     }
 
     // 현재 선택된 슬롯의 아이템 버리기

@@ -42,13 +42,15 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Stamina_NoRegen);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_Attack);
-		
 	
+	// 디버프 태그
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Stun);
 
 	// 어트리뷰트 데이터 초기화용 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_MaxHp);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_Hp);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_AttackRange);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_Attack);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Move_MovementSpeed);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Move_MaxMovementSpeed);
@@ -78,5 +80,9 @@ namespace FZFGameplayTags
 	// 죽음
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Character_Death);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
+
+	// 쿨타임 설정
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Attack_Sword);
+
 
 }

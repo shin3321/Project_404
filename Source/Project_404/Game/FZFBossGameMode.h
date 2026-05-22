@@ -17,15 +17,25 @@ class PROJECT_404_API AFZFBossGameMode : public AFZFGameMode
 public:
 	AFZFBossGameMode();
 
+protected:
 	UFUNCTION()
 	virtual void BeginPlay() override;
-
-	UFUNCTION()
-	virtual void Tick(float DeltaTime) override;
-
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
+public:
+	UFUNCTION()
+	virtual void Tick(float DeltaTime) override;
+	
+	UFUNCTION()	
+	void DeadPlayer();
+	
+	UFUNCTION()	
+	void BossGameRule();
 
+protected:
+	int32 ExistPlayers;
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Management")
 	TSubclassOf<class AFZFBossLevelManager> BossLevelManagerClass;

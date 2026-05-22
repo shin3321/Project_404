@@ -30,7 +30,7 @@ public:
     //GA에서 현재 아이템 정보를 참조할 수 있도록 Getter 추가
     FORCEINLINE UFZFItemData* GetCurrentItemData() const { return CurrentHeldItemData; }
 
-    FGameplayTag GetCurrentAttackTag() { return  CurrentEquippedTag; }
+    FGameplayTag GetCurrentAttackTag() const;
 
     FORCEINLINE AFZFHeldItemActor* GetHeldItemActor() const { return CurrentHeldItem; }
 
@@ -116,14 +116,19 @@ protected:
     UPROPERTY(EditAnywhere, Category = "GAS")
     FGameplayTag CurrentEquippedTag;
 
-    // 장착 시 적용된 사거리 GE를 추적하기 위한 핸들
-    FActiveGameplayEffectHandle RangeEffectHandle;
+    // 장착 시 적용된 무기스탯 GE를 추적하기 위한 핸들
+    FActiveGameplayEffectHandle WeaponStatEffectHandle;
 
     // SetByCaller에서 사용할 데이터 태그
+    // 사거리
     UPROPERTY(EditDefaultsOnly, Category = "GAS")
     FGameplayTag RangeDataTag;
 
-    // 무기 사거리를 보정해줄 GE 클래스 (에디터에서 설정)
+    // 공격력
     UPROPERTY(EditDefaultsOnly, Category = "GAS")
-    TSubclassOf<class UGameplayEffect> RangeModifierGE;
+    FGameplayTag DamageDataTag;
+
+    // 무기 스텟을 추가해줄 GE 클래스 (에디터에서 설정)
+    UPROPERTY(EditDefaultsOnly, Category = "GAS")
+    TSubclassOf<class UGameplayEffect> WeaponModifierGE;
 };

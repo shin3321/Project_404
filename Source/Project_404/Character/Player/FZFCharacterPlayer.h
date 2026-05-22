@@ -56,7 +56,7 @@ public:
 	void UnEquipPickaxe();
 
 	// 현재 들고있는 아이템을 가져오기 위한 Get함수.
-	UFZFHeldItemComponent* GetHeldItemComponent() const { return HeldItemComponent; }
+	UFZFHeldItemComponent* GetHeldItemComponent() { return HeldItemComponent; }
 
 protected:
 	virtual void BeginPlay() override;

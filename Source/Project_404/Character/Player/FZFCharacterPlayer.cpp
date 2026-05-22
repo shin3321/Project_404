@@ -216,7 +216,7 @@ void AFZFCharacterPlayer::BeginPlay()
 	Super::BeginPlay();
 
 	// 인벤토리 위젯 올리기
-	if (InventoryComponent)
+	if (IsLocallyControlled() && InventoryComponent)
 	{
 		InventoryComponent->ShowInventory();
 	}

@@ -38,6 +38,9 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_DroppingItem,"State.Action.DroppingItem");
 	UE_DEFINE_GAMEPLAY_TAG(State_Action_Attack,"State.Action.Attack");
 
+	// 디버프 상태 부여 태그
+	UE_DEFINE_GAMEPLAY_TAG(State_Debuff_Stun,"State.Debuff.Stun");
+
 	// 내가 현재 착용하고 있는 무기에 따른 상태
 	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Pickaxe,"State.Equip.Pickaxe");
 	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Rifle,"State.Equip.Rifle");
@@ -48,6 +51,7 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_MaxHp, "Data.Stat.MaxHp");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_Hp, "Data.Stat.Hp");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_AttackRange, "Data.Stat.AttackRange");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_Attack, "Data.Stat.Attack");
 
 	UE_DEFINE_GAMEPLAY_TAG(Data_Move_MovementSpeed, "Data.Move.MovementSpeed");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Move_MaxMovementSpeed, "Data.Move.MaxMovementSpeed");
@@ -72,4 +76,8 @@ namespace FZFGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Character_Death, "GameplayCue.Character.Death");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dead, "State.Dead");
+
+	// 무기별 쿨타임 설정
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Attack_Sword, "Cooldown.Attack.Sword");
+
 }

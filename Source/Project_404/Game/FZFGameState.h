@@ -23,11 +23,13 @@ class PROJECT_404_API AFZFGameState : public AGameState
 public:
 	AFZFGameState();
 
-public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+protected:
 	virtual void BeginPlay() override;
 	
 public:	
+	EGamePhase GetCurrentPhase() const {return CurrentPhase;}
+	
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentPhase, BlueprintReadOnly, Category = "Game Phase")
 	EGamePhase CurrentPhase;
 	
@@ -51,7 +53,7 @@ public:
 	int32 CurrentDay = 1;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
-	int32 RemainingTimeSeconds = 1200;
+	int32 RemainingTimeSeconds = 1200;	
 	
 	
 };
