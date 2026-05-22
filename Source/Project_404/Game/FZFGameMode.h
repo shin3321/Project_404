@@ -45,6 +45,10 @@ public:
 	UFUNCTION()
 	void BossDefeated();
 
+	virtual void PlayerDied(AController* DeadPlayer);
+
+	virtual void HandleGameOver();
+
 protected:
 	class AFZFGameState* GameState;
 

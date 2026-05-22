@@ -35,6 +35,9 @@ protected:
 public:
 	// 관전 시작 함수
 	void StartSpectator();
+
+	// 관전 종료 함수
+	void StopSpectator();
 public:
 	UFUNCTION()
 	void RequestSpawnItem(FName ItemId, FVector ItemSpawnLocation, FRotator SpawnRotation);
