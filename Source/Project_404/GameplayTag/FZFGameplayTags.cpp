@@ -51,6 +51,7 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_MaxHp, "Data.Stat.MaxHp");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_Hp, "Data.Stat.Hp");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_AttackRange, "Data.Stat.AttackRange");
+	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_Attack, "Data.Stat.Attack");
 
 	UE_DEFINE_GAMEPLAY_TAG(Data_Move_MovementSpeed, "Data.Move.MovementSpeed");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Move_MaxMovementSpeed, "Data.Move.MaxMovementSpeed");
