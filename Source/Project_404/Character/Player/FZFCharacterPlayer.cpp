@@ -628,8 +628,22 @@ void AFZFCharacterPlayer::Attack()
 
 	FGameplayTag AttackTag = HeldItemComponent->GetCurrentAttackTag();
 
-	if (ASC)
+	// 부활석을 장착하고 좌클릭
+	if (AttackTag == FZFGameplayTags::State_Equip_ReviveStone)
 	{
+		// 부활석 전용 실행 액션 태그를 직접 찔러서 어빌리티를 강제로 켭니다.
+		FGameplayTag ReviveActionTag = FZFGameplayTags::Ability_Action_Apply_Revive;
+
+		if (ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(ReviveActionTag)))
+		{
+			UE_LOG(LogTemp, Log, TEXT("[Attack] 부활석 어빌리티 발동 성공!"));
+			ServerPlaySound(TEXT("Weapon_LaserGun"), GetActorLocation());
+			return;
+		}
+	}
+	else
+	{
+		// 일반 무기들은 기존처럼 작동
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
 	}
 	
