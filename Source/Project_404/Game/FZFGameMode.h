@@ -20,16 +20,16 @@ public:
 	AFZFGameMode();
 
 protected:
-	virtual void StartPlay() override;
 	virtual void BeginPlay() override;
 
+	virtual void HandleMatchHasStarted() override;
+public:
+	virtual void StartPlay() override;
 	// 접속 및 스폰 관리 로직
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
-	virtual void HandleMatchHasStarted() override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
-
 	virtual void RestartPlayer(AController* NewPlayer) override;
 
 	virtual bool ReadyToStartMatch_Implementation() override;

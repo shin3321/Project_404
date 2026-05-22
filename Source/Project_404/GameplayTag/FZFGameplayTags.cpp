@@ -45,7 +45,8 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Pickaxe,"State.Equip.Pickaxe");
 	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Rifle,"State.Equip.Rifle");
 	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Pistol,"State.Equip.Pistol");
-	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Swrod,"State.Equip.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Sword,"State.Equip.Sword");
+	UE_DEFINE_GAMEPLAY_TAG(State_Equip_ReviveStone,"State.Equip.ReviveStone");
   
   	// 어트리뷰트 데이터 초기화용 태그
 	UE_DEFINE_GAMEPLAY_TAG(Data_Stat_MaxHp, "Data.Stat.MaxHp");
@@ -67,7 +68,6 @@ namespace FZFGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Data_BT_DetectRange, "Data.BT.DetectRange");
 	UE_DEFINE_GAMEPLAY_TAG(Data_BT_TurnSpeed, "Data.BT.TurnSpeed");
-	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Sword,"State.Equip.Sword");
 
 	// 공격 판정 체크
 	UE_DEFINE_GAMEPLAY_TAG(Event_Character_AttackHitCheck, "Event.Character.AttackHitCheck");

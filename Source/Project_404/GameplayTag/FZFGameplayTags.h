@@ -28,7 +28,6 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Rifle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Sword);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Pistol);
-	
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Apply_Revive);
 	
 	
@@ -71,6 +70,7 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Rifle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Pistol);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Sword);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_ReviveStone);
 
 	// 공격 판정 체크
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_AttackHitCheck);
