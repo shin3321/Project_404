@@ -8,7 +8,7 @@
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "AI/Boss/FZFBossAI.h"
-#include "Interface/FZFMonsterAIInterface.h"
+#include "Interface/FZFBossAIInterface.h"
 
 AFZFBossAIController::AFZFBossAIController()
 {
@@ -45,16 +45,21 @@ void AFZFBossAIController::RunAI()
 		);
 
 		// 비헤이비어 트리 할당하기.
-		IFZFMonsterAIInterface* AIPawn = Cast<IFZFMonsterAIInterface>(GetPawn());
+		IFZFBossAIInterface* AIPawn = Cast<IFZFBossAIInterface>(GetPawn());
 		if (!AIPawn)
 		{
 			return;
 		}
+		
 		BTAsset = AIPawn->GetBT();
+		if (!BTAsset) 
+		{ 
+			return; 
+		}
 
 
 		// 비헤이비어 트리 실행.
-		bool Result = RunBehaviorTree(BTAsset);
+		const bool Result = RunBehaviorTree(BTAsset);
 
 		// 예외 처리.
 		ensureAlways(Result);
