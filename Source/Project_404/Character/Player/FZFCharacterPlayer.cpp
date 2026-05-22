@@ -282,13 +282,27 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 				ASC->GiveAbility(StartSpec);
 			}
 
-			if (PassiveRegenEffectClass)
+			if (PassiveRegenStaminaEffectClass)
 			{
 				FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 				EffectContext.AddSourceObject(this);
 
 				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(
-					PassiveRegenEffectClass, 1.0f, EffectContext);
+					PassiveRegenStaminaEffectClass, 1.0f, EffectContext);
+				if (SpecHandle.IsValid())
+				{
+					// 서버에서 적용 시 클라이언트로 자동 복제됨
+					ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+				}
+			}
+
+			if (PassiveRegenHPEffectClass)
+			{
+				FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+				EffectContext.AddSourceObject(this);
+
+				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(
+					PassiveRegenHPEffectClass, 1.0f, EffectContext);
 				if (SpecHandle.IsValid())
 				{
 					// 서버에서 적용 시 클라이언트로 자동 복제됨
@@ -313,7 +327,7 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 				HUDWidget->HideWidget();
 				HUDWidget->SetCrosshairNormal();
 
-				// 플레이어 전용 AttributeSet으로 다운캐스팅하여 안전하게 바인딩합니다.
+				// 플레이어 전용 AttributeSet으로 다운캐스팅하여 안전하게 바인딩
 				if (UFZFPlayerSet* PlayerSet = Cast<UFZFPlayerSet>(AttributeSet))
 				{
 					// C++ 델리게이트와 HUD 업데이트 함수 다이내믹 바인딩 (구독 시작)

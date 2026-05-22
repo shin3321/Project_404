@@ -18,9 +18,17 @@ public:
 	UFZFPlayerSet();
 
 protected:
+	// 멀티플레이 필수 : 리플리케이션 속성 등록 함수 선언
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
+	UFUNCTION()
+	virtual void OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina);
+
+	UFUNCTION()
+	virtual void OnRep_Stamina(const FGameplayAttributeData& OldStamina);
 public:
 	ATTRIBUTE_ACCESSORS(UFZFPlayerSet, Stamina);
 	ATTRIBUTE_ACCESSORS(UFZFPlayerSet, MaxStamina);

@@ -1,5 +1,7 @@
 ﻿#include "GAS/Attributes/FZFPlayerSet.h"
 #include "GameplayEffectExtension.h"
+#include "Net/UnrealNetwork.h" // DOREPLIFETIME 매크로 사용을 위해 필수!
+#include "AbilitySystemComponent.h"
 
 UFZFPlayerSet::UFZFPlayerSet()
 {
@@ -13,6 +15,15 @@ UFZFPlayerSet::UFZFPlayerSet()
 	InitAttackRange(800);
 	InitAttackRadius(30);
 	InitAttack(5.0f);
+}
+
+void UFZFPlayerSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// Stamina와 MaxStamina의 네트워크 복제를 활성화합니다.
+	DOREPLIFETIME(UFZFPlayerSet, Stamina);
+	DOREPLIFETIME(UFZFPlayerSet, MaxStamina);
 }
 
 void UFZFPlayerSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -40,6 +51,20 @@ void UFZFPlayerSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackDa
 		}
 	}
 
+
+	// 자연 치유 추가 : GE에 의해 HP 속성이 직접 올라갔을 때 UI 동기화
+	if (Data.EvaluatedData.Attribute == GetHPAttribute())
+	{
+		// 자연 치유 도중 MaxHP를 넘어서 오버힐 되는 것을 방지하기 위해 다시 한번 안전하게 Clamp
+		SetHP(FMath::Clamp(GetHP(), 0.0f, GetMaxHP()));
+
+		// 치유되어 바뀐 현재 체력을 HUD UI에 실시간으로 발송!
+		if (OnHPChanged.IsBound())
+		{
+			// 부모에 구현된 GetHP(), GetMaxHP() 호출
+			OnHPChanged.Broadcast(GetHP(), GetMaxHP());
+		}
+	}
 	// 실제 GE가 적용된 후 최종 수치를 다시 한번 제한 (매우 중요)
  	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
 	{
@@ -50,5 +75,27 @@ void UFZFPlayerSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackDa
 		{
 			OnStaminaChanged.Broadcast(GetStamina(), GetMaxStamina());
 		}
+	}
+}
+
+void UFZFPlayerSet::OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFPlayerSet, MaxStamina, OldMaxStamina);
+
+	if (OnStaminaChanged.IsBound())
+	{
+		OnStaminaChanged.Broadcast(GetStamina(), GetMaxStamina());
+	}
+}
+
+
+
+void UFZFPlayerSet::OnRep_Stamina(const FGameplayAttributeData& OldStamina)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFPlayerSet, Stamina, OldStamina);
+
+	if (OnStaminaChanged.IsBound())
+	{
+		OnStaminaChanged.Broadcast(GetStamina(), GetMaxStamina());
 	}
 }
