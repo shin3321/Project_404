@@ -45,8 +45,8 @@ void AFZFGameLevelTeleport::Tick(float DeltaTime)
 }
 
 void AFZFGameLevelTeleport::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-                                           const FHitResult& SweepResult)
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+	const FHitResult& SweepResult)
 {
 	if (!HasAuthority()) return;
 
@@ -68,7 +68,7 @@ void AFZFGameLevelTeleport::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, 
 }
 
 void AFZFGameLevelTeleport::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (TeleportWidgetInstance != nullptr && TeleportWidgetInstance->IsInViewport())
 	{
@@ -101,15 +101,9 @@ void AFZFGameLevelTeleport::EnterLobbyLevel()
 		UE_LOG(LogTemp, Error, TEXT("클라이언트는 포탈을 탈 수 없습니다! 서버(첫 번째 창)에서 누르세요."));
 		return;
 	}
-	if (GameInstance->bEnterBossLevel)
-	{
-		ShowLoadingAndTravel(TEXT("FZFBossLevel?listen"));
-	}
-	else
-	{
-		// 로딩 화면을 띄운 뒤 레벨 이동
-		ShowLoadingAndTravel(TEXT("FZFGameLevel?listen"));
-	}
+
+	// 로딩 화면을 띄운 뒤 레벨 이동
+	ShowLoadingAndTravel(TEXT("FZFGameLevel?listen"));
 }
 
 void AFZFGameLevelTeleport::TravelToLobbyLevel()

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -26,15 +26,6 @@ protected:
 public:
 	UFUNCTION()
 	virtual void Tick(float DeltaTime) override;
-	
-	UFUNCTION()	
-	void DeadPlayer();
-	
-	UFUNCTION()	
-	void BossGameRule();
-
-protected:
-	int32 ExistPlayers;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Management")
