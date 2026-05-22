@@ -73,7 +73,7 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 	if (WaitTargetDataTask)
 	{
 		WaitTargetDataTask->ValidData.AddDynamic(this, &UFZFGA_AttackHitCheck::OnTargetDataReceived);
-
+		WaitTargetDataTask->Cancelled.AddDynamic(this, &UFZFGA_AttackHitCheck::OnTargetDataCancelled);
 		// 태스크 활성화
 		WaitTargetDataTask->ReadyForActivation();
 	}
@@ -146,4 +146,9 @@ void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDat
 
 	// 모든 로직이 완료되면 능력을 종료
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UFZFGA_AttackHitCheck::OnTargetDataCancelled(const FGameplayAbilityTargetDataHandle& DataHandle)
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

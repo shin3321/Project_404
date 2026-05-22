@@ -18,10 +18,17 @@ public:
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
+	// 비정상 강제 종료 시에도 청소하기 위해 AbortTask 오버라이드
+	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+
+	// 디버프 일괄 해제용 공통 함수 선언
+	void CleanupAllBlackholeEffects();
+
 	// 매 프레임 당기기 연산을 수행할 TickTask
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 	virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override;
+
 private:
 	// AttributeSet에서 가져올 수치들을 저장할 변수들
 	float PullDuration; // 끌어당기는 시간
