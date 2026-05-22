@@ -26,6 +26,7 @@ UBTTask_Blackhole::UBTTask_Blackhole()
 
 EBTNodeResult::Type UBTTask_Blackhole::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Blackhole] 태스크 진입 성공!"));
 	Super::ExecuteTask(OwnerComp, NodeMemory);
 
 	// 구현하고 싶은 기능
@@ -52,6 +53,41 @@ EBTNodeResult::Type UBTTask_Blackhole::ExecuteTask(UBehaviorTreeComponent& Owner
 
 	// 태스크를 즉시 종료하지 않고 TickTask가 돌도록 InProgress 반환
 	return EBTNodeResult::InProgress;
+}
+
+EBTNodeResult::Type UBTTask_Blackhole::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+	UE_LOG(LogTemp, Error, TEXT("[Blackhole] 태스크 강제 종료됨! (Abort) -> 청소 로직 실행"));
+	CleanupAllBlackholeEffects();
+	return Super::AbortTask(OwnerComp, NodeMemory);
+}
+
+void UBTTask_Blackhole::CleanupAllBlackholeEffects()
+{
+	for (auto& Pair : ActiveGEHandles)
+	{
+		if (Pair.Key.IsValid())
+		{
+			ACharacter* Target = Pair.Key.Get();
+			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
+
+			if (TargetASC && BlackholeGEClass)
+			{
+				// 1. 핸들(영수증)로 먼저 정상 삭제 시도
+				if (Pair.Value.IsValid())
+				{
+					TargetASC->RemoveActiveGameplayEffect(Pair.Value);
+				}
+
+				// 2. [무적의 강제 삭제] 핸들이 끊겼거나 찌꺼기가 남았을 경우를 대비해
+				// 타겟의 몸에 있는 'BlackholeGEClass' 디버프를 무조건 싹 다 지워버림 (-1)
+				TargetASC->RemoveActiveGameplayEffectBySourceEffect(BlackholeGEClass, nullptr, -1);
+
+				UE_LOG(LogTemp, Warning, TEXT("[Blackhole] 최종 청소 - 플레이어(%s) 디버프 강제 삭제 완료!"), *Target->GetName());
+			}
+		}
+	}
+	ActiveGEHandles.Empty();
 }
 
 void UBTTask_Blackhole::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -151,11 +187,18 @@ void UBTTask_Blackhole::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 			if (!CurrentDetectedTargets.Contains(ActiveTarget))
 			{
 				// Target의 ASC 가져옴
-				UAbilitySystemComponent* TargetASC = ActiveTarget->FindComponentByClass<UAbilitySystemComponent>();
-				if (TargetASC && It->Value.IsValid())
+				UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ActiveTarget);
+
+				if (TargetASC && BlackholeGEClass)
 				{
-					// 보관하고 있던 영수증 핸들로 해당 에펙트만 정확하게 제거합니다.
-					TargetASC->RemoveActiveGameplayEffect(It->Value);
+					// 핸들로 정상 삭제 시도
+					if (It->Value.IsValid())
+					{
+						TargetASC->RemoveActiveGameplayEffect(It->Value);
+					}
+
+					// 무적의 강제 삭제 범위 밖으로 나간 즉시 해당 클래스 GE 강제 말살
+					TargetASC->RemoveActiveGameplayEffectBySourceEffect(BlackholeGEClass, nullptr, -1);
 				}
 				It.RemoveCurrent(); // 명단 제외
 			}
@@ -170,20 +213,7 @@ void UBTTask_Blackhole::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 
 void UBTTask_Blackhole::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
 {
-	// 최종 청소 : 기믹 종료 시 디버프가 남아있는 모든 플레이어의 이펙트를 일괄 철회
-	for (auto& Pair : ActiveGEHandles)
-	{
-		if (Pair.Key.IsValid() && Pair.Value.IsValid())
-		{
-			ACharacter* Target = Pair.Key.Get();
-			UAbilitySystemComponent* TargetASC = Target->FindComponentByClass<UAbilitySystemComponent>();
-			if (TargetASC)
-			{
-				TargetASC->RemoveActiveGameplayEffect(Pair.Value);
-			}
-		}
-	}
-
-	ActiveGEHandles.Empty();
+	UE_LOG(LogTemp, Warning, TEXT("[Blackhole] 태스크 정상 종료됨! -> 청소 로직 실행"));
+	CleanupAllBlackholeEffects();
 	Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
 }

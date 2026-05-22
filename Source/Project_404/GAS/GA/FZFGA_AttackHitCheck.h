@@ -19,6 +19,9 @@ protected:
 	UFUNCTION()
 	void OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle);
 
+	UFUNCTION()
+	void OnTargetDataCancelled(const FGameplayAbilityTargetDataHandle& DataHandle);
+
 protected:
 	// TA 클래스를 에디터에서 할당하기 위한 변수
 	UPROPERTY(EditAnywhere, Category = "GAS")
