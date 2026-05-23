@@ -62,6 +62,15 @@ void UFZFAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, 
 			Character->GetCharacterMovement()->MaxWalkSpeed = NewValue;
 		}
 	}
+
+	// [추가] HP나 MaxHP가 (GE가 아닌 직접적인 Set 등으로) 변경되었을 때 UI 갱신
+	if (Attribute == GetHPAttribute() || Attribute == GetMaxHPAttribute())
+	{
+		if (OnHPChanged.IsBound())
+		{
+			OnHPChanged.Broadcast(GetHP(), GetMaxHP());
+		}
+	}
 }
 
 void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -155,6 +164,13 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			const float CurrentHP = GetHP();
 			const float NewHP = FMath::Clamp(CurrentHP - LocalDamage, 0.0f, GetMaxHP());
 			SetHP(NewHP);
+
+			// [추가] 서버에서 HP가 깎였을 때 즉시 UI 업데이트를 위해 브로드캐스트
+			if (OnHPChanged.IsBound())
+			{
+				OnHPChanged.Broadcast(GetHP(), GetMaxHP());
+			}
+
 			if (NewHP <= 0.0f)
 			{
 				if (AFZFCharacterBase* TargetCharacter = Cast<AFZFCharacterBase>(Data.Target.GetAvatarActor()))
