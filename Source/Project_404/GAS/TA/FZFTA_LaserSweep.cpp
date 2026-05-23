@@ -74,6 +74,19 @@ FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 
 	FVector End = Start + Forward * AttackRange;
 
+	// 공격 주체에 따른 트레이스 채널 동적 결정
+	ECollisionChannel AttackChannel = CCHANNEL_FZFPLAYER_ATTACK; // 매크로에 정의된 기본값을 Player로 설정
+
+	// 만약 플레이어 클래스로 캐스팅이 성공한다면 플레이어 공격 채널 사용
+	if (SourceActor && SourceActor->IsA<AFZFCharacterPlayer>())
+	{
+		AttackChannel = CCHANNEL_FZFPLAYER_ATTACK; // 플레이어 공격 채널
+	}
+	else
+	{
+		AttackChannel = CCHANNEL_FZFMONSTER_ATTACK; // 그 외(몬스터 등)는 몬스터 공격 채널
+	}
+
 	// 판정 실행
 	TArray<FHitResult> HitResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(AFZFTA_LaserSweep), false, Character);
@@ -83,7 +96,7 @@ FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 		Start,
 		End,
 		FQuat::Identity,
-		CCHANNEL_FZFATTACK,
+		AttackChannel,
 		FCollisionShape::MakeSphere(AttackRadius),
 		Params
 	);
