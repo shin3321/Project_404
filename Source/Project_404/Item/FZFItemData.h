@@ -9,6 +9,8 @@
 #include "GameplayTagContainer.h"
 #include "FZFItemData.generated.h"
 
+class UNiagaraSystem;
+
 /**
  * 
  */
@@ -73,4 +75,8 @@ public:
 	// 스폰 클래스를 결정하는 변수
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Config")
 	TSubclassOf<AActor> ItemActorClass;
+
+    // 무기 발사 시 사용할 나이아가라 레이저 이펙트
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+    TObjectPtr<UNiagaraSystem> WeaponLaserEffect;
 };

@@ -8,6 +8,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Inventory/FZFHeldItemComponent.h"
 #include "FZFHeldItemActor.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 
 AFZFTA_LaserSweep::AFZFTA_LaserSweep()
 {
@@ -36,45 +38,62 @@ FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 	ACharacter* Character = Cast<ACharacter>(SourceActor);
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
 
+	if (!Character || !ASC) return FGameplayAbilityTargetDataHandle();
+
 	// AttributeSet의 속성 대입
 	float AttackRange = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackRangeAttribute());
 	float AttackRadius = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackRadiusAttribute());
 
 	// 시작 위치(Start)와 방향(Forward) 결정
 	FVector Start = FVector::ZeroVector;
-	FVector Forward = Character->GetActorForwardVector();
+	
+	// 조준 방향(Rotation)을 가장 확실하게 가져오는 방법
+	FRotator AimRotation = FRotator::ZeroRotator;
+	if (Character->GetController())
+	{
+		// 로컬 플레이어나 서버에서 직접 조종 중일 때
+		AimRotation = Character->GetController()->GetControlRotation();
+	}
+	else
+	{
+		// 멀티플레이에서 다른 클라이언트의 캐릭터(Simulated Proxy)일 때
+		AimRotation = Character->GetBaseAimRotation();
+	}
+	FVector Forward = AimRotation.Vector();
 
 	if (bUseSocket && !StartSocketName.IsNone())
 	{
-		AFZFCharacterPlayer* CharacterPlayer = Cast<AFZFCharacterPlayer>(Character);
+		// 플레이어라면 카메라/조준 시점(ViewPoint)을 기준으로 정확한 시작점 계산
+		FVector ViewLocation;
+		FRotator ViewRotation;
 
-		if (CharacterPlayer)
+		if (Character->GetController())
 		{
-			const UFZFHeldItemComponent* HeldItemComponent = CharacterPlayer->GetHeldItemComponent();
-
-			if (HeldItemComponent)
-			{
-				FVector CameraLocation;
-				FRotator CameraRotation;
-				Character->GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
-
-				Start = CameraLocation;
-				Forward = CameraRotation.Vector();
-			}
+			Character->GetController()->GetPlayerViewPoint(ViewLocation, ViewRotation);
+			Start = ViewLocation;
+			Forward = ViewRotation.Vector();
 		}
 		else
 		{
+			// 컨트롤러가 없는 경우(다른 플레이어 화면) 소켓 위치 사용
 			Start = Character->GetMesh()->GetSocketLocation(StartSocketName);
 		}
 	}
 	else
 	{
-		Start = Character->GetActorLocation() + Forward * Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+		// 소켓 미사용 시 캐릭터 발밑이 아닌 몸통 중간 지점에서 시작하도록 보정
+		Start = Character->GetActorLocation() + FVector(0, 0, Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * 0.5f);
 	}
 
 	FVector End = Start + Forward * AttackRange;
 
-	// 판정 실행
+	// 1. 시각적 끝점 찾기 (환경 오브젝트 포함)
+	FHitResult VisualHit;
+	FCollisionQueryParams VisualParams(SCENE_QUERY_STAT(AFZFTA_LaserVisual), false, Character);
+	GetWorld()->LineTraceSingleByChannel(VisualHit, Start, End, ECC_Visibility, VisualParams);
+	FVector ActualVisualEnd = VisualHit.bBlockingHit ? VisualHit.ImpactPoint : End;
+
+	// 2. 실제 데미지 판정 (기존 Sweep)
 	TArray<FHitResult> HitResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(AFZFTA_LaserSweep), false, Character);
 
@@ -89,37 +108,36 @@ FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 	);
 
 	FGameplayAbilityTargetDataHandle DataHandle;
-
 	TSet<TWeakObjectPtr<AActor>> HitActors;
 
 	if (HitDetected)
 	{
 		for (const FHitResult& Hit : HitResults)
 		{
-			// 액처 Hit 처리
 			AActor* HitActor = Hit.GetActor();
-			if (!HitActor)
+			if (!HitActor || !Cast<APawn>(HitActor) || HitActors.Contains(HitActor))
 			{
 				continue;
 			}
 
-			// 캐릭터 Hit 처리
-			APawn* HitPawn = Cast<APawn>(HitActor);
-			if (!HitPawn)
-			{
-				continue;
-			}
-
-			if (HitActors.Contains(HitActor))
-			{
-				continue;
-			}
 			HitActors.Add(HitActor);
-
 			FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(Hit);
-			// Add에서 Shared 포인터를 사용해서 넣어줘서 레퍼런스가 유지되는 한 객체가 유지됨
 			DataHandle.Add(TargetData);
 		}
+	}
+
+	// 3. 만약 적을 아무도 맞추지 못했다면, 시각 효과를 위한 데이터를 강제로 추가
+	if (DataHandle.Num() == 0)
+	{
+		FHitResult DummyHit;
+		DummyHit.bBlockingHit = true; // 히트된 것으로 간주
+		DummyHit.ImpactPoint = ActualVisualEnd;
+		DummyHit.Location = ActualVisualEnd;
+		DummyHit.TraceStart = Start;
+		DummyHit.TraceEnd = End;
+		
+		FGameplayAbilityTargetData_SingleTargetHit* VisualData = new FGameplayAbilityTargetData_SingleTargetHit(DummyHit);
+		DataHandle.Add(VisualData);
 	}
 
 #if ENABLE_DRAW_DEBUG

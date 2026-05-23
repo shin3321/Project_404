@@ -84,4 +84,7 @@ namespace FZFGameplayTags
 
 	// 쿨타임 설정
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Attack_Sword);
+
+	// GameplayCue
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Weapon_Laser);
 }

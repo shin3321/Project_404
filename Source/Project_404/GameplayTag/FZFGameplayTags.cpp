@@ -81,4 +81,6 @@ namespace FZFGameplayTags
 	// 무기별 쿨타임 설정
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Attack_Sword, "Cooldown.Attack.Sword");
 
-}
+	// GameplayCue
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_Laser, "GameplayCue.Weapon.Laser");
+	}
