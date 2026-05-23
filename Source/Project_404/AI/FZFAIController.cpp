@@ -63,11 +63,13 @@ void AFZFAIController::RunAI()
 
 void AFZFAIController::StopAI()
 {
+	StopMovement();
+
 	UBehaviorTreeComponent* BTComponent = Cast<UBehaviorTreeComponent>(BrainComponent);
 
 	if (BTComponent)
 	{
-		BTComponent->StopTree();
+		BTComponent->StopTree(EBTStopMode::Forced);
 	}
 }
 

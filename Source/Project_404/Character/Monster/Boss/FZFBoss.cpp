@@ -185,6 +185,8 @@ void AFZFBoss::InitializeBossServer()
 	// 3. AttributeSet 값 초기화
 	InitAttributesFromData();
 
+	// Fix: 나중에 Intro 연출 후 실행되게 빼야함!
+	// 4. BT 실행 
 	AFZFBossAIController* AIController = Cast<AFZFBossAIController>(GetController());
 	if (!AIController || !BossData || !BossData->BehaviorTree)
 	{
@@ -268,12 +270,6 @@ void AFZFBoss::InitAttributesFromData() // 보스 전용을 만들면 AttributeS
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_BT_TurnSpeed, BossData->TurnSpeed);
 
 	FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
-}
-
-// BT 전달 함수
-UBehaviorTree* AFZFBoss::GetBT()
-{
-	return BossData ? BossData->BehaviorTree : nullptr;
 }
 
 // 공격 여부 델리게이트 저장

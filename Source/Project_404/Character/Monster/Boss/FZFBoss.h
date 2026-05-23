@@ -45,7 +45,10 @@ protected:
 	/* 인터페이스 */
 protected:
 	// BT 전달 함수
-	virtual UBehaviorTree* GetBT() override;
+	FORCEINLINE virtual UBehaviorTree* GetBT() override
+	{
+		return BossData ? BossData->BehaviorTree : nullptr;
+	};
 
 	// Task에서 공격 처리 호출 함수
 	virtual void SetAIAttackDelegate(const FBossAICharacterAttackFinished& InOnAttackFinished) override;

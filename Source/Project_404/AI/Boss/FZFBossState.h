@@ -12,11 +12,3 @@ enum class EBossState: uint8
     LuredToTrap, 
     PhaseTransition
 };
-
-UENUM(BlueprintType)
-enum class EBossPattern : uint8
-{
-    None,
-    SelfAttack,
-    MapPattern,
-};

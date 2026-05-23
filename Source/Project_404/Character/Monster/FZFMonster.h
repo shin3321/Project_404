@@ -71,9 +71,6 @@ public:
 	// 죽음 처리 함수
 	virtual void SetDead() override;
 
-	// 죽음 모션 재생
-	virtual void PlayDeadAnimation() override;
-
 	/* 클래스 멤버 변수 */
 private:
 	// 초기화 순서 체크 플래그

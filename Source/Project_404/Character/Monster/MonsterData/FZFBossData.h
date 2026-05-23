@@ -14,6 +14,27 @@ class UAnimInstance;
 class UAnimMontage;
 class USkeletalMesh;
 
+USTRUCT(BlueprintType)
+struct FBossSkillInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FName SkillName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int32 UnlockPhase = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Weight = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsMapPattern = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<UGameplayAbility> AbilityClass;
+};
+
 /**
  * 
  */
@@ -83,6 +104,10 @@ public:
 	// 소켓 사용 여부
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Socket")
 	bool bUseSocketTargeting = true;
+
+	// 보스 스킬 목록
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BossSkill")
+	TArray<FBossSkillInfo> SkillList;
 
 	// Attribute 초기화용 데이터들
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Stat")
