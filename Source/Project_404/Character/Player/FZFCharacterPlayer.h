@@ -109,6 +109,14 @@ protected:
 	// 서버가 bIsDead를 true로 바꼈을 때, 클라이언트에서 실행될 함수 오버라이드
 	virtual void OnRep_IsDead() override;
 
+public:
+	UFUNCTION(Server, Reliable)
+	void ServerSpawnSkillActor(
+		TSubclassOf<class AFZFSkillBase> SkillActorClass,
+		FVector SpawnLocation,
+		FRotator SpawnRotation
+	);
+
 protected:
 	// 카메라 컴포넌트 구성
 	UPROPERTY(VisibleAnywhere, Category = Camera)

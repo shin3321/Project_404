@@ -11,6 +11,8 @@
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Character/Monster/FZFMonster.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Skill/FZFSkillBase.h"
 
 UFZFGA_Attack::UFZFGA_Attack()
 {
@@ -34,6 +36,8 @@ void UFZFGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+
+	RegisterSkillSpawnEventTask();
 
 	const float AttackSpeed = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackSpeedAttribute());
 
@@ -64,6 +68,153 @@ void UFZFGA_Attack::OnMontageInterrupted()
 {
 	// 애니메이션이 끊겼으므로 어빌리티 종료
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UFZFGA_Attack::OnSkillSpawnEventReceived(FGameplayEventData Payload)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Skill Spawn Event Received: %s"),
+		*Payload.EventTag.ToString());
+
+	const FGameplayAbilityActorInfo* ActorInfo = GetCurrentActorInfo();
+	if (!ActorInfo)
+	{
+		return;
+	}
+
+	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
+	if (!AvatarActor)
+	{
+		return;
+	}
+
+	const FVector SpawnLocation =
+		AvatarActor->GetActorLocation()
+		+ AvatarActor->GetActorForwardVector() * SkillSpawnForwardDistance
+		+ FVector(0.0f, 0.0f, SkillSpawnZOffset);
+
+	const FRotator SpawnRotation = AvatarActor->GetActorRotation();
+
+	if (HasAuthority(&CurrentActivationInfo))
+	{
+		SpawnSkillActor();
+		return;
+	}
+
+	AFZFCharacterPlayer* CharacterPlayer = Cast<AFZFCharacterPlayer>(AvatarActor);
+	if (!CharacterPlayer)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Skill Spawn ignored. Not authority and Avatar is not CharacterPlayer."));
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Skill Spawn requested to server."));
+
+	CharacterPlayer->ServerSpawnSkillActor(
+		SkillActorClass,
+		SpawnLocation,
+		SpawnRotation
+	);
+}
+
+void UFZFGA_Attack::RegisterSkillSpawnEventTask()
+{
+	if (!bSpawnSkillOnGameplayEvent)
+	{
+		return;
+	}
+
+	if (!SkillSpawnEventTag.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SkillSpawnEventTag is invalid."));
+		return;
+	}
+
+	if (!SkillActorClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SkillActorClass is null."));
+		return;
+	}
+
+	UAbilityTask_WaitGameplayEvent* EventTask =
+		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+			this,
+			SkillSpawnEventTag,
+			nullptr,
+			false,
+			true
+		);
+
+	if (!EventTask)
+	{
+		return;
+	}
+
+	EventTask->EventReceived.AddDynamic(
+		this,
+		&UFZFGA_Attack::OnSkillSpawnEventReceived
+	);
+
+	EventTask->ReadyForActivation();
+}
+
+void UFZFGA_Attack::SpawnSkillActor()
+{
+	const FGameplayAbilityActorInfo* ActorInfo = GetCurrentActorInfo();
+	if (!ActorInfo)
+	{
+		return;
+	}
+
+	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
+	if (!AvatarActor)
+	{
+		return;
+	}
+
+	if (!SkillActorClass)
+	{
+		return;
+	}
+
+	UWorld* World = AvatarActor->GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	const FVector SpawnLocation =
+		AvatarActor->GetActorLocation()
+		+ AvatarActor->GetActorForwardVector() * SkillSpawnForwardDistance
+		+ FVector(0.0f, 0.0f, SkillSpawnZOffset);
+
+	const FRotator SpawnRotation = AvatarActor->GetActorRotation();
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = AvatarActor;
+	SpawnParams.Instigator = Cast<APawn>(AvatarActor);
+	SpawnParams.SpawnCollisionHandlingOverride =
+		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	AFZFSkillBase* SpawnedSkill =
+		World->SpawnActor<AFZFSkillBase>(
+			SkillActorClass,
+			SpawnLocation,
+			SpawnRotation,
+			SpawnParams
+		);
+
+	if (!SpawnedSkill)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to spawn skill actor."));
+		return;
+	}
+
+	SpawnedSkill->InitializeSkill(AvatarActor);
+
+	UE_LOG(LogTemp, Warning, TEXT("[BarrierTest] Skill Actor Spawned: %s / HasAuthority: %d"),
+		*GetNameSafe(SpawnedSkill),
+		SpawnedSkill->HasAuthority()
+	);
 }
 
 void UFZFGA_Attack::PlayPlayerAttack(AFZFCharacterPlayer* CharacterPlayer,float AttackSpeed,const FGameplayAbilitySpecHandle Handle,
