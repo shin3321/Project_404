@@ -6,34 +6,73 @@
 #include "Engine/DataAsset.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "GameplayEffect.h"
-#include "FZFMonsterData.generated.h"
+#include "FZFBossData.generated.h"
+
+class UAnimSequence;
+class UGameplayAbility;
+class UAnimInstance;
+class UAnimMontage;
+class USkeletalMesh;
+
+USTRUCT(BlueprintType)
+struct FBossSkillInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FName SkillName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int32 UnlockPhase = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Weight = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsMapPattern = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<UGameplayAbility> AbilityClass;
+};
 
 /**
  * 
  */
 UCLASS()
-class PROJECT_404_API UFZFMonsterData : public UPrimaryDataAsset
+class PROJECT_404_API UFZFBossData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
-
+	
 public:
-	// Monster Info
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= Monster)
-	FName MonsterId;
+	// Boss Info
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Boss)
+	FName BossId;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= Monster)
-	TSubclassOf<APawn> MonsterClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Boss)
+	TSubclassOf<APawn> BossClass;
 
 	// Mesh
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Boss)
 	TObjectPtr<USkeletalMesh> SkeletalMesh;
 
+	// 고리 Mesh
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Boss)
+	TArray<TObjectPtr<USkeletalMesh>> RingMeshes;
+
+	// 고리 애니메이션 시퀀스
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Boss)
+	TArray<TObjectPtr<UAnimSequence>> RingAnim;
+
+	// 고리 애니메이션 재생 속도
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Boss)
+	float RingSpeed;
+
 	// Anim Class
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Boss)
 	TSubclassOf<UAnimInstance> AnimClass;
 
 	// Dead Montage
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Boss)
 	TObjectPtr<UAnimMontage> MonsterDeadMontage;
 
 	// BT
@@ -50,7 +89,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
 	TArray<TSubclassOf<UGameplayEffect>> AllowedEffectClasses;
 
@@ -66,6 +105,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Socket")
 	bool bUseSocketTargeting = true;
 
+	// 보스 스킬 목록
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BossSkill")
+	TArray<FBossSkillInfo> SkillList;
+
 	// Attribute 초기화용 데이터들
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Stat")
 	float MaxHp;
@@ -74,16 +117,20 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
 	float MaxAttack;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
-	float AttackRange;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
-	float AttackRadius;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
+	//float AttackRange;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
+	//float AttackRadius;
+
+	// 장판 타격 범위
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
 	float AttackAreaRadius;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
 	float AttackAreaHalfHeight;
+	// 공격 속도
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
-	float AttackSpeed;
+	float AttackSpeed; 
+	// 당기는 힘
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
 	float PullStrength;
 
@@ -91,5 +138,4 @@ public:
 	float DetectRange;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|BT")
 	float TurnSpeed;
-	
 };

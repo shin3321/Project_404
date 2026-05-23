@@ -4,26 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "Character/FZFCharacterBase.h"
-#include "Interface/FZFMonsterAIInterface.h"
+#include "Interface/FZFBossAIInterface.h"
 #include "GameplayEffectTypes.h"
-#include "Character/Monster/MonsterData/FZFMonsterData.h"
-#include "FZFMonster.generated.h"
-
-class FLifetimeProperty;
+#include "Character/Monster/MonsterData/FZFBossData.h" // 이거 보스 전용으로 변경
+#include "FZFBoss.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECT_404_API AFZFMonster : public AFZFCharacterBase, public IFZFMonsterAIInterface
+class PROJECT_404_API AFZFBoss : public AFZFCharacterBase, public IFZFBossAIInterface
 {
 	GENERATED_BODY()
-
+	
 public:
-	AFZFMonster();
-
-	// MonsterData Getter
-	FORCEINLINE UFZFMonsterData* GetMonsterData() const { return MonsterData; }
+	AFZFBoss();
 
 protected:
 	// 디버깅용 임시 테스트
@@ -32,12 +27,14 @@ protected:
 	/* 클래스 멤버 함수(초기화) */
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
-	
+
 	// MonsterData Asset 서버/클라 공통 초기화 (메시/애님/외형)
-	virtual void InitializeMonsterVisual();
+	virtual void InitializeBossVisual();
+
+	void ApplyRingData(USkeletalMeshComponent* RingComp, int32 Index);
 
 	// MonsterData Asset 서버만 초기화 (GAS/BT/Ability/AI)
-	virtual void InitializeMonsterServer();
+	virtual void InitializeBossServer();
 
 	// GAS 관련 초기화
 	virtual void InitAbilitySystem() override;
@@ -47,29 +44,15 @@ protected:
 
 	/* 인터페이스 */
 protected:
-	virtual float GetAIPatrolRadius() override;
-	virtual float GetAIDetectRange() override;
-	virtual float GetAIAttackRange() override;
-	virtual float GetAIAttackDetectRange() override;
-	virtual float GetAITurnSpeed() override;
-
 	// BT 전달 함수
-	virtual UBehaviorTree* GetBT() override;
+	FORCEINLINE virtual UBehaviorTree* GetBT() override
+	{
+		return BossData ? BossData->BehaviorTree : nullptr;
+	};
 
-	 // Task에서 공격 처리 호출 함수
-	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) override;
+	// Task에서 공격 처리 호출 함수
+	virtual void SetAIAttackDelegate(const FBossAICharacterAttackFinished& InOnAttackFinished) override;
 	virtual void AttackByAI() override;
-
-	// Task에서 MoveSpeed Change 함수
-	virtual void SetAIMoveSpeedMode(EFZFAIMoveSpeedMode MoveSpeedMode) override;
-	
-	/* 클래스 멤버 함수 */
-public:
-	// 공격 모션(몽타주 재생) 종료 시 호출되는 이벤트 함수.
-	void NotifyAttackActionEnd();
-	
-	// 죽음 처리 함수
-	virtual void SetDead() override;
 
 	/* 클래스 멤버 변수 */
 private:
@@ -80,15 +63,15 @@ private:
 
 protected:
 	// SetAIAttackDelegate 함수로부터 전달받은 델리게이트를 저장할 변수.
-	FAICharacterAttackFinished OnAttackFinished;
+	FBossAICharacterAttackFinished OnAttackFinished;
 
 	// 몬스터 AttributeSet 할당
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MonsterSet)
-	TObjectPtr<class UFZFMonsterSet> MonsterAttributeSet;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = BossSet)
+	TObjectPtr<class UFZFMonsterSet> BossAttributeSet; // 추후 보스 전용으로 변경
 
-	// MonsterAttributeSet의 기본 능력치 초기화 Init_GE
+	// BossAttributeSet의 기본 능력치 초기화 Init_GE
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
-	TSubclassOf<class UGameplayEffect> InitMonsterEffectClass;
+	TSubclassOf<class UGameplayEffect> InitBossEffectClass;
 
 	// 이동속도 전환 버프용 GE(Infinite Duration)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GAS)
@@ -99,5 +82,9 @@ protected:
 
 	// 몬스터 데이터 에셋 저장 변수.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data)
-	TObjectPtr<UFZFMonsterData> MonsterData;
+	TObjectPtr<UFZFBossData> BossData;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Ring")
+	TArray<TObjectPtr<USkeletalMeshComponent>> RingMeshes;
+
 };

@@ -375,6 +375,16 @@ void AFZFMonster::NotifyAttackActionEnd()
 // 죽음 처리
 void AFZFMonster::SetDead()
 {
+	OnAttackFinished.Unbind();
+
+	// 비헤이비어 트리 끄기.
+	AFZFAIController* AIController = Cast<AFZFAIController>(GetController());
+	if (AIController)
+	{
+		AIController->StopAI();;
+	}
+	
+
 	// 상위 로직 실행
 	Super::SetDead();
 
@@ -397,11 +407,4 @@ void AFZFMonster::SetDead()
 		DeadEventDelayTime,
 		false
 	);
-
-}
-
-// 몽타주 애니메이션 재생.
-void AFZFMonster::PlayDeadAnimation()
-{
-	Super::PlayDeadAnimation();
 }
