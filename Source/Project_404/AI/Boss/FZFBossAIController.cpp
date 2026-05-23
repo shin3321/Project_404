@@ -1,16 +1,16 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AI/FZFAIController.h"
+#include "AI/Boss/FZFBossAIController.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BehaviorTree.h"
-#include "AI/FZFAI.h"
-#include "Interface/FZFMonsterAIInterface.h"
+#include "AI/Boss/FZFBossAI.h"
+#include "Interface/FZFBossAIInterface.h"
 
-AFZFAIController::AFZFAIController()
+AFZFBossAIController::AFZFBossAIController()
 {
 	// 사용할 블랙보드 애셋 로드.
 	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBAssetRef(
@@ -23,7 +23,7 @@ AFZFAIController::AFZFAIController()
 	}
 }
 
-void AFZFAIController::RunAI()
+void AFZFBossAIController::RunAI()
 {
 	// 서버에서만 돌게 예외처리
 	if (!HasAuthority())
@@ -45,35 +45,38 @@ void AFZFAIController::RunAI()
 		);
 
 		// 비헤이비어 트리 할당하기.
-		IFZFMonsterAIInterface* AIPawn = Cast<IFZFMonsterAIInterface>(GetPawn());
+		IFZFBossAIInterface* AIPawn = Cast<IFZFBossAIInterface>(GetPawn());
 		if (!AIPawn)
 		{
 			return;
 		}
+		
 		BTAsset = AIPawn->GetBT();
+		if (!BTAsset) 
+		{ 
+			return; 
+		}
 
 
 		// 비헤이비어 트리 실행.
-		bool Result = RunBehaviorTree(BTAsset);
+		const bool Result = RunBehaviorTree(BTAsset);
 
 		// 예외 처리.
 		ensureAlways(Result);
 	}
 }
 
-void AFZFAIController::StopAI()
+void AFZFBossAIController::StopAI()
 {
-	StopMovement();
-
 	UBehaviorTreeComponent* BTComponent = Cast<UBehaviorTreeComponent>(BrainComponent);
 
 	if (BTComponent)
 	{
-		BTComponent->StopTree(EBTStopMode::Forced);
+		BTComponent->StopTree();
 	}
 }
 
-void AFZFAIController::OnPossess(APawn* InPawn)
+void AFZFBossAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
