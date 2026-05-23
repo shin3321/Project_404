@@ -27,7 +27,7 @@ void AFZFCharacterBase::BeginPlay()
 	SoundManager = GetGameInstance()->GetSubsystem<UFZFSoundManager>();
 	if (SoundManager)
 	{
-		UE_LOG(LogTemp, Log, TEXT("SoundManager가 생성되었습니다."))
+		UE_LOG(LogTemp, Log, TEXT("SoundManager가 생성되었습니다."));
 	}
 }
 

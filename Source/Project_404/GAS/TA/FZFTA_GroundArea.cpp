@@ -3,6 +3,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameFramework/Character.h"
+#include "Character/Player/FZFCharacterPlayer.h"
 #include "Physics/FZFCollision.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/OverlapResult.h"
@@ -54,6 +55,20 @@ FGameplayAbilityTargetDataHandle AFZFTA_GroundArea::MakeTargetData() const
 		Start.Z -= Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	}
 
+	// 공격 주체에 따른 트레이스 채널 동적 결정
+	ECollisionChannel AttackChannel = CCHANNEL_FZFPLAYER_ATTACK; // 매크로에 정의된 기본값을 Player로 설정
+
+	// 만약 플레이어 클래스로 캐스팅이 성공한다면 플레이어 공격 채널 사용
+	if (SourceActor && SourceActor->IsA<AFZFCharacterPlayer>())
+	{
+		AttackChannel = CCHANNEL_FZFPLAYER_ATTACK; // 플레이어 공격 채널
+	}
+	else
+	{
+		AttackChannel = CCHANNEL_FZFMONSTER_ATTACK; // 그 외(몬스터 등)는 몬스터 공격 채널
+	}
+
+
 	// 판정 실행
 	TArray<FOverlapResult> OverlapResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(AFZFTA_GroundArea), false, Character);
@@ -63,7 +78,7 @@ FGameplayAbilityTargetDataHandle AFZFTA_GroundArea::MakeTargetData() const
 		OverlapResults,
 		Start,
 		FQuat::Identity,
-		CCHANNEL_FZFATTACK,
+		AttackChannel,
 		FCollisionShape::MakeCapsule(AttackAreaRadius, AttackAreaHalfHeight),
 		Params
 	);

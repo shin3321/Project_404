@@ -7,7 +7,7 @@
 
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BehaviorTree.h"
-#include "FZFAI.h"
+#include "AI/FZFAI.h"
 #include "Interface/FZFMonsterAIInterface.h"
 
 AFZFAIController::AFZFAIController()
@@ -21,16 +21,6 @@ AFZFAIController::AFZFAIController()
 	{
 		BBAsset = BBAssetRef.Object;
 	}
-
-	// 사용할 비헤이비어 트리 애셋 로드.
-	//static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAssetRef(
-	//	TEXT("/Game/Project404/AI/BT_FZFMonster.BT_FZFMonster")
-	//);
-
-	//if (BTAssetRef.Succeeded())
-	//{
-	//	BTAsset = BTAssetRef.Object;
-	//}
 }
 
 void AFZFAIController::RunAI()
@@ -73,11 +63,13 @@ void AFZFAIController::RunAI()
 
 void AFZFAIController::StopAI()
 {
+	StopMovement();
+
 	UBehaviorTreeComponent* BTComponent = Cast<UBehaviorTreeComponent>(BrainComponent);
 
 	if (BTComponent)
 	{
-		BTComponent->StopTree();
+		BTComponent->StopTree(EBTStopMode::Forced);
 	}
 }
 

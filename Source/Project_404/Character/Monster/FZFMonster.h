@@ -45,8 +45,8 @@ protected:
 	// AttributeSet 초기화
 	virtual void InitAttributesFromData();
 
-
 	/* 인터페이스 */
+protected:
 	virtual float GetAIPatrolRadius() override;
 	virtual float GetAIDetectRange() override;
 	virtual float GetAIAttackRange() override;
@@ -70,9 +70,6 @@ public:
 	
 	// 죽음 처리 함수
 	virtual void SetDead() override;
-
-	// 죽음 모션 재생
-	virtual void PlayDeadAnimation() override;
 
 	/* 클래스 멤버 변수 */
 private:

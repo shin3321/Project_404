@@ -43,6 +43,9 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_Attack);
 	
+	// 버프 태그
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Buff_Invincible);
+
 	// 디버프 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Stun);
 
@@ -77,6 +80,9 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_AttackHitCheck);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_Ranged_AttackHitCheck);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_Melee_AttackHitCheck);
+	
+	// 스킬 이벤트
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Skill_Barrier_Spawn);
 	
 	// 죽음
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Character_Death);

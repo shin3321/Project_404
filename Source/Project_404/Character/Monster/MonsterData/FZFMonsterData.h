@@ -24,16 +24,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= Monster)
 	TSubclassOf<APawn> MonsterClass;
 
-	// Mesh Transform -> BP에서 직접 설정해야 함! 서버 복제할 때 값이 덮어씌워져서 적용 안됨.
-	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
-	FVector MeshLocation = FVector::ZeroVector;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
-	FRotator MeshRotation = FRotator::ZeroRotator;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
-	FVector MeshScale = FVector(1.f);*/
-
 	// Mesh
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Monster)
 	TObjectPtr<USkeletalMesh> SkeletalMesh;
