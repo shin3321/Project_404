@@ -2,6 +2,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayEffectExtension.h"
+#include "Net/UnrealNetwork.h"
 
 // 추후 인터페이스로 뺄 헤더들
 #include "Inventory/FZFHeldItemComponent.h"
@@ -16,6 +17,24 @@ UFZFAttributeSet::UFZFAttributeSet()
 {
 	InitHP(100.0f);
 	InitMaxHP(100.0f);
+}
+
+void UFZFAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, HP, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, MaxHP, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, MovementSpeed, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, MaxMovementSpeed, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, Attack, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, MaxAttack, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, Damage, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, AttackRange, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, AttackRadius, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, AttackAreaRadius, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, AttackAreaHalfHeight, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFAttributeSet, AttackSpeed, COND_None, REPNOTIFY_Always);
 }
 
 void UFZFAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -149,4 +168,74 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		}
 	}
 
+}
+
+void UFZFAttributeSet::OnRep_HP(const FGameplayAttributeData& OldHP)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, HP, OldHP);
+
+	if (OnHPChanged.IsBound())
+	{
+		OnHPChanged.Broadcast(GetHP(), GetMaxHP());
+	}
+}
+
+void UFZFAttributeSet::OnRep_MaxHP(const FGameplayAttributeData& OldMaxHP)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, MaxHP, OldMaxHP);
+
+	if (OnHPChanged.IsBound())
+	{
+		OnHPChanged.Broadcast(GetHP(), GetMaxHP());
+	}
+}
+
+void UFZFAttributeSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldMovementSpeed)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, MovementSpeed, OldMovementSpeed);
+}
+
+void UFZFAttributeSet::OnRep_MaxMovementSpeed(const FGameplayAttributeData& OldMaxMovementSpeed)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, MaxMovementSpeed, OldMaxMovementSpeed);
+}
+
+void UFZFAttributeSet::OnRep_Attack(const FGameplayAttributeData& OldAttack)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, Attack, OldAttack);
+}
+
+void UFZFAttributeSet::OnRep_MaxAttack(const FGameplayAttributeData& OldMaxAttack)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, MaxAttack, OldMaxAttack);
+}
+
+void UFZFAttributeSet::OnRep_Damage(const FGameplayAttributeData& OldDamage)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, Damage, OldDamage);
+}
+
+void UFZFAttributeSet::OnRep_AttackRange(const FGameplayAttributeData& OldAttackRange)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, AttackRange, OldAttackRange);
+}
+
+void UFZFAttributeSet::OnRep_AttackRadius(const FGameplayAttributeData& OldAttackRadius)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, AttackRadius, OldAttackRadius);
+}
+
+void UFZFAttributeSet::OnRep_AttackAreaRadius(const FGameplayAttributeData& OldAttackAreaRadius)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, AttackAreaRadius, OldAttackAreaRadius);
+}
+
+void UFZFAttributeSet::OnRep_AttackAreaHalfHeight(const FGameplayAttributeData& OldAttackAreaHalfHeight)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, AttackAreaHalfHeight, OldAttackAreaHalfHeight);
+}
+
+void UFZFAttributeSet::OnRep_AttackSpeed(const FGameplayAttributeData& OldAttackSpeed)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFAttributeSet, AttackSpeed, OldAttackSpeed);
 }
