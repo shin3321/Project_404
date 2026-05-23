@@ -34,9 +34,9 @@ public:
 	ATTRIBUTE_ACCESSORS(UFZFPlayerSet, MaxStamina);
 
 public:
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_Stamina, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData Stamina;
 
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_MaxStamina, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData MaxStamina;
 };

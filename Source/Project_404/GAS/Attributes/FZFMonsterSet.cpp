@@ -2,6 +2,7 @@
 
 
 #include "GAS/Attributes/FZFMonsterSet.h"
+#include "Net/UnrealNetwork.h"
 
 UFZFMonsterSet::UFZFMonsterSet()
 {
@@ -25,7 +26,31 @@ UFZFMonsterSet::UFZFMonsterSet()
 	InitTurnSpeed(2.0f);
 }
 
+void UFZFMonsterSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFMonsterSet, DetectRange, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFMonsterSet, TurnSpeed, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UFZFMonsterSet, PullStrength, COND_None, REPNOTIFY_Always);
+}
+
 void UFZFMonsterSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
+}
+
+void UFZFMonsterSet::OnRep_DetectRange(const FGameplayAttributeData& OldDetectRange)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFMonsterSet, DetectRange, OldDetectRange);
+}
+
+void UFZFMonsterSet::OnRep_TurnSpeed(const FGameplayAttributeData& OldTurnSpeed)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFMonsterSet, TurnSpeed, OldTurnSpeed);
+}
+
+void UFZFMonsterSet::OnRep_PullStrength(const FGameplayAttributeData& OldPullStrength)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFZFMonsterSet, PullStrength, OldPullStrength);
 }
