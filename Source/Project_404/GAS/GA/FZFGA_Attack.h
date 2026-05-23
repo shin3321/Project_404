@@ -16,6 +16,7 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
     virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled);
+
 protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FirstPerson")
@@ -35,7 +36,33 @@ protected:
     UFUNCTION()
     void OnMontageInterrupted();
 
+    UFUNCTION()
+    void OnSkillSpawnEventReceived(FGameplayEventData Payload);
+
+protected:
+    // 특정 Notify GameplayEvent를 받았을 때 SkillActor를 스폰할지 여부
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack|Skill Spawn")
+    bool bSpawnSkillOnGameplayEvent = false;
+
+    // 예: Event.Skill.Barrier.Spawn
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack|Skill Spawn", meta = (EditCondition = "bSpawnSkillOnGameplayEvent"))
+    FGameplayTag SkillSpawnEventTag;
+
+    // 예: BP_FZFBarrierSkill
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack|Skill Spawn", meta = (EditCondition = "bSpawnSkillOnGameplayEvent"))
+    TSubclassOf<class AFZFSkillBase> SkillActorClass;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack|Skill Spawn", meta = (EditCondition = "bSpawnSkillOnGameplayEvent"))
+    float SkillSpawnForwardDistance = 150.0f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack|Skill Spawn", meta = (EditCondition = "bSpawnSkillOnGameplayEvent"))
+    float SkillSpawnZOffset = 0.0f;
+
 private:
+
+    void RegisterSkillSpawnEventTask();
+
+    void SpawnSkillActor();
 
     void PlayPlayerAttack(class AFZFCharacterPlayer* CharacterPlayer,
         float AttackSpeed,
