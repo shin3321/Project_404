@@ -16,6 +16,7 @@
 #include "GameplayTag/FZFGameplayTags.h"
 #include "Interface/FZFInteractableInterface.h"
 #include "Animation/FZFPlayerAnimInstance.h"
+#include "Skill/FZFSkillBase.h"
 
 #include "Inventory/FZFHUD.h"
 #include "Inventory/FZFHeldItemComponent.h"
@@ -718,6 +719,48 @@ void AFZFCharacterPlayer::OnRep_IsDead()
 				Camera->SetRelativeLocation(DeathLocation);
 			}
 		}
+	}
+}
+
+void AFZFCharacterPlayer::ServerSpawnSkillActor_Implementation(
+	TSubclassOf<AFZFSkillBase> SkillActorClass,
+	FVector SpawnLocation,
+	FRotator SpawnRotation
+)
+{
+	if (!SkillActorClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SkillSpawn] Failed: SkillActorClass is null."));
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+	SpawnParams.SpawnCollisionHandlingOverride =
+		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	AFZFSkillBase* SpawnedSkill = World->SpawnActor<AFZFSkillBase>(
+		SkillActorClass,
+		SpawnLocation,
+		SpawnRotation,
+		SpawnParams
+	);
+
+	if (SpawnedSkill)
+	{
+		SpawnedSkill->InitializeSkill(this);
+
+		UE_LOG(LogTemp, Warning, TEXT("[SkillSpawn] Server spawned skill actor: %s / HasAuthority: %d"),
+			*GetNameSafe(SpawnedSkill),
+			SpawnedSkill->HasAuthority()
+		);
 	}
 }
 
