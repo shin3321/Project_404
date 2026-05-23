@@ -4,6 +4,7 @@
 #include "FZFGameMode.h"
 #include "Character/Player/FZFPlayerController.h"
 #include "Character/Player/FZFPlayerState.h"
+#include "Character/FZFCharacterBase.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
@@ -121,6 +122,12 @@ void AFZFGameMode::RestartPlayer(AController* NewPlayer)
 
 	Super::RestartPlayer(NewPlayer);
 
+	// 관전 중이었다면 관전 모드 해제
+	if (AFZFPlayerController* PC = Cast<AFZFPlayerController>(NewPlayer))
+	{
+		PC->StopSpectator();
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("Pawn: %s"), *GetNameSafe(NewPlayer->GetPawn()));
 }
 
@@ -194,4 +201,46 @@ void AFZFGameMode::BossDefeated()
 			// GetWorld()->ServerTravel("/Game/Maps/LobbyMap?listen");
 		}
 	}
+}
+
+void AFZFGameMode::PlayerDied(AController* DeadPlayer)
+{
+	// 서버에서 살아있는 플레이어 확인
+	bool bAnyPlayerAlive = false;
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (PC)
+		{
+			AFZFCharacterBase* Character = Cast<AFZFCharacterBase>(PC->GetPawn());
+			// 현재 죽은 플레이어는 bIsDead가 true일 것이므로, false인 플레이어가 하나라도 있으면 살아있는 것
+			if (Character && !Character->IsDead())
+			{
+				bAnyPlayerAlive = true;
+				break;
+			}
+		}
+	}
+
+	if (!bAnyPlayerAlive)
+	{
+		// 모든 플레이어 사망 시 게임 오버 처리
+		UFZFGameInstance* GameInstance = Cast<UFZFGameInstance>(GetGameInstance());
+		if (GameInstance)
+		{
+			GameInstance->SetGameResult(false);
+		}
+		
+		HandleGameOver();
+	}
+}
+
+void AFZFGameMode::HandleGameOver()
+{
+	if (bIsGameOver) return;
+	bIsGameOver = true;
+
+	// 로비 레벨로 이동
+	GetWorld()->ServerTravel(TEXT("Lobby?listen"));
 }

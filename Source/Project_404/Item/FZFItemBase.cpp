@@ -89,12 +89,23 @@ void AFZFItemBase::ApplyAutoFitMeshScale()
 
 void AFZFItemBase::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
 {
+    // 오직 서버에서만 획득 판정 및 파괴를 처리합니다.
+    if (!HasAuthority())
+    {
+        return;
+    }
+
     UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent();
     if (!Inventory)
+    {
         return;
+    }
 
+    // 서버의 AddItem이 성공했을 때만 아이템 액터를 파괴합니다.
     if (Inventory->AddItem(GetItemData()))
+    {
         Destroy();
+    }
 }
 
 FText AFZFItemBase::GetInteractableName(UPrimitiveComponent* HitComponent) const

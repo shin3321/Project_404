@@ -16,6 +16,7 @@ public:
     float GetRange() { return Range; }
     EEquipmentType GetItemType() {return EquipmentType;}
     FName GetItemId() { return ItemId; }
+    float GetDamage() { return BaseDamage; }
 protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)

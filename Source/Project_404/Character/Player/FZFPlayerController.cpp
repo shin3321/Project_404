@@ -23,7 +23,6 @@ void AFZFPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();	
 	
 	// 레거시 입력 바인딩 (프로젝트 설정의 ActionMappings에 IA_SpectateNext, IA_SpectatePrev가 있어야 함)
-	// 만약 없다면 기본적으로 마우스 클릭으로 동작하게 할 수도 있습니다.
 	InputComponent->BindAction("IA_SpectateNext", IE_Pressed, this, &AFZFPlayerController::SpectateNext);	
 	InputComponent->BindAction("IA_SpectatePrev", IE_Pressed, this, &AFZFPlayerController::SpectatePrev);
 	
@@ -40,13 +39,23 @@ void AFZFPlayerController::StartSpectator()
 	ChangeSpectateTarget(1);
 }
 
+void AFZFPlayerController::StopSpectator()
+{
+	bIsSpectating = false;
+	SpectateIndex = 0;
+	
+	if (GetPawn())
+	{
+		SetViewTarget(GetPawn());
+	}
+}
+
 void AFZFPlayerController::ChangeSpectateTarget(int32 Direction)
 {
 	// 관전 중이 아닐 때는 동작하지 않음
 	if (!bIsSpectating) return;
 
 	TArray<AActor*> AllPlayers;
-	// AFZFCharacterBase 대신 AFZFCharacterPlayer를 사용하여 몬스터가 아닌 플레이어만 찾음
 	UGameplayStatics::GetAllActorsOfClass(this, AFZFCharacterPlayer::StaticClass(), AllPlayers);
 	
 	if (AllPlayers.Num() == 0) return;
@@ -64,8 +73,6 @@ void AFZFPlayerController::ChangeSpectateTarget(int32 Direction)
 	
 	if (ValidPlayers.Num() == 0)
 	{
-		// 살아있는 플레이어가 없다면 관전 대상을 자신(죽은 상태)으로 두거나 
-		// 자유 시점으로 전환하는 등의 처리가 필요할 수 있습니다.
 		return;
 	}
 
@@ -100,7 +107,14 @@ void AFZFPlayerController::SpectatePrev()
 
 void AFZFPlayerController::RequestSpawnItem(FName ItemId, FVector ItemSpawnLocation, FRotator SpawnRotation)
 {
-	ServerSpawnItem_Implementation(ItemId, ItemSpawnLocation, SpawnRotation);
+	if (HasAuthority())
+	{
+		ServerSpawnItem_Implementation(ItemId, ItemSpawnLocation, SpawnRotation);
+	}
+	else
+	{
+		ServerSpawnItem(ItemId, ItemSpawnLocation, SpawnRotation);
+	}
 }
 
 bool AFZFPlayerController::ServerSpawnItem_Validate(FName ItemId, FVector ItemSpawnLocation, FRotator SpawnRotation)

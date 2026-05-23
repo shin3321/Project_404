@@ -22,15 +22,26 @@ public:
 	ATTRIBUTE_ACCESSORS(UFZFMonsterSet, PullStrength);
 
 protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
+protected:
+	UFUNCTION()
+	virtual void OnRep_DetectRange(const FGameplayAttributeData& OldDetectRange);
+
+	UFUNCTION()
+	virtual void OnRep_TurnSpeed(const FGameplayAttributeData& OldTurnSpeed);
+
+	UFUNCTION()
+	virtual void OnRep_PullStrength(const FGameplayAttributeData& OldPullStrength);
+
 private:
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_DetectRange, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData DetectRange;
 
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_TurnSpeed, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData TurnSpeed;
 	
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_PullStrength, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData PullStrength;
 };

@@ -109,7 +109,7 @@ void UFZFSoundManager::PlaySFXAtLocation(FName RowName, FVector Location)
 	{
 		if (UWorld* World = GetWorld())
 		{
-			UGameplayStatics::PlaySoundAtLocation(World, SoundRow->SoundAsset, Location, SoundRow->VolumeMultiplier);
+			UGameplayStatics::PlaySoundAtLocation(World, SoundRow->SoundAsset, Location, SoundRow->VolumeMultiplier, 1.0f, 0.0f, SoundRow->AttenuationAsset);
 		}
 	}
 	else

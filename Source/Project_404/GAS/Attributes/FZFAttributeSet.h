@@ -65,6 +65,7 @@ public:
 	// If) 저주로 최대체력이 깎이는 디버프가 걸린다 -> MaxHp의 CurrentValue를 수정하는게 옳은 방향
 
 protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
@@ -77,44 +78,81 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "GAS|Attribute")
 	FOnAttributeChangedSignature OnStaminaChanged;
 
+protected:
+	UFUNCTION()
+	virtual void OnRep_HP(const FGameplayAttributeData& OldHP);
+
+	UFUNCTION()
+	virtual void OnRep_MaxHP(const FGameplayAttributeData& OldMaxHP);
+
+	UFUNCTION()
+	virtual void OnRep_MovementSpeed(const FGameplayAttributeData& OldMovementSpeed);
+
+	UFUNCTION()
+	virtual void OnRep_MaxMovementSpeed(const FGameplayAttributeData& OldMaxMovementSpeed);
+
+	UFUNCTION()
+	virtual void OnRep_Attack(const FGameplayAttributeData& OldAttack);
+
+	UFUNCTION()
+	virtual void OnRep_MaxAttack(const FGameplayAttributeData& OldMaxAttack);
+
+	UFUNCTION()
+	virtual void OnRep_Damage(const FGameplayAttributeData& OldDamage);
+
+	UFUNCTION()
+	virtual void OnRep_AttackRange(const FGameplayAttributeData& OldAttackRange);
+
+	UFUNCTION()
+	virtual void OnRep_AttackRadius(const FGameplayAttributeData& OldAttackRadius);
+
+	UFUNCTION()
+	virtual void OnRep_AttackAreaRadius(const FGameplayAttributeData& OldAttackAreaRadius);
+
+	UFUNCTION()
+	virtual void OnRep_AttackAreaHalfHeight(const FGameplayAttributeData& OldAttackAreaHalfHeight);
+
+	UFUNCTION()
+	virtual void OnRep_AttackSpeed(const FGameplayAttributeData& OldAttackSpeed);
+
 private:
 	// private : 직접 접근해서 값을 수정하는 것을 방지
 	// AllowPrivateAccess : 에디터에서는 값을 확인하고 초기값 설정 허용
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_HP, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData HP;
 
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_MaxHP, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData MaxHP;
 	
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_MovementSpeed, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData MovementSpeed;
 
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_MaxMovementSpeed, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData MaxMovementSpeed;
 	
 	// 데미지 처리용 변수
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_Attack, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData Attack;
 
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_MaxAttack, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData MaxAttack;
 
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_Damage, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData Damage; /*이건 필요한지 검토!*/
 
 	// 공격 처리용 변수
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_AttackRange, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackRange;
 
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_AttackRadius, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackRadius;
 
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_AttackAreaRadius, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackAreaRadius;
 
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_AttackAreaHalfHeight, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackAreaHalfHeight;
 	
-	UPROPERTY(BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_AttackSpeed, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData AttackSpeed;
 };

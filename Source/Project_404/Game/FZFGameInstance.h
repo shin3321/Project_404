@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -17,7 +17,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Data")
 	void AddStorageItem(const FName ItemId);
 	
-	
+	UFUNCTION()
+	void SetGameResult(bool Result);
 public:
 	UFUNCTION(BlueprintCallable, Category = "FZFGame")
 	bool GetWinGame() { return bWinGame; }

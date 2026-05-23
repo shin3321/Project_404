@@ -3,8 +3,12 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameFramework/Character.h"
+#include "Character/Player/FZFCharacterPlayer.h"
 #include "Physics/FZFCollision.h"
+#include "Inventory/FZFHeldItemComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "FZFHeldItemActor.h"
+
 
 AFZFTA_SphereSweep::AFZFTA_SphereSweep()
 {
@@ -38,21 +42,43 @@ FGameplayAbilityTargetDataHandle AFZFTA_SphereSweep::MakeTargetData() const
 	float AttackRadius = ASC->GetNumericAttribute(UFZFAttributeSet::GetAttackRadiusAttribute());
 
 	// 시작 위치(Start)와 방향(Forward) 결정
-	FVector Start;
+	FVector Start = Character->GetMesh()->GetSocketLocation(StartSocketName);
 	FVector Forward = Character->GetActorForwardVector();
 
 	if (bUseSocket && !StartSocketName.IsNone())
 	{
-		// 몬스터의 손이나 총구 소켓 위치를 시작점으로 설정
-		Start = Character->GetMesh()->GetSocketLocation(StartSocketName);
+		AFZFCharacterPlayer* CharacterPlayer = Cast<AFZFCharacterPlayer>(Character);
+
+		if (CharacterPlayer)
+		{
+			UFZFHeldItemComponent* HeldItemComponent = CharacterPlayer->GetHeldItemComponent();
+
+			if (HeldItemComponent && HeldItemComponent->GetHeldItemActor())
+			{
+				const UStaticMeshComponent* ItemMeshComponent = HeldItemComponent->GetHeldItemActor()->GetItemMeshComponent();
+
+				if (ItemMeshComponent && ItemMeshComponent->DoesSocketExist(StartSocketName))
+				{
+					Start = ItemMeshComponent->GetSocketLocation(StartSocketName);
+
+					FVector CameraLocation;
+					FRotator CameraRotation;
+					Character->GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
+					Forward = CameraRotation.Vector();
+				}
+			}
+		}
+		else
+		{
+			Start = Character->GetMesh()->GetSocketLocation(StartSocketName);
+		}
 	}
 	else
 	{
-		// 소켓 미사용 시, 기존 방식 (캐릭터 캡슐)
 		Start = Character->GetActorLocation() + Forward * Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
 	}
 
-	const FVector End = Start + Forward * AttackRange;
+	FVector End = Start + Forward * AttackRange;
 
 	// 판정 실행
 	FHitResult OutHitResult;
@@ -67,7 +93,7 @@ FGameplayAbilityTargetDataHandle AFZFTA_SphereSweep::MakeTargetData() const
 		FCollisionShape::MakeSphere(AttackRadius),
 		Params
 	);
-
+	
 	FGameplayAbilityTargetDataHandle DataHandle;
 	if (HitDetected)
 	{
@@ -80,7 +106,7 @@ FGameplayAbilityTargetDataHandle AFZFTA_SphereSweep::MakeTargetData() const
 		UE_LOG(LogTemp, Warning, TEXT("Hit Bone: %s"), *OutHitResult.BoneName.ToString());
 	}
 
-#if ENABLE_DRAW_DEBUG
+#if ENABLE_DRAW_DEBUG 
 
 	if (bShowDebug)
 	{

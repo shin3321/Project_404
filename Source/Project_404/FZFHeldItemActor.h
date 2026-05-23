@@ -21,6 +21,9 @@ protected:
 
 
 public:
+
+    FORCEINLINE UStaticMeshComponent* GetItemMeshComponent() const { return MeshComponent; }
+
     void SetHeldItemData(UFZFItemData* NewItemData);
 
     void SetFirstPersonVisualMode();

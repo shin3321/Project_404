@@ -282,13 +282,27 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 				ASC->GiveAbility(StartSpec);
 			}
 
-			if (PassiveRegenEffectClass)
+			if (PassiveRegenStaminaEffectClass)
 			{
 				FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 				EffectContext.AddSourceObject(this);
 
 				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(
-					PassiveRegenEffectClass, 1.0f, EffectContext);
+					PassiveRegenStaminaEffectClass, 1.0f, EffectContext);
+				if (SpecHandle.IsValid())
+				{
+					// 서버에서 적용 시 클라이언트로 자동 복제됨
+					ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+				}
+			}
+
+			if (PassiveRegenHPEffectClass)
+			{
+				FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+				EffectContext.AddSourceObject(this);
+
+				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(
+					PassiveRegenHPEffectClass, 1.0f, EffectContext);
 				if (SpecHandle.IsValid())
 				{
 					// 서버에서 적용 시 클라이언트로 자동 복제됨
@@ -313,7 +327,7 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 				HUDWidget->HideWidget();
 				HUDWidget->SetCrosshairNormal();
 
-				// 플레이어 전용 AttributeSet으로 다운캐스팅하여 안전하게 바인딩합니다.
+				// 플레이어 전용 AttributeSet으로 다운캐스팅하여 안전하게 바인딩
 				if (UFZFPlayerSet* PlayerSet = Cast<UFZFPlayerSet>(AttributeSet))
 				{
 					// C++ 델리게이트와 HUD 업데이트 함수 다이내믹 바인딩 (구독 시작)
@@ -628,8 +642,22 @@ void AFZFCharacterPlayer::Attack()
 
 	FGameplayTag AttackTag = HeldItemComponent->GetCurrentAttackTag();
 
-	if (ASC)
+	// 부활석을 장착하고 좌클릭
+	if (AttackTag == FZFGameplayTags::State_Equip_ReviveStone)
 	{
+		// 부활석 전용 실행 액션 태그를 직접 찔러서 어빌리티를 강제로 켭니다.
+		FGameplayTag ReviveActionTag = FZFGameplayTags::Ability_Action_Apply_Revive;
+
+		if (ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(ReviveActionTag)))
+		{
+			UE_LOG(LogTemp, Log, TEXT("[Attack] 부활석 어빌리티 발동 성공!"));
+			ServerPlaySound(TEXT("Weapon_LaserGun"), GetActorLocation());
+			return;
+		}
+	}
+	else
+	{
+		// 일반 무기들은 기존처럼 작동
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
 	}
 	

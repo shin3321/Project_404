@@ -23,7 +23,7 @@ public:
     void DropSelectedItem();
 
     UFUNCTION(Server, Reliable)
-    void ServerDropItem(FName InItemId, FVector SpawnLoc, FRotator SpawnRot);
+    void ServerDropItem(FName InItemId, FVector SpawnLoc, FRotator SpawnRot, int32 SlotIndex);
 
 public:
     // 생성할 인벤토리 위젯 블루프린트 클래스
@@ -45,8 +45,13 @@ public:
     void RemoveSelectedItem();
 
     // 현재 인벤토리에 저장된 아이템 데이터 배열
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_InventoryItems, Category = "Inventory")
     TArray<TObjectPtr<UFZFItemData>> InventoryItems;
+
+    UFUNCTION()
+    void OnRep_InventoryItems();
+
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
     // 인벤토리에 저장 가능한 최대 아이템 개수
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")

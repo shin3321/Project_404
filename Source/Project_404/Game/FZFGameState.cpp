@@ -48,6 +48,7 @@ void AFZFGameState::ChangeGamePhase(EGamePhase NewPhase)
 	{
 		CurrentPhase = NewPhase;
 		OnRep_CurrentPhase();
+
 	}
 }
 

@@ -28,7 +28,7 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Rifle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Sword);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Pistol);
-	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_BarrierStaff);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Apply_Revive);
 	
 	
@@ -42,13 +42,15 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Stamina_NoRegen);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_DroppingItem);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Action_Attack);
-		
 	
+	// 디버프 태그
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Stun);
 
 	// 어트리뷰트 데이터 초기화용 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_MaxHp);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_Hp);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_AttackRange);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_Attack);
 
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Move_MovementSpeed);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Move_MaxMovementSpeed);
@@ -69,6 +71,7 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Rifle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Pistol);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_Sword);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equip_ReviveStone);
 
 	// 공격 판정 체크
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_AttackHitCheck);
@@ -79,4 +82,6 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Character_Death);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
 
+	// 쿨타임 설정
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Attack_Sword);
 }

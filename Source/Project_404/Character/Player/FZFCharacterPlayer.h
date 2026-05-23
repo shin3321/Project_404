@@ -56,7 +56,7 @@ public:
 	void UnEquipPickaxe();
 
 	// 현재 들고있는 아이템을 가져오기 위한 Get함수.
-	UFZFHeldItemComponent* GetHeldItemComponent() const { return HeldItemComponent; }
+	UFZFHeldItemComponent* GetHeldItemComponent() { return HeldItemComponent; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -200,7 +200,11 @@ protected:
 protected:
 	// 스테미너 자동 재생 GE
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
-	TSubclassOf<class UGameplayEffect> PassiveRegenEffectClass;
+	TSubclassOf<class UGameplayEffect> PassiveRegenStaminaEffectClass;
+
+	// HP 자동 재생 GE
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
+	TSubclassOf<class UGameplayEffect> PassiveRegenHPEffectClass;
 
 	// 에디터에서 GE_Death를 할당할 변수
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))

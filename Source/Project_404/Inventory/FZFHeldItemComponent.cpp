@@ -43,6 +43,11 @@ void UFZFHeldItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(UFZFHeldItemComponent, CurrentHeldItemData);
 }
 
+FGameplayTag UFZFHeldItemComponent::GetCurrentAttackTag() const
+{
+    return CurrentHeldItemData ? CurrentHeldItemData->ItemAbilityTag : FGameplayTag::EmptyTag;
+}
+
 AFZFCharacterPlayer* UFZFHeldItemComponent::GetOwnerCharacter() const
 {
     return Cast<AFZFCharacterPlayer>(GetOwner());
@@ -105,16 +110,15 @@ void UFZFHeldItemComponent::ApplyHeldItemGAS(UFZFItemData* ItemData)
             if (ASC)
             {
                 // 아이템 장착 시 태그 부여.
-                //ASC->AddLooseGameplayTag(ItemData->ItemAbilityTag);
                 ASC->AddReplicatedLooseGameplayTag(ItemData->ItemAbilityTag);
 
                 // 나중에 지우기 위해 현재 태그 저장 
                 CurrentEquippedTag = ItemData->ItemAbilityTag;
 
-                // 사거리 GE 처리
+                // 장비(Equipment) 데이터인 경우 GE 처리
                 if (UFZFEquipmentItemData* EquipData = Cast<UFZFEquipmentItemData>(ItemData))
                 {
-                    if (RangeModifierGE.Get() && RangeDataTag.IsValid())
+                    if (WeaponModifierGE.Get() && RangeDataTag.IsValid() && DamageDataTag.IsValid())
                     {
                         // 이 효과가 "어디서, 누구에 의해" 발생했는지에 대한 부가정보(Context)를 담을 바구니 제작
                         FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
@@ -123,16 +127,17 @@ void UFZFHeldItemComponent::ApplyHeldItemGAS(UFZFItemData* ItemData)
                         EffectContext.AddInstigator(OwnerCharacter, OwnerCharacter);
 
                         // 설정된 GE 클래스와 컨텍스트를 바탕으로, 실제 적용 가능한 실행 데이터 객체(Spec)를 생성함, 1.0f는 효과의 레벨
-                        FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(RangeModifierGE, 1.0f, EffectContext);
+                        FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(WeaponModifierGE, 1.0f, EffectContext);
                         if (SpecHandle.IsValid())
                         {
-                            // SetByCaller로 사거리 전달
-                            // GE 내부에 미리 정의된 RangeDataTag 위치에 데이터 에셋에서 가져온 실제 사거리 수치를 동적으로 넣음
+                            // SetByCaller로 사거리 주입
                             SpecHandle.Data.Get()->SetSetByCallerMagnitude(RangeDataTag, EquipData->GetRange());
+                            // GE 내부에 미리 정의된 RangeDataTag 위치에 데이터 에셋에서 가져온 실제 사거리 수치를 동적으로 넣음
+                            SpecHandle.Data.Get()->SetSetByCallerMagnitude(DamageDataTag, EquipData->GetDamage());
 
                             // GE 적용 및 핸들 저장 (나중에 해제할 때, 사용)
                             // RangeEffectHandle = ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get()); 이거와 같음
-                            RangeEffectHandle = ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
+                            WeaponStatEffectHandle = ASC->BP_ApplyGameplayEffectSpecToSelf(SpecHandle);
                         }
                     }
                 }
@@ -228,11 +233,11 @@ void UFZFHeldItemComponent::ClearHeldItemGAS()
     {
         if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent())
         {
-            // 사거리 GE 제거 : 핸들이 유효하다면 적용 중인 GE를 제거하여 사거리 복구
-            if (RangeEffectHandle.IsValid())
+            // 통합 무기 스탯 GE 제거 (공격력, 사거리 동시 복구)
+            if (WeaponStatEffectHandle.IsValid())
             {
-                ASC->RemoveActiveGameplayEffect(RangeEffectHandle);
-                RangeEffectHandle.Invalidate(); // 핸들 초기화
+                ASC->RemoveActiveGameplayEffect(WeaponStatEffectHandle);
+                WeaponStatEffectHandle.Invalidate(); // 핸들 초기화
             }
 
             // 아이템 태그 제거 : 장착 시 부여했던 LooseTag 제거
