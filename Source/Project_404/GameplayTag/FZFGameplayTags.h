@@ -31,6 +31,10 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_BarrierStaff);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Apply_Revive);
 
+	// 로봇 공격 방식
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Robot);
+
+
 	// 몬스터의 공격 방식
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Aura);
 	
@@ -97,4 +101,5 @@ namespace FZFGameplayTags
 
 	// GameplayCue
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Weapon_Laser);
+
 }
