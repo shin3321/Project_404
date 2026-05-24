@@ -106,6 +106,59 @@ void AFZFEquipmentWorkbench::Tick(float DeltaTime)
 	}
 }
 
+bool AFZFEquipmentWorkbench::CanInsertMaterialToSlot(
+	EFZFWorkbenchSlot TargetSlot,
+	UFZFItemData* ItemData
+) const
+{
+	if (ItemData == nullptr)
+	{
+		return false;
+	}
+
+	UFZFCraftPartItemData* CraftPartData = Cast<UFZFCraftPartItemData>(ItemData);
+	if (CraftPartData == nullptr)
+	{
+		return false;
+	}
+
+	switch (TargetSlot)
+	{
+	case EFZFWorkbenchSlot::BaseSlot:
+	{
+		if (CraftPartData->SlotType != ECraftSlotType::BasePart)
+		{
+			return false;
+		}
+
+		if (CurrentBasePart != nullptr)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	case EFZFWorkbenchSlot::CoreSlot:
+	{
+		if (CraftPartData->SlotType != ECraftSlotType::CorePart)
+		{
+			return false;
+		}
+
+		if (CurrentCorePart != nullptr)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	default:
+		return false;
+	}
+}
+
 void AFZFEquipmentWorkbench::SetBasePartFrameRotating(bool bShouldRotate)
 {
 	bRotateBasePartFrame = bShouldRotate;
@@ -140,75 +193,72 @@ bool AFZFEquipmentWorkbench::TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlo
 {
 	if (HasAuthority())
 	{
-		// 이미 서버라면 바로 실행
-		Server_TryInsertMaterialToSlot_Implementation(TargetSlot, ItemData);
+		return InsertMaterialToSlot_Internal(TargetSlot, ItemData);
 	}
-	else
+
+	// 클라이언트에서도 미리 실패할 수 있는 조건은 검사 가능
+	if (!CanInsertMaterialToSlot(TargetSlot, ItemData))
 	{
-		// 클라이언트라면 서버에 요청을 보냄
-		Server_TryInsertMaterialToSlot(TargetSlot, ItemData);
+		return false;
 	}
+
+	// 서버에 요청
+	Server_TryInsertMaterialToSlot(TargetSlot, ItemData);
 	return true;
 }
 
-void AFZFEquipmentWorkbench::Server_TryInsertMaterialToSlot_Implementation(EFZFWorkbenchSlot TargetSlot,
-	UFZFItemData* ItemData)
-{		
-	if (ItemData == nullptr)
+bool AFZFEquipmentWorkbench::InsertMaterialToSlot_Internal(
+	EFZFWorkbenchSlot TargetSlot,
+	UFZFItemData* ItemData
+)
+{
+	if (!CanInsertMaterialToSlot(TargetSlot, ItemData))
 	{
-		return ;
+		return false;
 	}
 
 	UFZFCraftPartItemData* CraftPartData = Cast<UFZFCraftPartItemData>(ItemData);
 	if (CraftPartData == nullptr)
 	{
-		return ;
+		return false;
 	}
 
 	switch (TargetSlot)
 	{
 	case EFZFWorkbenchSlot::BaseSlot:
-		{
-			if (CraftPartData->SlotType != ECraftSlotType::BasePart)
-			{
-				return;
-			}
-
-			if (CurrentBasePart != nullptr)
-			{
-				return;
-			}
-
-			CurrentBasePart = CraftPartData;
-
-			SetBasePartFrameRotating(true);
-
-			break;
-		}
+	{
+		CurrentBasePart = CraftPartData;
+		SetBasePartFrameRotating(true);
+		break;
+	}
 
 	case EFZFWorkbenchSlot::CoreSlot:
-		{
-			if (CraftPartData->SlotType != ECraftSlotType::CorePart)
-			{
-				return;
-			}
-
-			if (CurrentCorePart != nullptr)
-			{
-				return;
-			}
-
-			CurrentCorePart = CraftPartData;
-
-			SetCorePartFrameRotating(true);
-
-			break;
-		}
-	default:
-		return;
+	{
+		CurrentCorePart = CraftPartData;
+		SetCorePartFrameRotating(true);
+		break;
 	}
+
+	default:
+		return false;
+	}
+
 	UpdatePreviewMeshes();
-	
+
+	return true;
+}
+
+void AFZFEquipmentWorkbench::Server_TryInsertMaterialToSlot_Implementation(
+	EFZFWorkbenchSlot TargetSlot,
+	UFZFItemData* ItemData
+)
+{
+	const bool bInserted = InsertMaterialToSlot_Internal(TargetSlot, ItemData);
+
+	if (!bInserted)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to insert material to workbench slot."));
+	}
 }
 
 void AFZFEquipmentWorkbench::OnRep_WorkbenchParts()
@@ -354,6 +404,24 @@ void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiv
 	case EFZFWorkbenchSlot::BaseSlot:
 	case EFZFWorkbenchSlot::CoreSlot:
 		{
+			// 1. 슬롯에 이미 부품이 있으면 회수 시도
+			if (GetMaterialInSlot(HitSlot) != nullptr)
+			{
+				if (TryTakeBackMaterialFromSlot(HitSlot, Interactor) == false)
+				{
+					UE_LOG(LogTemp, Log, TEXT("Failed to take back material from workbench slot."));
+				}
+
+				return;
+			}
+
+			// 2. 슬롯이 비어있는데 손에 든 아이템이 없으면 아무것도 안 함
+			if (HeldItemData == nullptr)
+			{
+				return;
+			}
+
+			// 3. 슬롯이 비어있고 손에 든 아이템이 있으면 삽입 시도
 			if (TryInsertMaterialToSlot(HitSlot, HeldItemData) == false)
 			{
 				UE_LOG(LogTemp, Log, TEXT("Failed to insert material into workbench slot."));
@@ -369,15 +437,6 @@ void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiv
 			UE_LOG(LogTemp, Log, TEXT("Failed to craft item at workbench"));
 			return;
 		}
-		break;
-
-	case EFZFWorkbenchSlot::ResultSlot:
-		if (IsValid(SpawnedItem) == false)
-			return;
-
-		if (Inventory->AddItem(SpawnedItem->GetItemData()))
-			DestroySpawnedItem();
-
 		break;
 
 	default:
@@ -417,4 +476,105 @@ void AFZFEquipmentWorkbench::ResetWorkbench()
 
 	SetBasePartFrameRotating(false);
 	SetCorePartFrameRotating(false);
+}
+
+UFZFCraftPartItemData* AFZFEquipmentWorkbench::GetMaterialInSlot(EFZFWorkbenchSlot TargetSlot) const
+{
+	switch (TargetSlot)
+	{
+	case EFZFWorkbenchSlot::BaseSlot:
+		return CurrentBasePart;
+
+	case EFZFWorkbenchSlot::CoreSlot:
+		return CurrentCorePart;
+
+	default:
+		return nullptr;
+	}
+}
+
+void AFZFEquipmentWorkbench::ClearMaterialSlot_Internal(EFZFWorkbenchSlot TargetSlot)
+{
+	switch (TargetSlot)
+	{
+	case EFZFWorkbenchSlot::BaseSlot:
+		CurrentBasePart = nullptr;
+		SetBasePartFrameRotating(false);
+		break;
+
+	case EFZFWorkbenchSlot::CoreSlot:
+		CurrentCorePart = nullptr;
+		SetCorePartFrameRotating(false);
+		break;
+
+	default:
+		break;
+	}
+
+	UpdatePreviewMeshes();
+}
+
+bool AFZFEquipmentWorkbench::TryTakeBackMaterialFromSlot(
+	EFZFWorkbenchSlot TargetSlot,
+	AFZFCharacterPlayer* Interactor
+)
+{
+	if (HasAuthority())
+	{
+		return TakeBackMaterialFromSlot_Internal(TargetSlot, Interactor);
+	}
+
+	Server_TryTakeBackMaterialFromSlot(TargetSlot, Interactor);
+	return true;
+}
+
+void AFZFEquipmentWorkbench::Server_TryTakeBackMaterialFromSlot_Implementation(
+	EFZFWorkbenchSlot TargetSlot,
+	AFZFCharacterPlayer* Interactor
+)
+{
+	const bool bTakeBackSucceeded = TakeBackMaterialFromSlot_Internal(TargetSlot, Interactor);
+
+	if (!bTakeBackSucceeded)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to take back material from workbench slot."));
+	}
+}
+
+bool AFZFEquipmentWorkbench::TakeBackMaterialFromSlot_Internal(EFZFWorkbenchSlot TargetSlot, AFZFCharacterPlayer* Interactor)
+{
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
+	if (!IsValid(Interactor))
+	{
+		return false;
+	}
+
+	UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent();
+	if (!IsValid(Inventory))
+	{
+		return false;
+	}
+
+	UFZFCraftPartItemData* SlotItemData = GetMaterialInSlot(TargetSlot);
+	if (!IsValid(SlotItemData))
+	{
+		return false;
+	}
+
+	// 인벤토리에 빈 칸이 있을 때만 AddItem이 true를 반환한다고 가정.
+	// 실패하면 제작대 슬롯은 비우면 안됨.
+	const bool bAddedToInventory = Inventory->AddItem(SlotItemData);
+	if (!bAddedToInventory)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Inventory is full. Cannot take back material."));
+		return false;
+	}
+
+	ClearMaterialSlot_Internal(TargetSlot);
+
+	return true;
 }
