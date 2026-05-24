@@ -5,7 +5,7 @@
 #define BBKEY_TARGET TEXT("Target")
 #define BBKEY_ATTACKPOS TEXT("AttackPos")
 #define BBKEY_MESHTARGETZOFFSET TEXT("MeshTargetZOffset")
-#define BBKEY_BOSSTATE TEXT("BossState")
+#define BBKEY_BOSSSTATE TEXT("BossState")
 #define BBKEY_TARGETPOS TEXT("TargetPos")
 #define BBKEY_CURRENTPHASE TEXT("CurrentPhase")
 #define BBKEY_STARTPOS TEXT("StartPos")

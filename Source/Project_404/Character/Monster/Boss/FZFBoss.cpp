@@ -10,6 +10,10 @@
 #include "Abilities/GameplayAbility.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Character/Monster/MonsterData/FZFBossData.h" // 이거 보스 전용으로 변경
+#include "BehaviorTree/BlackboardComponent.h"
+#include "AI/Boss/FZFBossState.h"
+#include "AI/Boss/FZFBossAI.h"
+#include "Boss/FZFEnergyRelay.h"
 #include "DrawDebugHelpers.h"
 
 AFZFBoss::AFZFBoss()
@@ -186,8 +190,12 @@ void AFZFBoss::InitializeBossServer()
 	// 3. AttributeSet 값 초기화
 	InitAttributesFromData();
 
+	// 4. 동력원 파괴 이벤트 바인딩
+	BindEnergyRelayEvents();
+
+
 	// Fix: 나중에 Intro 연출 후 실행되게 빼야함!
-	// 4. BT 실행 
+	// 5. BT 실행 
 	AFZFBossAIController* AIController = Cast<AFZFBossAIController>(GetController());
 	if (!AIController || !BossData || !BossData->BehaviorTree)
 	{
@@ -294,6 +302,28 @@ void AFZFBoss::InitAttributesFromData() // 보스 전용을 만들면 AttributeS
 	FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
 }
 
+void AFZFBoss::BindEnergyRelayEvents()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	for (AFZFEnergyRelay* Relay : EnergyRelays)
+	{
+		if (!Relay)
+		{
+			continue;
+		}
+
+		Relay->OnRelayDestroyed.AddDynamic(
+			this,
+			&AFZFBoss::HandleEnergyRelayDestroyed
+		);
+	}
+}
+
+
 // 공격 여부 델리게이트 저장
 void AFZFBoss::SetAIAttackDelegate(const FBossAICharacterAttackFinished& InOnAttackFinished)
 {
@@ -383,6 +413,22 @@ void AFZFBoss::StopMapPattern()
 	// TODO: MapPatternManager에게 현재 패턴 정지 요청
 }
 
+void AFZFBoss::HandleEnergyRelayDestroyed(AFZFEnergyRelay* Relay)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (AFZFBossAIController* BossAI = Cast<AFZFBossAIController>(GetController()))
+	{
+		if (UBlackboardComponent* BB = BossAI->GetBlackboardComponent())
+		{
+			BB->SetValueAsEnum(BBKEY_BOSSSTATE, static_cast<uint8>(EBossState::PhaseTransition));
+		}
+	}
+}
+
 void AFZFBoss::ResetBossAction()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[BossReset] ResetBossAction Called"));
@@ -413,7 +459,75 @@ void AFZFBoss::ResetBossAction()
 	// 4. 맵 패턴 정지
 	UE_LOG(LogTemp, Warning, TEXT("[BossReset] Stop Map Pattern"));
 	StopMapPattern();
+}
 
+// 외부 동력원 델리게이트 전달 함수.
+void AFZFBoss::NotifyWaitingStarted()
+{
+	OnBossWaitingStarted.Broadcast();
+}
+
+void AFZFBoss::NotifyWaitingEnded()
+{
+	OnBossWaitingEnded.Broadcast();
+}
+
+void AFZFBoss::OnBossPhaseTransition(int32 NewPhase)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// 맨 뒤 배열 고리부터 숨김.
+	const int32 RingIndex = RingMeshes.Num() - (NewPhase-1);
+
+	if (!RingMeshes.IsValidIndex(RingIndex) || !RingMeshes[RingIndex])
+	{
+		return;
+	}
+
+	USkeletalMeshComponent* RingComp = RingMeshes[RingIndex];
+	if (!RingComp)
+	{
+		return;
+	}
+
+	const FVector SpawnLocation = RingComp->GetComponentLocation();
+	const FRotator SpawnRotation = RingComp->GetComponentRotation();
+
+	RingComp->SetVisibility(false, true);
+
+	// TODO: 여기서 스태틱 메시/파편 액터 스폰
+	if (BrokenRingActorClasses.IsValidIndex(RingIndex) && BrokenRingActorClasses[RingIndex])
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = this;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		AActor* BrokenRing = GetWorld()->SpawnActor<AActor>(
+			BrokenRingActorClasses[RingIndex],
+			SpawnLocation,
+			SpawnRotation,
+			SpawnParams
+		);
+
+		if (BrokenRing)
+		{
+			if (USkeletalMeshComponent* MeshComp = BrokenRing->FindComponentByClass<USkeletalMeshComponent>())
+			{
+				MeshComp->SetSimulatePhysics(true);
+				MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+				MeshComp->AddImpulse(
+					FVector(0.f, 0.f, -300.f),
+					NAME_None,
+					true
+				);
+			}
+		}
+	}
 }
 
 /* 클래스 멤버 함수 구현 */

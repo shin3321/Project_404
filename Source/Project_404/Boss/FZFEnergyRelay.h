@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "FZFEnergyRelay.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FEnergyRelayDestroyedEvent, AFZFEnergyRelay*, Relay);
+
 UCLASS()
 class PROJECT_404_API AFZFEnergyRelay : public AActor
 {
@@ -14,10 +16,15 @@ public:
 
 protected:
     virtual void BeginPlay() override;
-
-public:
     virtual void Tick(float DeltaTime) override;
 
+    UFUNCTION()
+    void HandleBossWaitingStarted();
+
+    UFUNCTION()
+    void HandleBossWaitingEnded();
+
+public:
     // 기둥이 땅속에서 위로 올라오는 함수
     UFUNCTION(BlueprintCallable)
     void Appear();
@@ -26,7 +33,19 @@ public:
     UFUNCTION(BlueprintCallable)
     void Disappear();
 
+    // 동력원 파괴 호출 함수.
+    UFUNCTION()
+    void HandleDead();
+
+public:
+    UPROPERTY(BlueprintAssignable, Category = "Relay|Event")
+    FEnergyRelayDestroyedEvent OnRelayDestroyed;
+
 protected:
+    // 보스 정보 받아오기.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
+    TObjectPtr<class AFZFBoss> TargetBoss;
+
     // 완전히 올라온 위치
     FVector ShownLocation;
 

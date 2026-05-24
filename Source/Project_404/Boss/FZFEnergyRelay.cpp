@@ -1,4 +1,5 @@
 ﻿#include "Boss/FZFEnergyRelay.h"
+#include "Character/Monster/Boss/FZFBoss.h"
 
 AFZFEnergyRelay::AFZFEnergyRelay()
 {
@@ -22,13 +23,19 @@ void AFZFEnergyRelay::BeginPlay()
     // 처음 시작 위치를 숨김 위치로 설정
     SetActorLocation(HiddenLocation);
 
-    // 테스트용: 게임 시작하면 바로 등장
-    Appear();
 
-    //3초뒤 사라지게 테스트
-    FTimerHandle DisappearTimerHandle; GetWorldTimerManager().SetTimer(DisappearTimerHandle, this, &AFZFEnergyRelay::Disappear, 3.0f, false);
-    //Disappear();
-    
+    if (TargetBoss)
+    {
+        TargetBoss->OnBossWaitingStarted.AddDynamic(
+            this,
+            &AFZFEnergyRelay::HandleBossWaitingStarted
+        );
+
+        TargetBoss->OnBossWaitingEnded.AddDynamic(
+            this,
+            &AFZFEnergyRelay::HandleBossWaitingEnded
+        );
+    }
 }
 
 void AFZFEnergyRelay::Tick(float DeltaTime)
@@ -64,6 +71,16 @@ void AFZFEnergyRelay::Tick(float DeltaTime)
     }
 }
 
+void AFZFEnergyRelay::HandleBossWaitingStarted()
+{
+    Appear();
+}
+
+void AFZFEnergyRelay::HandleBossWaitingEnded()
+{
+    Disappear();
+}
+
 void AFZFEnergyRelay::Appear()
 {
     // 현재 위치를 이동 시작 위치로 저장
@@ -92,4 +109,27 @@ void AFZFEnergyRelay::Disappear()
 
     // 이동 시작
     bMoving = true;
+}
+
+void AFZFEnergyRelay::HandleDead()
+{
+    // 보스가 Open/Close하는 델리게이트 제거
+    if (TargetBoss)
+    {
+        TargetBoss->OnBossWaitingStarted.RemoveDynamic(
+            this,
+            &AFZFEnergyRelay::HandleBossWaitingStarted
+        );
+
+        TargetBoss->OnBossWaitingEnded.RemoveDynamic(
+            this,
+            &AFZFEnergyRelay::HandleBossWaitingEnded
+        );
+    }
+
+    // 보스 고리 연출 델리게이트 발행
+    OnRelayDestroyed.Broadcast(this);
+
+    // 동력원 Close
+    Disappear(); // 혹은 Destroy()
 }

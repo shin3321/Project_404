@@ -47,6 +47,9 @@ EBTNodeResult::Type UBTTask_SelectAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 		return EBTNodeResult::Failed;
 	}
 
+	// 외부 동력원 Close 전환
+	AIPawn->NotifyWaitingEnded();
+
 	// 스킬 선택
 	// 페이즈 여부와 가중치로 하나의 스킬을 선택한다.
 	TArray<FBossSkillInfo> Candidates;

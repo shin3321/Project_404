@@ -57,4 +57,11 @@ public:
 
 	// 공격 종료/정리 함수.
 	virtual void ResetBossAction() = 0;
+
+	// 외부 동력원 호출 델리게이트 전달.
+	virtual void NotifyWaitingStarted() = 0;
+	virtual void NotifyWaitingEnded() = 0;
+
+	// 페이즈 전환 호출 함수.
+	virtual void OnBossPhaseTransition(int32 NewPhase) = 0;
 };
