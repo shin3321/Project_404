@@ -28,6 +28,9 @@ namespace FZFGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Apply_Revive, "Ability.Action.Apply.Revive");
 
+	// 로봇 공격 방식
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Robot, "Ability.Action.Attack.Robot");
+
 	// 몬스터의 공격 방식
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Aura, "Ability.Action.Attack.Aura");
 
