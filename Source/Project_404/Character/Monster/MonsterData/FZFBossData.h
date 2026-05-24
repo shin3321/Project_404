@@ -31,8 +31,32 @@ struct FBossSkillInfo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsMapPattern = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	// 맵 패턴 실행 시간
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Map Pattern")
+	float MapPatternDuration = 3.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Map Pattern")
 	TSubclassOf<UGameplayAbility> AbilityClass;
+
+	// 스킬 사용 전에 MoveTo할 위치
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Move")
+	FVector AttackPos = FVector::ZeroVector;
+
+	// 스킬 사용 전에 위/아래 Mesh 이동 목표 Z offset
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Move")
+	float MeshTargetZOffset = 0.f;
+
+	// 스킬 사용 전에 회전 적용 여부 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotate")
+	bool bUseRotateBeforeAttack = false;
+
+	// 스킬 사용 전에 회전(좌우 회전)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotate", meta = (EditCondition = "bUseRotateBeforeAttack"))
+	float TargetYawOffset = 0.f;
+
+	// 스킬 사용 전에 회전(상하 회전)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotate", meta = (EditCondition = "bUseRotateBeforeAttack"))
+	float TargetMeshPitch = 0.f;
 };
 
 /**

@@ -13,6 +13,7 @@
 #include "Character/Monster/FZFMonster.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Skill/FZFSkillBase.h"
+#include "Character/Monster/Boss/FZFBoss.h"
 
 UFZFGA_Attack::UFZFGA_Attack()
 {
@@ -55,11 +56,18 @@ void UFZFGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		return;
 	}
 
+	if (AFZFBoss* Boss = Cast<AFZFBoss>(AvatarActor))
+	{
+		PlayBossAttack(Boss, AttackSpeed, Handle, ActorInfo, ActivationInfo);
+		return;
+	}
+
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 }
 
 void UFZFGA_Attack::OnMontageCompleted()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Montage Completed"));
 	// 애니메이션이 무사히 끝났으므로 어빌리티 종료
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
@@ -306,8 +314,56 @@ void UFZFGA_Attack::PlayMonsterAttack(class AFZFMonster* Monster, float AttackSp
 	MontageTask->ReadyForActivation();
 }
 
+void UFZFGA_Attack::PlayBossAttack(
+    AFZFBoss* Boss,
+    float AttackSpeed,
+    const FGameplayAbilitySpecHandle Handle,
+    const FGameplayAbilityActorInfo* ActorInfo,
+    const FGameplayAbilityActivationInfo ActivationInfo
+)
+{
+
+	UE_LOG(LogTemp, Warning, TEXT("PlayBossAttack Start"));
+	UE_LOG(LogTemp, Warning, TEXT("Montage Valid: %d"), MonsterAttackMontage != nullptr);
+
+    if (!Boss || !MonsterAttackMontage) // 일단 같은 몽타주 변수 재사용 가능
+    {
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+        return;
+    }
+
+    if (Boss->GetCharacterMovement())
+    {
+        Boss->GetCharacterMovement()->SetMovementMode(MOVE_None);
+    }
+
+    UAbilityTask_PlayMontageAndWait* MontageTask =
+        UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+            this,
+            TEXT("BossAttackTask"),
+            MonsterAttackMontage,
+            AttackSpeed,
+            NAME_None,
+            false
+        );
+	UE_LOG(LogTemp, Warning, TEXT("MontageTask Valid: %d"), MontageTask != nullptr);
+    if (!MontageTask)
+    {
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+        return;
+    }
+
+    MontageTask->OnCompleted.AddDynamic(this, &UFZFGA_Attack::OnMontageCompleted);
+    MontageTask->OnInterrupted.AddDynamic(this, &UFZFGA_Attack::OnMontageInterrupted);
+    MontageTask->OnCancelled.AddDynamic(this, &UFZFGA_Attack::OnMontageInterrupted);
+
+    MontageTask->ReadyForActivation();
+}
+
 void UFZFGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	UE_LOG(LogTemp, Warning, TEXT("GA EndAbility Called"));
+
 	// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
 	if (ActorInfo && ActorInfo->AvatarActor.IsValid())
 	{
@@ -322,6 +378,12 @@ void UFZFGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FG
 		if (AFZFMonster* Monster = Cast<AFZFMonster>(ActorInfo->AvatarActor.Get()))
 		{
 			Monster->NotifyAttackActionEnd();
+		}
+
+		if (AFZFBoss* Boss = Cast<AFZFBoss>(ActorInfo->AvatarActor.Get()))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Boss NotifyAttackActionEnd Called"));
+			Boss->NotifyAttackActionEnd();
 		}
 	}
 

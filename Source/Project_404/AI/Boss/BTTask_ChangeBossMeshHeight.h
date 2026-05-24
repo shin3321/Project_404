@@ -23,6 +23,9 @@ protected:
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 protected:
+	UPROPERTY(EditAnywhere, Category = "Mesh Height")
+	bool bUseBlackboardTargetZ = true;
+
 	UPROPERTY(EditAnywhere, Category="Mesh Height")
 	float TargetMeshZ = 0.f;
 	

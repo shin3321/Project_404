@@ -7,6 +7,7 @@
 #include "AI/Boss/FZFBossAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayTag/FZFGameplayTags.h"
+#include "Abilities/GameplayAbility.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Character/Monster/MonsterData/FZFBossData.h" // 이거 보스 전용으로 변경
 #include "DrawDebugHelpers.h"
@@ -226,12 +227,33 @@ void AFZFBoss::InitAbilitySystem()
 
 		if (HasAuthority())
 		{
+			TSet<TSubclassOf<UGameplayAbility>> GrantedAbilityClasses;
+
+			// 기존 공통 Ability 지급
 			for (const auto& StartupAbility : StartupAbilities)
 			{
-				if (StartupAbility)
+				if (StartupAbility &&
+					!GrantedAbilityClasses.Contains(StartupAbility))
 				{
-					FGameplayAbilitySpec StartSpec(StartupAbility);
-					ASC->GiveAbility(StartSpec);
+					ASC->GiveAbility(
+						FGameplayAbilitySpec(StartupAbility)
+					);
+
+					GrantedAbilityClasses.Add(StartupAbility);
+				}
+			}
+
+			// SkillList의 Ability 지급
+			for (const FBossSkillInfo& Skill : BossData->SkillList)
+			{
+				if (Skill.AbilityClass &&
+					!GrantedAbilityClasses.Contains(Skill.AbilityClass))
+				{
+					ASC->GiveAbility(
+						FGameplayAbilitySpec(Skill.AbilityClass)
+					);
+
+					GrantedAbilityClasses.Add(Skill.AbilityClass);
 				}
 			}
 		}
@@ -290,9 +312,124 @@ void AFZFBoss::AttackByAI()
 		return;
 	}
 
-	// GAS 어빌리티 실행 (태그 기반)
+	const FBossSkillInfo* Skill = GetCurrentSelectedSkill();
+	if (!Skill)
+	{
+		NotifyAttackActionEnd();
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Selected AbilityClass: %s"),
+		*GetNameSafe(Skill->AbilityClass));
+
 	if (ASC)
 	{
-		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Attack));
+		for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Given Ability: %s"),
+				*GetNameSafe(Spec.Ability ? Spec.Ability->GetClass() : nullptr));
+		}
+	}
+	
+	// 1. 맵 패턴 공격 실행
+	if (Skill->bIsMapPattern)
+	{
+		RequestMapPattern(*Skill);
+		return;
+	}
+	else 
+	{
+		// 자체 공격 실행
+		if (!ASC || !Skill->AbilityClass)
+		{
+			NotifyAttackActionEnd();
+			return;
+		}
+
+		// SelfAttack 실행
+		// GAS 어빌리티 실행 (클래스 호출)
+		const bool bActivated = ASC->TryActivateAbilityByClass(Skill->AbilityClass);
+		UE_LOG(LogTemp, Warning, TEXT("Ability Activated: %d"), bActivated);
+
+		if (!bActivated)
+		{
+			NotifyAttackActionEnd();
+		}
+	}
+}
+
+// 맵 패턴 호출
+void AFZFBoss::RequestMapPattern(const FBossSkillInfo& Skill)
+{
+	// 맵 패턴 메니저에게 패턴 시작 요청
+
+
+	// 정해진 스킬 시간동안 패턴 실행 후 중단되게 시간 설정.
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		this,
+		&AFZFBoss::NotifyAttackActionEnd,
+		Skill.MapPatternDuration,
+		false
+	);
+
+	// 기존 스킬 어빌리티나 몽타주 재생 정지는 Waiting 상태로 가서 한번에 정리할거임.
+}
+
+// 맵 패턴 중지
+void AFZFBoss::StopMapPattern()
+{
+	// TODO: MapPatternManager에게 현재 패턴 정지 요청
+}
+
+void AFZFBoss::ResetBossAction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[BossReset] ResetBossAction Called"));
+
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[BossReset] Finish Attack Task"));
+	// 1. 진행 중인 공격 BTTask 먼저 종료.
+	NotifyAttackActionEnd();
+	
+	// 2. 실행 중인 GAS Ability 취소.
+	if (ASC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BossReset] Cancel All Abilities"));
+		ASC->CancelAllAbilities();
+	}
+
+	// 3. 몽타주 정지
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BossReset] Stop Montage"));
+		AnimInstance->Montage_Stop(0.2f);
+	}
+
+	// 4. 맵 패턴 정지
+	UE_LOG(LogTemp, Warning, TEXT("[BossReset] Stop Map Pattern"));
+	StopMapPattern();
+
+}
+
+/* 클래스 멤버 함수 구현 */
+void AFZFBoss::NotifyAttackActionEnd()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[BossReset] NotifyAttackActionEnd"));
+
+	// 앞서 전달받은 델리게이트 실행.
+	if (OnAttackFinished.IsBound())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BossReset] Attack Task Finished"));
+		OnAttackFinished.Execute();
+		OnAttackFinished.Unbind(); // 실행 후 언바인드
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BossReset] OnAttackFinished Not Bound"));
 	}
 }

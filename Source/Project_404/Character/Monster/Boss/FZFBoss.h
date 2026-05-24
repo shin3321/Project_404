@@ -50,9 +50,45 @@ protected:
 		return BossData ? BossData->BehaviorTree : nullptr;
 	};
 
+	// BossData 불러오기 함수
+	FORCEINLINE virtual UFZFBossData* GetData() override
+	{
+		return BossData ? BossData : nullptr;
+	};
+
+	// BossMesh 가져오기.
+	FORCEINLINE virtual USkeletalMeshComponent* GetBossMesh() const override
+	{
+		return GetMesh();
+	};
+
+	// 선택된 스킬 저장/불러오기 함수
+	FORCEINLINE void SetCurrentSelectedSkill(const FBossSkillInfo& Skill) override
+	{
+		CurrentSelectedSkill = Skill;
+	};
+	FORCEINLINE const FBossSkillInfo* GetCurrentSelectedSkill() const override
+	{
+		return &CurrentSelectedSkill;
+	};
+
+
 	// Task에서 공격 처리 호출 함수
 	virtual void SetAIAttackDelegate(const FBossAICharacterAttackFinished& InOnAttackFinished) override;
 	virtual void AttackByAI() override;
+	virtual void RequestMapPattern(const FBossSkillInfo& Skill) override;
+
+
+	// 공격 종료/정리 함수.
+	virtual void ResetBossAction() override;
+
+	/* 클래스 멤버 함수*/
+public:
+	// 공격 모션(몽타주 재생) 종료 시 호출되는 이벤트 함수.
+	void NotifyAttackActionEnd();
+
+	void StopMapPattern();
+
 
 	/* 클래스 멤버 변수 */
 private:
@@ -84,7 +120,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data)
 	TObjectPtr<UFZFBossData> BossData;
 
+	// 현재 선택된 스킬 정보
+	UPROPERTY()
+	FBossSkillInfo CurrentSelectedSkill;
+
+	// 고리 매시 저장
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Ring")
 	TArray<TObjectPtr<USkeletalMeshComponent>> RingMeshes;
-
 };
