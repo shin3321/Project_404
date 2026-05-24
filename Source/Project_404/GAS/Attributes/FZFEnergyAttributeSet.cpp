@@ -38,6 +38,7 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 		SetDamage(0.0f);
 
 		// 들어온 이펙트의 Asset Tags 확인
+		// => GE : Component -> AssetTags에 추가할 수 있음
 		FGameplayTagContainer AssetTags;
 		Data.EffectSpec.GetAllAssetTags(AssetTags);
 
