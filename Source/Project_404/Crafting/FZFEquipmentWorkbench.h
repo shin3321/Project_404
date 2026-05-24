@@ -62,11 +62,15 @@ private:
 	// 서버에게 실행해 달라고 요청하는 함수 (Server RPC)
 	UFUNCTION(Server, Reliable)
 	void Server_TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData);
+
+	bool InsertMaterialToSlot_Internal(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData);
 	
 	// 제작 버튼을 누르는 함수.
 	bool TryCraft();
 
 	void UpdatePreviewMeshes();
+
+	bool CanInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData) const;
 
 protected:
 	// BP에 만들어둔 컴포넌트를 이 변수에 할당하는 방식으로 처리하기 위해 Ref라는 네이밍을 추가적으로 붙임.
@@ -158,6 +162,20 @@ protected:
 	// BasePartFrame Z축 회전 속도, 초당 도 단위
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Workbench|Frame")
 	float CorePartFrameRotateSpeed = 120.0f;
+
+// 회수 관련 함수.
+protected:
+
+	bool TryTakeBackMaterialFromSlot(EFZFWorkbenchSlot TargetSlot, AFZFCharacterPlayer* Interactor);
+
+	bool TakeBackMaterialFromSlot_Internal(EFZFWorkbenchSlot TargetSlot, AFZFCharacterPlayer* Interactor);
+
+	UFZFCraftPartItemData* GetMaterialInSlot(EFZFWorkbenchSlot TargetSlot) const;
+
+	void ClearMaterialSlot_Internal(EFZFWorkbenchSlot TargetSlot);
+
+	UFUNCTION(Server, Reliable)
+	void Server_TryTakeBackMaterialFromSlot(EFZFWorkbenchSlot TargetSlot, AFZFCharacterPlayer* Interactor);
 
 protected:
 
