@@ -105,6 +105,10 @@ void AFZFCharacterBase::OnRep_IsDead()
 
 		// 클라이언트 측 충돌 비활성화
 		SetActorEnableCollision(false);
+
+		// 죽는 모션 재생 몽타주 재생 (서버/클라이언트 공통 시각적 효과)
+		PlayDeadAnimation();
+		TriggerDeathGameplayCue();
 	}
 }
 
@@ -143,10 +147,6 @@ void AFZFCharacterBase::SetDead()
 		//FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag(TEXT("Character.State.Dead"));
 		//ActiveASC->AddLooseGameplayTag(DeadTag);
 	}
-
-	// 죽는 모션 재생 몽타주 재생
-	PlayDeadAnimation();
-	TriggerDeathGameplayCue();
 
 	// 콜리전 끄기 -> 충돌 청리 되는 콜리전을 꺼줘야 함
 	SetActorEnableCollision(false);

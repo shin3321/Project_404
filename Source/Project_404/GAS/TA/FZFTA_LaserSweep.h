@@ -6,6 +6,9 @@
 #include "GAS/TA/FZFTA_Base.h"
 #include "FZFTA_LaserSweep.generated.h"
 
+class UNiagaraSystem;
+class UNiagaraComponent;
+
 /**
  * 
  */
@@ -27,4 +30,7 @@ public:
 protected:
 	// FGameplayAbilityTargetDataHandle을 리턴 (타겟데이터의 묶음)
 	virtual FGameplayAbilityTargetDataHandle MakeTargetData() const;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Laser")
+	TObjectPtr<UNiagaraSystem> LaserSystem;
 };

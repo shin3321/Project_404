@@ -8,6 +8,7 @@
 #include "Item/FZFItemData.h"
 #include "Character/Monster/FZFMonster.h"
 #include "GAS/FZFAbilitySystemComponent.h"
+#include "GameplayTag/FZFGameplayTags.h"
 
 UFZFGA_AttackHitCheck::UFZFGA_AttackHitCheck()
 {
@@ -88,20 +89,46 @@ void UFZFGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Han
 void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle)
 {
 	// TA가 브로드캐스트한 DataHandle이 여기로 들어옴
-	if (DataHandle.Num() >0 && DataHandle.IsValid(0))
+	if (DataHandle.Num() > 0 && DataHandle.IsValid(0))
 	{
 		AActor* Avatar = GetAvatarActorFromActorInfo();
-		if (Avatar)
-		{
-			TArray<TSubclassOf<UGameplayEffect>> EffectsToApply; // 적용할 효과 클래스담는 배열
+		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
-			// 플레이어의 인벤토리(HeldItemComponent)에서 아이템 데이터의 GE 확인
-			if(UFZFHeldItemComponent* HeldItemComp = Avatar->FindComponentByClass<UFZFHeldItemComponent>())
+		if (Avatar && ASC)
+		{
+			// 현재 장착된 아이템 데이터 가져오기
+			UFZFItemData* CurrentItemData = nullptr;
+			if (UFZFHeldItemComponent* HeldItemComp = Avatar->FindComponentByClass<UFZFHeldItemComponent>())
 			{
-				if (UFZFItemData* ItemData = HeldItemComp->GetCurrentItemData())
+				CurrentItemData = HeldItemComp->GetCurrentItemData();
+			}
+
+			// 서버에서만 GameplayCue 실행 (모든 클라이언트에 복제됨)
+			if (HasAuthority(&CurrentActivationInfo))
+			{
+				FGameplayCueParameters CueParams;
+				// 히트 결과가 있다면 해당 위치를, 없다면 기본 사거리 끝 지점을 사용하도록 TA에서 데이터를 잘 만들어줌
+				const FHitResult* HitResult = DataHandle.Get(0)->GetHitResult();
+				if (HitResult)
 				{
-					EffectsToApply = ItemData->AllowedEffectClasses;
+					CueParams.Location = HitResult->ImpactPoint;
+					// Trace 시작점이나 방향 정보가 필요하다면 Normal이나 Origin 등을 활용 가능
+					CueParams.Normal = HitResult->ImpactNormal;
 				}
+				
+				// 시전자 정보를 넘겨서 시작 위치(총구 등)를 계산할 수 있게 함
+				CueParams.Instigator = Avatar;
+
+				// 아이템 데이터를 SourceObject로 넘겨서, GameplayCue에서 나이아가라 에셋을 꺼내 쓸 수 있게 함
+				CueParams.SourceObject = CurrentItemData;
+
+				ASC->ExecuteGameplayCue(FZFGameplayTags::GameplayCue_Weapon_Laser, CueParams);
+			}
+
+			TArray<TSubclassOf<UGameplayEffect>> EffectsToApply; // 적용할 효과 클래스담는 배열
+			if (CurrentItemData)
+			{
+				EffectsToApply = CurrentItemData->AllowedEffectClasses;
 			}
 			// 플레이어 데이터가 없고 몬스터라면 몬스터 데이터의 GE 확인
 			else if (AFZFMonster* Monster = Cast<AFZFMonster>(Avatar))
@@ -112,8 +139,6 @@ void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDat
 				}
 			}
 
-			// 능력 사용자의 ASC(Ability System Component) 가져오기
-			UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 			if (ASC)
 			{
 				for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectsToApply)
