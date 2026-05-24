@@ -28,6 +28,12 @@ namespace FZFGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Apply_Revive, "Ability.Action.Apply.Revive");
 
+	// 로봇 공격 방식
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Robot, "Ability.Action.Attack.Robot");
+
+	// 몬스터의 공격 방식
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Aura, "Ability.Action.Attack.Aura");
+
 
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Idle,"State.Movement.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Walk,"State.Movement.Walk");
@@ -44,6 +50,7 @@ namespace FZFGameplayTags
 
 	// 디버프 상태 부여 태그
 	UE_DEFINE_GAMEPLAY_TAG(State_Debuff_Stun,"State.Debuff.Stun");
+	UE_DEFINE_GAMEPLAY_TAG(State_Debuff_Fire,"State.Debuff.Fire");
 
 	// 내가 현재 착용하고 있는 무기에 따른 상태
 	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Pickaxe,"State.Equip.Pickaxe");

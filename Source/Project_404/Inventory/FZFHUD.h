@@ -53,6 +53,19 @@ public:
     UFUNCTION()
     void UpdateHpText(float NewValue, float MaxValue);
 
+    // 홀드 UI 표시
+    UFUNCTION(BlueprintCallable)
+    void ShowHoldProgress();
+
+    // 홀드 UI 숨김
+    UFUNCTION(BlueprintCallable)
+    void HideHoldProgress();
+
+    // 홀드 진행률 갱신
+    UFUNCTION(BlueprintCallable)
+    void UpdateHoldProgress(float InProgress);
+
+
 protected:
     // 이름 표시용 텍스트 블록
     UPROPERTY(meta = (BindWidget))
@@ -74,6 +87,18 @@ protected:
     // 이름이 UMG 애니메이션 이름과 정확히 같아야 함
     UPROPERTY(meta = (BindWidgetAnim), Transient)
     TObjectPtr<UWidgetAnimation> DamageFade;
+
+    // 홀드 진행률 이미지
+    UPROPERTY(meta = (BindWidget))
+    UImage* HoldProgressImage;
+
+    // 홀드 진행률용 머티리얼
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hold")
+    TObjectPtr<UMaterialInterface> HoldProgressMaterial;
+
+    // 홀드 진행률 Dynamic Material
+    UPROPERTY()
+    TObjectPtr<UMaterialInstanceDynamic> HoldProgressDynamicMaterial;
 
 private:
     // 생성된 다이내믹 머티리얼 인스턴스를 기억해둘 변수
