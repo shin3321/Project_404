@@ -11,6 +11,7 @@ class UInputMappingContext;
 class UFZFInventoryComponent;
 class UFZFHUD;
 class UFZFHeldItemComponent;
+class AFZFBossroomBtn;
 
 UCLASS()
 class PROJECT_404_API AFZFCharacterPlayer : public AFZFCharacterBase
@@ -55,6 +56,9 @@ public:
 	void EquipPickaxe();
 	void UnEquipPickaxe();
 
+
+	void StopBossroomHold();
+
 	// 현재 들고있는 아이템을 가져오기 위한 Get함수.
 	UFZFHeldItemComponent* GetHeldItemComponent() { return HeldItemComponent; }
 
@@ -82,6 +86,10 @@ protected:
 
 	// 상호작용 함수
 	void Interact();
+
+	// 홀드 상호작용 종료
+	void StopHoldInteract();
+
 
 	// 곡괭이 함수.
 	void TogglePickaxe();
@@ -167,6 +175,9 @@ protected:
 public:
 	virtual void HandleDeath() override;
 
+	// 보스방 버튼 홀드 시작 요청 함수
+	void BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn);
+
 protected:
 	// 현재 카메라 조준점에 들어와 있는 타겟 (UI 표시용)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
@@ -195,6 +206,19 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UFZFHUD> HUDWidget;
+
+	// 현재 조준 중인 보스방 버튼 액터
+	UPROPERTY()
+	TObjectPtr<AFZFBossroomBtn> CurrentBossroomBtn;
+
+	// 홀드 총 시간 (C++ 고정값)
+	float HoldRequiredTime = 2.0f;
+
+	// 현재 누르고 있는 시간
+	float CurrentHoldTime = 0.0f;
+
+	// 현재 홀드 중인지 여부
+	bool bHolding = false;
 
 	// 선택된 인벤토리 아이템을 손에 들게 처리하는 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))

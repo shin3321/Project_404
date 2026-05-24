@@ -11,6 +11,20 @@ void UFZFHUD::NativeConstruct()
     {
         StaminaDynamicMaterial = StaminaBar->GetDynamicMaterial();
     }
+
+    // 홀드 진행률 머티리얼 동적 생성
+    if (HoldProgressImage && HoldProgressMaterial)
+    {
+        HoldProgressDynamicMaterial = UMaterialInstanceDynamic::Create(HoldProgressMaterial, this);
+        if (HoldProgressDynamicMaterial)
+        {
+            HoldProgressImage->SetBrushFromMaterial(HoldProgressDynamicMaterial);
+            HoldProgressDynamicMaterial->SetScalarParameterValue(TEXT("Progress"), 0.0f);
+        }
+
+        // 시작 시 홀드 UI 숨김
+        HoldProgressImage->SetVisibility(ESlateVisibility::Hidden);
+    }
 }
 
 // 아이템 이름 텍스트 설정
@@ -91,5 +105,36 @@ void UFZFHUD::UpdateHpText(float NewValue, float MaxValue)
 
         // 텍스트 컴포넌트에 적용 (FString을 FText로 변환하여 세팅)
         HPText->SetText(FText::FromString(HpPercentString));
+    }
+}
+
+// 홀드 UI 표시
+void UFZFHUD::ShowHoldProgress()
+{
+    if (HoldProgressImage)
+    {
+        HoldProgressImage->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+// 홀드 UI 숨김
+void UFZFHUD::HideHoldProgress()
+{
+    if (HoldProgressImage)
+    {
+        HoldProgressImage->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+
+// 홀드 진행률 갱신
+void UFZFHUD::UpdateHoldProgress(float InProgress)
+{
+    if (HoldProgressDynamicMaterial)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("HUD UpdateHoldProgress = %f"), InProgress);
+        HoldProgressDynamicMaterial->SetScalarParameterValue(
+            TEXT("Progress"),
+            FMath::Clamp(InProgress, 0.0f, 1.0f)
+        );
     }
 }

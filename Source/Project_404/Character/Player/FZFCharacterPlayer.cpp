@@ -24,6 +24,9 @@
 
 #include  "Manager/FZFSoundManager.h"
 
+#include "Boss/FZFBossroomBtn.h"
+#include "Kismet/GameplayStatics.h"
+
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
 	// 기본 설정
@@ -131,7 +134,7 @@ AFZFCharacterPlayer::AFZFCharacterPlayer()
 	if (DropItemActionRef.Succeeded())
 	{
 		// 상호작용 변수에 할당
-		DropItemAction = InteractActionRef.Object;
+		DropItemAction = DropItemActionRef.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(
@@ -236,11 +239,81 @@ void AFZFCharacterPlayer::BeginPlay()
 	//	HUDWidget->HideWidget();
 	//	HUDWidget->SetCrosshairNormal();
 	//}
+
+	// 홀드 관련 초기값 설정
+	CurrentBossroomBtn = nullptr;
+	CurrentHoldTime = 0.0f;
+	bHolding = false;
 }
 
-void AFZFCharacterPlayer::Tick(float deltaTime)
+void AFZFCharacterPlayer::Tick(float DeltaTime)
 {
-	Super::Tick(deltaTime);
+	Super::Tick(DeltaTime);
+
+	// 홀드 중이 아니면 종료
+	if (!bHolding)
+	{
+		return;
+	}
+
+	// 현재 버튼 액터가 없으면 홀드 취소
+	if (!CurrentBossroomBtn)
+	{
+		bHolding = false;
+		CurrentHoldTime = 0.0f;
+
+		if (HUDWidget)
+		{
+			HUDWidget->HideHoldProgress();
+			HUDWidget->UpdateHoldProgress(0.0f);
+		}
+		return;
+	}
+
+	// 버튼 범위 밖으로 나가면 홀드 취소
+	if (!CurrentBossroomBtn->CanInteract(this))
+	{
+		bHolding = false;
+		CurrentHoldTime = 0.0f;
+
+		if (HUDWidget)
+		{
+			HUDWidget->HideHoldProgress();
+			HUDWidget->UpdateHoldProgress(0.0f);
+		}
+		return;
+	}
+
+	// 홀드 시간 누적
+	CurrentHoldTime += DeltaTime;
+
+	// 진행률 계산
+	const float Progress = FMath::Clamp(CurrentHoldTime / HoldRequiredTime, 0.0f, 1.0f);
+
+	// 로그 확인
+	UE_LOG(LogTemp, Warning, TEXT("Hold Progress = %f"), Progress);
+
+	// HUD에 홀드 진행률 반영
+	if (HUDWidget)
+	{
+		HUDWidget->ShowHoldProgress();
+		HUDWidget->UpdateHoldProgress(Progress);
+	}
+
+	// 홀드 완료 시 보스방 레벨 이동
+	if (Progress >= 1.0f)
+	{
+		bHolding = false;
+		CurrentHoldTime = 0.0f;
+
+		if (HUDWidget)
+		{
+			HUDWidget->HideHoldProgress();
+			HUDWidget->UpdateHoldProgress(0.0f);
+		}
+
+		UGameplayStatics::OpenLevel(GetWorld(), TEXT("FZFBossLevel"));
+	}
 }
 
 void AFZFCharacterPlayer::PossessedBy(AController* NewController)
@@ -374,6 +447,10 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this,
 		                                   &AFZFCharacterPlayer::Interact);
+
+		// Interaction
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this,
+			&AFZFCharacterPlayer::StopHoldInteract);
 
 		// Interaction
 		EnhancedInputComponent->BindAction(PickaxeAction, ETriggerEvent::Started, this,
@@ -809,10 +886,14 @@ void AFZFCharacterPlayer::EndViewTarget(APlayerController* PC)
 void AFZFCharacterPlayer::DetectInteractable()
 {
 	if (!Camera)
+	{
 		return;
+	}
 
 	if (!HUDWidget)
+	{
 		return;
+	}
 
 	FVector Start = Camera->GetComponentLocation();
 	FVector End = Start + (Camera->GetForwardVector() * 500.f);
@@ -821,35 +902,58 @@ void AFZFCharacterPlayer::DetectInteractable()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
 
 	UPrimitiveComponent* NewTarget = nullptr;
+	AFZFBossroomBtn* NewBossroomBtn = nullptr;
 	IFZFInteractableInterface* Interactable = nullptr;
 
 	if (bHit)
 	{
 		UPrimitiveComponent* HitComponent = Hit.GetComponent();
 
-		if (IsValid(HitComponent) == false)
+		if (!IsValid(HitComponent))
+		{
+			HUDWidget->HideWidget();
+			HUDWidget->SetCrosshairNormal();
+			CurrentInteractableTarget = nullptr;
+			CurrentBossroomBtn = nullptr;
 			return;
+		}
 
 		AActor* OwnerActor = HitComponent->GetOwner();
+
+		// 인터페이스 구현 액터면 HUD 이름 표시 대상
 		Interactable = Cast<IFZFInteractableInterface>(OwnerActor);
 		if (Interactable)
+		{
 			NewTarget = HitComponent;
+		}
+
+		// 현재 조준 중인 보스방 버튼 액터인지 확인
+		NewBossroomBtn = Cast<AFZFBossroomBtn>(OwnerActor);
 	}
 	else
 	{
 		HUDWidget->HideWidget();
+		HUDWidget->SetCrosshairNormal();
+		CurrentInteractableTarget = nullptr;
+		CurrentBossroomBtn = nullptr;
+		return;
 	}
 
-	// 상태가 변했을 때만 Widget 업데이트
+	// 현재 조준 중인 버튼 액터 갱신
+	CurrentBossroomBtn = NewBossroomBtn;
+
+	// 상태가 변했을 때만 HUD 업데이트
 	if (NewTarget != CurrentInteractableTarget.Get())
 	{
 		CurrentInteractableTarget = NewTarget;
+
 		if (IsValid(NewTarget) && Interactable)
 		{
 			const FText InteractableName = Interactable->GetInteractableName(Hit.GetComponent());
+
 			if (!InteractableName.IsEmpty())
 			{
 				HUDWidget->SetTargetName(InteractableName);
@@ -952,5 +1056,70 @@ void AFZFCharacterPlayer::SelectSlot5()
 	if (InventoryComponent)
 	{
 		InventoryComponent->SelectSlot(4);
+	}
+}
+
+
+// E키를 뗐을 때 홀드 상호작용 종료
+void AFZFCharacterPlayer::StopHoldInteract()
+{
+	// 홀드 상태 종료
+	bHolding = false;
+	CurrentHoldTime = 0.0f;
+
+	// HUD 홀드 UI 숨김 및 진행률 초기화
+	if (HUDWidget)
+	{
+		HUDWidget->HideHoldProgress();
+		HUDWidget->UpdateHoldProgress(0.0f);
+	}
+}
+
+// 보스방 버튼이 플레이어에게 홀드 시작을 요청하는 함수
+void AFZFCharacterPlayer::BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn)
+{
+	// 버튼 액터가 없으면 종료
+	if (!InBossroomBtn)
+	{
+		return;
+	}
+
+	// 버튼 범위 안에 있는 플레이어만 홀드 시작 가능
+	if (!InBossroomBtn->CanInteract(this))
+	{
+		return;
+	}
+
+	// 현재 홀드 버튼 저장
+	CurrentBossroomBtn = InBossroomBtn;
+
+	// 홀드 시작
+	bHolding = true;
+	CurrentHoldTime = 0.0f;
+
+	// HUD에 홀드 UI 표시 및 진행률 초기화
+	if (HUDWidget)
+	{
+		HUDWidget->ShowHoldProgress();
+		HUDWidget->UpdateHoldProgress(0.0f);
+	}
+}
+
+void AFZFCharacterPlayer::StopBossroomHold()
+{
+	// 홀드 상태 해제
+	bHolding = false;
+
+	// 홀드 시간 초기화
+	CurrentHoldTime = 0.0f;
+
+	// 현재 버튼 참조 제거
+	CurrentBossroomBtn = nullptr;
+
+	// HUD 홀드바 숨기고 0으로 초기화
+	if (HUDWidget)
+	{
+		HUDWidget->HideHoldProgress();
+		HUDWidget->UpdateHoldProgress(0.0f);
 	}
 }
