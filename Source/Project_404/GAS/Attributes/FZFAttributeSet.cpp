@@ -82,18 +82,19 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	AActor* InstigatorActor = Data.EffectSpec.GetContext().GetInstigator();
 	const UGameplayEffect* AppliedGE = Data.EffectSpec.Def;
 
-	if (!InstigatorActor || !AppliedGE)
+	if (!AppliedGE)
 	{
+		UE_LOG(LogTemp, Error, TEXT("[GAS_Debug] 크리티컬: AppliedGE(이펙트 정의)가 Null입니다!"));
+		return;
+	}
 
-		if (!AppliedGE)
-		{
-			UE_LOG(LogTemp, Error, TEXT("[GAS_Debug] 크리티컬: AppliedGE(이펙트 정의)가 Null입니다!"));
-		}
-		if (!InstigatorActor)
-		{
-			UE_LOG(LogTemp, Error, TEXT("[GAS_Debug] 크리티컬: InstigatorActor(가해자)가 Null입니다!"));
-		}
+	// 이 이펙트가 주기적 장판/지속 데미지(Period가 0보다 큰 무한 이펙트)인지 확인
+	bool bIsPeriodicEffect = AppliedGE->Period.Value > 0.0f;
 
+	// 즉시성 데미지인데 가해자가 없다면 크리티컬 에러로 차단하지만, 장판 데미지라면 가해자가 Null이어도 통과시킵니다.
+	if (!InstigatorActor && !bIsPeriodicEffect)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[GAS_Debug] 크리티컬: InstigatorActor(가해자)가 Null입니다!"));
 		return;
 	}
 
@@ -102,32 +103,40 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	// 검증 결과를 담을 변수
 	bool bIsValidEffect = false;
 
-	if (UFZFHeldItemComponent* HeldItemComp = InstigatorActor->FindComponentByClass<UFZFHeldItemComponent>())
+	if (bIsPeriodicEffect)
 	{
-		if (UFZFItemData* ItemData = HeldItemComp->GetCurrentItemData())
-		{
-			// 데이터 에셋을 TArray로 바꿈
-			AllowedEffects = ItemData->AllowedEffectClasses;
-		}
+		bIsValidEffect = true;
 	}
-	else if (AFZFMonster* Monster = Cast<AFZFMonster>(InstigatorActor))
+	else if(InstigatorActor)
 	{
-		if (UFZFMonsterData* MData = Monster->GetMonsterData())
-		{
-			// 데이터 에셋을 TArray로 바꿈
-			AllowedEffects = MData->AllowedEffectClasses;
-		}
-	}
-	// 공격 주체가 레이저 엑터 본인이거나 레이저를 쏜 원인이 레이져인 경우
-	else if (AFZFLaserActor* Laser = Cast<AFZFLaserActor>(InstigatorActor))
-	{
-		// 레이저가 가진 DamageGEClass와 현재 들어온 GE의 클래스가 일치하는지 바로 비교합니다.
-		if (Laser->GetDamageGEClass() && AppliedGE->GetClass() == Laser->GetDamageGEClass())
-		{
-			bIsValidEffect = true;
-		}
-	}
 
+		if (UFZFHeldItemComponent* HeldItemComp = InstigatorActor->FindComponentByClass<UFZFHeldItemComponent>())
+		{
+			if (UFZFItemData* ItemData = HeldItemComp->GetCurrentItemData())
+			{
+				// 데이터 에셋을 TArray로 바꿈
+				AllowedEffects = ItemData->AllowedEffectClasses;
+			}
+		}
+		else if (AFZFMonster* Monster = Cast<AFZFMonster>(InstigatorActor))
+		{
+			if (UFZFMonsterData* MData = Monster->GetMonsterData())
+			{
+				// 데이터 에셋을 TArray로 바꿈
+				AllowedEffects = MData->AllowedEffectClasses;
+			}
+		}
+		// 공격 주체가 레이저 엑터 본인이거나 레이저를 쏜 원인이 레이져인 경우
+		else if (AFZFLaserActor* Laser = Cast<AFZFLaserActor>(InstigatorActor))
+		{
+			// 레이저가 가진 DamageGEClass와 현재 들어온 GE의 클래스가 일치하는지 바로 비교합니다.
+			if (Laser->GetDamageGEClass() && AppliedGE->GetClass() == Laser->GetDamageGEClass())
+			{
+				bIsValidEffect = true;
+			}
+		}
+
+	}
 	// 현재 들어온 이펙트(아이템,몬스터)가 검증된 이펙트 목록에 있는지 확인
 	if (!bIsValidEffect && AllowedEffects.Num() > 0)
 	{
@@ -146,6 +155,7 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	{
 		if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[GAS_Debug] 경고: 유효하지 않은 이펙트가 적용되었습니다. 데미지가 무효화됩니다."));
 			SetDamage(0.0f);
 			return;
 		}

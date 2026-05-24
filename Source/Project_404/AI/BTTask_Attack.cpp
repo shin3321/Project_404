@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "AI/BTTask_Attack.h"
@@ -7,7 +7,7 @@
 
 UBTTask_Attack::UBTTask_Attack()
 {
-	// ³ëµå ÀÌ¸§ ¼³Á¤.
+	// ë…¸ë“œ ì´ë¦„ ì„¤ì •.
 	NodeName = TEXT("Attack");
 }
 
@@ -15,42 +15,55 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 {
 	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
 
-	// ±¸ÇöÇÏ°í ½ÍÀº ±â´É: 
-	// Task¿¡¼­ AIÆù¿¡ Á¢±ÙÇØ¼­ °ø°ÝÇÏ¶ó°í ¸í·É Àü´Þ.
+	// êµ¬í˜„í•˜ê³  ì‹¶ì€ ê¸°ëŠ¥: 
+	// Taskì—ì„œ AIí°ì— ì ‘ê·¼í•´ì„œ ê³µê²©í•˜ë¼ê³  ëª…ë ¹ ì „ë‹¬.
 	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
 	if (!ControllingPawn)
 	{
 		return EBTNodeResult::Failed;
 	}
 
-	// ÀÎÅÍÆäÀÌ½º·Î Çüº¯È¯(´Ù¿î Ä³½ºÆÃ..).
+	// ì¸í„°íŽ˜ì´ìŠ¤ë¡œ í˜•ë³€í™˜(ë‹¤ìš´ ìºìŠ¤íŒ…..).
 	IFZFMonsterAIInterface* AIPawn = Cast<IFZFMonsterAIInterface>(ControllingPawn);
 	if (!AIPawn)
 	{
 		return EBTNodeResult::Failed;
 	}
 
-	// Ä³¸¯ÅÍ°¡ °ø°ÝÀ» Á¾·áÇÒ ¶§ ½ÇÇàµÉ µ¨¸®°ÔÀÌÆ®.
+	// ìºë¦­í„°ê°€ ê³µê²©ì„ ì¢…ë£Œí•  ë•Œ ì‹¤í–‰ë  ë¸ë¦¬ê²Œì´íŠ¸.
 	FAICharacterAttackFinished OnAttackFinished;
 
-	// ¶÷´Ù ÇÔ¼ö¸¦ µ¨¸®°ÔÀÌÆ®¿¡ ¹ÙÀÎµù.
+	UE_LOG(LogTemp, Log, TEXT("[BTTask_Attack] 1. ê³µê²© ëª…ë ¹ ì „ë‹¬ ì‹œìž‘"));
+
 	OnAttackFinished.BindLambda(
-		[this, &OwnerComp]()
+		[this, OwnerComp = &OwnerComp]()
 		{
-			// ÅÂ½ºÅ© ³¡³»±â.
-			// ÀÌ ¶÷´Ù º»¹®ÀÌ ½ÇÇàµÇ±â Àü¿¡ 
-			// InProgress·Î Àü´ÞÇß±â ¶§¹®.
-			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+			UE_LOG(LogTemp, Log, TEXT("[BTTask_Attack] 3. ë¸ë¦¬ê²Œì´íŠ¸ í˜¸ì¶œë¨ -> íƒœìŠ¤í¬ ì¢…ë£Œ ì²˜ë¦¬"));
+			if (OwnerComp)
+			{
+				FinishLatentTask(*OwnerComp, EBTNodeResult::Succeeded);
+			}
 		}
 	);
 
-	// Ä³¸¯ÅÍ¿¡ µ¨¸®°ÔÀÌÆ® Àü´Þ.
+	//// ëžŒë‹¤ í•¨ìˆ˜ë¥¼ ë¸ë¦¬ê²Œì´íŠ¸ì— ë°”ì¸ë”©.
+	//OnAttackFinished.BindLambda(
+	//	[this, &OwnerComp]()
+	//	{
+	//		// íƒœìŠ¤í¬ ëë‚´ê¸°.
+	//		// ì´ ëžŒë‹¤ ë³¸ë¬¸ì´ ì‹¤í–‰ë˜ê¸° ì „ì— 
+	//		// InProgressë¡œ ì „ë‹¬í–ˆê¸° ë•Œë¬¸.
+	//		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	//	}
+	//);
+
+	// ìºë¦­í„°ì— ë¸ë¦¬ê²Œì´íŠ¸ ì „ë‹¬.
 	AIPawn->SetAIAttackDelegate(OnAttackFinished);
 
-	// AIPawn¿¡ °ø°Ý ¸í·É Àü´Þ.
+	// AIPawnì— ê³µê²© ëª…ë ¹ ì „ë‹¬.
 	AIPawn->AttackByAI();
 
-	// !°ø°Ý ¸í·É Àü´Þ ÈÄ °ð¹Ù·Î °á°ú¸¦ ¾Ë ¼ö ¾øÀ½.
-	// µû¶ó¼­ ÁøÇàÁß »óÅÂ¸¦ Àü´Þ.
+	// !ê³µê²© ëª…ë ¹ ì „ë‹¬ í›„ ê³§ë°”ë¡œ ê²°ê³¼ë¥¼ ì•Œ ìˆ˜ ì—†ìŒ.
+	// ë”°ë¼ì„œ ì§„í–‰ì¤‘ ìƒíƒœë¥¼ ì „ë‹¬.
 	return EBTNodeResult::InProgress;
 }

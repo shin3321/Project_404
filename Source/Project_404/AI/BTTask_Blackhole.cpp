@@ -9,6 +9,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GAS/Attributes/FZFMonsterSet.h"
+#include "Character/Monster/FZFMonster.h"
 #include "Physics/FZFCollision.h"
 #include "GameplayTag/FZFGameplayTags.h"
 
@@ -124,7 +125,18 @@ void UBTTask_Blackhole::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 	{
 		for (auto& Result : OverlapResults)
 		{
-			ACharacter* Target = Cast<ACharacter>(Result.GetActor());
+			AActor* OverlappedActor = Result.GetActor();
+			if (!OverlappedActor)
+			{
+				continue;
+			}
+
+			if (OverlappedActor->IsA(AFZFMonster::StaticClass()))
+			{
+				continue;
+			}
+
+			ACharacter* Target = Cast<ACharacter>(OverlappedActor);
 			if (Target && Target->GetCharacterMovement())
 			{
 				// 이번 프레임 감지 목록에 등록
