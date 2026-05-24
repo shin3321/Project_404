@@ -9,6 +9,9 @@
 #include "Character/Monster/MonsterData/FZFMonsterData.h"
 #include "FZFMonster.generated.h"
 
+// 블루프린트에서 초기화 이벤트로 받을 수 있도록 선언
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMonsterInitialized);
+
 class FLifetimeProperty;
 
 /**
@@ -44,6 +47,10 @@ protected:
 
 	// AttributeSet 초기화
 	virtual void InitAttributesFromData();
+
+	// Ability 초기화 완료 Delegate
+	UPROPERTY(BlueprintAssignable, Category = "GAS")
+	FOnMonsterInitialized OnMonsterInitialized;
 
 	/* 인터페이스 */
 protected:

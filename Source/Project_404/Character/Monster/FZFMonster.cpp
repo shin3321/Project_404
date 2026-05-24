@@ -200,6 +200,8 @@ void AFZFMonster::InitAbilitySystem()
 				}
 			}
 		}
+
+		OnMonsterInitialized.Broadcast();
 	}
 
 }

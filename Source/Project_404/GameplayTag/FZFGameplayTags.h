@@ -30,6 +30,9 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Pistol);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_BarrierStaff);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Apply_Revive);
+
+	// 몬스터의 공격 방식
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Aura);
 	
 	
 	// 움직임 상태 태그
@@ -48,6 +51,7 @@ namespace FZFGameplayTags
 
 	// 디버프 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Stun);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Fire);
 
 	// 어트리뷰트 데이터 초기화용 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_MaxHp);
@@ -80,7 +84,7 @@ namespace FZFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_AttackHitCheck);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_Ranged_AttackHitCheck);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Character_Melee_AttackHitCheck);
-	
+
 	// 스킬 이벤트
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Skill_Barrier_Spawn);
 	
