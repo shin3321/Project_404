@@ -57,7 +57,7 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 				LocalDamage,
 				GetHP());
 
-			// 4. 체력이 0 이하(정확히 0)가 되었을 때 보스 연동 처리
+			// 체력이 0 이하(정확히 0)가 되었을 때 보스 연동 처리
 			if (NewHP <= 0.0f)
 			{
 				AActor* OwnerActor = Data.Target.GetAvatarActor();
