@@ -35,6 +35,7 @@ void AFZFEquipmentWorkbench::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	
 	DOREPLIFETIME(AFZFEquipmentWorkbench, CurrentBasePart);
 	DOREPLIFETIME(AFZFEquipmentWorkbench, CurrentCorePart);
+	DOREPLIFETIME(AFZFEquipmentWorkbench, TargetInteractor);
 }
 
 void AFZFEquipmentWorkbench::DestroySpawnedItem()

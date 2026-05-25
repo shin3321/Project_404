@@ -48,6 +48,11 @@ public:
     UFUNCTION(BlueprintCallable)
     void Disappear();
 
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+    UFUNCTION()
+    void OnRep_bIsShown();
+
 public:
     UPROPERTY(BlueprintAssignable, Category = "Relay|Event")
     FEnergyRelayDestroyedEvent OnRelayDestroyed;
@@ -60,6 +65,9 @@ protected:
     TObjectPtr<UFZFEnergyAttributeSet> EnergyAttributeSet;
 
     bool bDead = false;
+
+    UPROPERTY(ReplicatedUsing = OnRep_bIsShown)
+    bool bIsShown = false;
 
 protected:
     // 보스 정보 받아오기.

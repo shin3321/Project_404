@@ -134,7 +134,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<AFZFItemBase> SpawnedItem;
 	
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	AFZFCharacterPlayer* TargetInteractor;
 
 // 제작대 효과.

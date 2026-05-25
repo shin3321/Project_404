@@ -5,6 +5,7 @@
 #include "GameplayTag/FZFGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/FZFAnimInstance.h"
+#include "Components/CapsuleComponent.h"
 
 #include "Game/FZFGameState.h"
 #include "Game/FZFGameMode.h"
@@ -103,8 +104,17 @@ void AFZFCharacterBase::OnRep_IsDead()
 			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 		}
 
-		// 클라이언트 측 충돌 비활성화
-		SetActorEnableCollision(false);
+		// 콜리전 설정: 폰끼리의 충돌만 무시하고 바닥(WorldStatic/Dynamic)과는 충돌 유지
+		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		{
+			Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		}
+
+		// 메시의 콜리전도 꺼주어 불필요한 물리 연산 방지
+		if (USkeletalMeshComponent* MeshComp = GetMesh())
+		{
+			MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
 
 		// 죽는 모션 재생 몽타주 재생 (서버/클라이언트 공통 시각적 효과)
 		PlayDeadAnimation();
@@ -148,8 +158,17 @@ void AFZFCharacterBase::SetDead()
 		//ActiveASC->AddLooseGameplayTag(DeadTag);
 	}
 
-	// 콜리전 끄기 -> 충돌 청리 되는 콜리전을 꺼줘야 함
-	SetActorEnableCollision(false);
+	// 콜리전 설정: 폰끼리의 충돌만 무시하고 바닥(WorldStatic/Dynamic)과는 충돌 유지
+	if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+	{
+		Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	}
+
+	// 메시의 콜리전도 꺼주어 불필요한 물리 연산 방지
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 
 }
 
