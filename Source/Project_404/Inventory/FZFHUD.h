@@ -78,7 +78,7 @@ protected:
     // HP바 텍스트 블록
     UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> HPText;
-
+    
     // 화면 중앙 조준점 이미지
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UImage> CrosshairImage;

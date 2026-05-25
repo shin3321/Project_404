@@ -572,19 +572,19 @@ void AFZFBoss::OnBossPhaseTransition(int32 NewPhase)
 			}
 		}
 
-	// 페이즈 변경 시 함정 소환
-	if (BossLevelManager)
-	{
-		BossLevelManager->OnBossPhaseChanged(NewPhase);
-	}
+		// 페이즈 변경 시 함정 소환
+		if (BossLevelManager)
+		{
+			BossLevelManager->OnBossPhaseChanged(NewPhase);
+		}
 
-	// 보스 죽음 처리
-	if (NewPhase >= 4)
-	{
-		SetDead();
+		// 보스 죽음 처리
+		if (NewPhase >= 4)
+		{
+			SetDead();
+		}
 	}
 }
-
 /* 클래스 멤버 함수 구현 */
 void AFZFBoss::NotifyAttackActionEnd()
 {

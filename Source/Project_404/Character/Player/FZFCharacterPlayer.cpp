@@ -440,7 +440,8 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 
 void AFZFCharacterPlayer::OnHpChanged(float NewValue, float MaxValue)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[FZFCharacterPlayer] OnHpChanged: %.1f / %.1f"), NewValue, MaxValue);
+	// [로그] 현재 체력 변화 추적
+	UE_LOG(LogTemp, Log, TEXT("[FZFCharacterPlayer] HP Change: %.1f -> %.1f (Max: %.1f)"), PreviousHP, NewValue, MaxValue);
 
 	// HUD 위젯 업데이트
 	if (HUDWidget)
@@ -448,9 +449,13 @@ void AFZFCharacterPlayer::OnHpChanged(float NewValue, float MaxValue)
 		HUDWidget->UpdateHpText(NewValue, MaxValue);
 	}
 
-	// 데미지 발생 여부 체크 (체력이 줄어들었을 때)
-	if (NewValue < PreviousHP)
+	// [중요] 초기화 시점(PreviousHP가 0인 경우)에는 피격 효과를 무시합니다.
+	// 또한 체력이 0 이하인 상태에서 발생하는 변화도 무시할 수 있습니다.
+	if (PreviousHP > 0.0f && NewValue < PreviousHP)
 	{
+		// 실제 데미지가 들어왔을 때만 실행
+		UE_LOG(LogTemp, Warning, TEXT("!!! DAMAGE DETECTED !!!"));
+
 		// 피격 사운드 재생
 		ServerPlaySound(TEXT("PlayerDamage"), GetActorLocation());
 
@@ -461,7 +466,7 @@ void AFZFCharacterPlayer::OnHpChanged(float NewValue, float MaxValue)
 		}
 	}
 
-	// 현재 체력 저장
+	// 현재 체력 저장 (다음 비교를 위해)
 	PreviousHP = NewValue;
 }
 
