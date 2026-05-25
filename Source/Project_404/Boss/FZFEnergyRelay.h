@@ -2,12 +2,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "AbilitySystemInterface.h"
 #include "FZFEnergyRelay.generated.h"
+
+class UFZFAbilitySystemComponent;
+class UFZFEnergyAttributeSet;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FEnergyRelayDestroyedEvent, AFZFEnergyRelay*, Relay);
 
 UCLASS()
-class PROJECT_404_API AFZFEnergyRelay : public AActor
+class PROJECT_404_API AFZFEnergyRelay : public AActor, public IAbilitySystemInterface
 {
     GENERATED_BODY()
 
@@ -25,6 +29,17 @@ protected:
     void HandleBossWaitingEnded();
 
 public:
+    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+    bool IsDead() const
+    {
+        return bDead;
+    }
+
+    // 동력원 파괴 호출 함수.
+    UFUNCTION()
+    void HandleDead();
+
     // 기둥이 땅속에서 위로 올라오는 함수
     UFUNCTION(BlueprintCallable)
     void Appear();
@@ -33,13 +48,18 @@ public:
     UFUNCTION(BlueprintCallable)
     void Disappear();
 
-    // 동력원 파괴 호출 함수.
-    UFUNCTION()
-    void HandleDead();
-
 public:
     UPROPERTY(BlueprintAssignable, Category = "Relay|Event")
     FEnergyRelayDestroyedEvent OnRelayDestroyed;
+
+protected:
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+    TObjectPtr<UFZFAbilitySystemComponent> ASC;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+    TObjectPtr<UFZFEnergyAttributeSet> EnergyAttributeSet;
+
+    bool bDead = false;
 
 protected:
     // 보스 정보 받아오기.

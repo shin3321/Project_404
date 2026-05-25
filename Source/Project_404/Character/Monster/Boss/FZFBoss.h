@@ -109,6 +109,9 @@ protected:
 	UFUNCTION()
 	void HandleEnergyRelayDestroyed(AFZFEnergyRelay* Relay);
 
+	// 죽음 처리 함수
+	virtual void SetDead() override;
+
 	/* 클래스 멤버 변수 */
 public:
 	// 외부 동력원 델리게이트 호출 관련
@@ -162,4 +165,7 @@ protected:
 	// 부서진 고리
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Ring")
 	TArray<TSubclassOf<AActor>> BrokenRingActorClasses;
+
+	// 죽은 후 대기할 시간 값(단위: 초).
+	float DeadEventDelayTime = 7.0f;
 };

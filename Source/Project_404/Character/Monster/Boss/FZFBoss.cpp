@@ -464,6 +464,7 @@ void AFZFBoss::ResetBossAction()
 // 외부 동력원 델리게이트 전달 함수.
 void AFZFBoss::NotifyWaitingStarted()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Boss] WaitingStarted Broadcast"));
 	OnBossWaitingStarted.Broadcast();
 }
 
@@ -515,6 +516,8 @@ void AFZFBoss::OnBossPhaseTransition(int32 NewPhase)
 
 		if (BrokenRing)
 		{
+			BrokenRing->SetLifeSpan(5.0f);
+
 			if (USkeletalMeshComponent* MeshComp = BrokenRing->FindComponentByClass<USkeletalMeshComponent>())
 			{
 				MeshComp->SetSimulatePhysics(true);
@@ -527,6 +530,13 @@ void AFZFBoss::OnBossPhaseTransition(int32 NewPhase)
 				);
 			}
 		}
+	}
+
+	// 보스 죽음 처리
+	if (NewPhase >= 4)
+	{
+		SetDead();
+		return;
 	}
 }
 
@@ -546,4 +556,48 @@ void AFZFBoss::NotifyAttackActionEnd()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[BossReset] OnAttackFinished Not Bound"));
 	}
+}
+
+void AFZFBoss::SetDead()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// 진행 중인 공격/어빌리티/몽타주/맵패턴 정리
+	ResetBossAction();
+
+	// 공격 BTTask 델리게이트 정리
+	OnAttackFinished.Unbind();
+
+
+	// BT 중지
+	AFZFBossAIController* AIController = Cast<AFZFBossAIController>(GetController());
+	if (AIController)
+	{
+		AIController->StopAI();
+	}
+
+	// 외부 동력원 이벤트 정리
+	OnBossWaitingStarted.Clear();
+	OnBossWaitingEnded.Clear();
+
+	// 부모 사망 처리: 이동 끄기, 어빌리티 취소/삭제, 충돌 끄기
+	Super::SetDead();
+
+	// 사망 몽타주 재생
+	PlayDeadAnimation();
+
+	// 일정 시간 뒤 제거
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		[this]()
+		{
+			Destroy();
+		},
+		DeadEventDelayTime,
+		false
+	);
 }

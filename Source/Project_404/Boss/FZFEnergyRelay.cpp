@@ -1,15 +1,29 @@
 ﻿#include "Boss/FZFEnergyRelay.h"
 #include "Character/Monster/Boss/FZFBoss.h"
+#include "GAS/FZFAbilitySystemComponent.h"
+#include "GAS/Attributes/FZFEnergyAttributeSet.h"
 
 AFZFEnergyRelay::AFZFEnergyRelay()
 {
     // Tick에서 Lerp 이동 처리를 해야 하므로 Tick 활성화
     PrimaryActorTick.bCanEverTick = true;
+
+    bReplicates = true;
+
+    ASC = CreateDefaultSubobject<UFZFAbilitySystemComponent>(TEXT("AbilitySystem"));
+    ASC->SetIsReplicated(true);
+
+    EnergyAttributeSet = CreateDefaultSubobject<UFZFEnergyAttributeSet>(TEXT("EnergyAttributeSet"));
 }
 
 void AFZFEnergyRelay::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (ASC)
+    {
+        ASC->InitAbilityActorInfo(this, this);
+    }
 
     // 맵에 배치된 기본 위치 저장
     FVector BaseLocation = GetActorLocation();
@@ -36,6 +50,11 @@ void AFZFEnergyRelay::BeginPlay()
             &AFZFEnergyRelay::HandleBossWaitingEnded
         );
     }
+
+    UE_LOG(LogTemp, Warning, TEXT("[Relay] ASC: %s / AttrSet: %s / HasAuthority: %d"),
+        *GetNameSafe(ASC),
+        *GetNameSafe(EnergyAttributeSet),
+        HasAuthority());
 }
 
 void AFZFEnergyRelay::Tick(float DeltaTime)
@@ -71,8 +90,24 @@ void AFZFEnergyRelay::Tick(float DeltaTime)
     }
 }
 
+UAbilitySystemComponent* AFZFEnergyRelay::GetAbilitySystemComponent() const
+{
+    UE_LOG(LogTemp, Warning, TEXT("[Relay] GetASC called"));
+    return ASC;
+}
+
+
 void AFZFEnergyRelay::HandleBossWaitingStarted()
 {
+    UE_LOG(LogTemp, Warning, TEXT("[Relay] WaitingStarted: %s / bDead=%d"),
+        *GetName(),
+        bDead);
+
+    if (bDead)
+    {
+        return;
+    }
+
     Appear();
 }
 
@@ -81,38 +116,19 @@ void AFZFEnergyRelay::HandleBossWaitingEnded()
     Disappear();
 }
 
-void AFZFEnergyRelay::Appear()
-{
-    // 현재 위치를 이동 시작 위치로 저장
-    StartLocation = GetActorLocation();
-
-    // 목표 위치를 완전히 올라온 위치로 설정
-    TargetLocation = ShownLocation;
-
-    // 이동 시간 초기화
-    ElapsedTime = 0.f;
-
-    // 이동 시작
-    bMoving = true;
-}
-
-void AFZFEnergyRelay::Disappear()
-{
-    // 현재 위치를 이동 시작 위치로 저장
-    StartLocation = GetActorLocation();
-
-    // 목표 위치를 땅속 위치로 설정
-    TargetLocation = HiddenLocation;
-
-    // 이동 시간 초기화
-    ElapsedTime = 0.f;
-
-    // 이동 시작
-    bMoving = true;
-}
-
 void AFZFEnergyRelay::HandleDead()
 {
+    UE_LOG(LogTemp, Warning, TEXT("[Relay] HandleDead: %s / bDead=%d"),
+        *GetName(),
+        bDead);
+
+    if (bDead)
+    {
+        return;
+    }
+
+    bDead = true;
+
     // 보스가 Open/Close하는 델리게이트 제거
     if (TargetBoss)
     {
@@ -132,4 +148,47 @@ void AFZFEnergyRelay::HandleDead()
 
     // 동력원 Close
     Disappear(); // 혹은 Destroy()
+}
+
+
+void AFZFEnergyRelay::Appear()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[Relay] Appear: %s / Current=%s / Shown=%s"),
+        *GetName(),
+        *GetActorLocation().ToString(),
+        *ShownLocation.ToString()
+    );
+
+    // 현재 위치를 이동 시작 위치로 저장
+    StartLocation = GetActorLocation();
+
+    // 목표 위치를 완전히 올라온 위치로 설정
+    TargetLocation = ShownLocation;
+
+    // 이동 시간 초기화
+    ElapsedTime = 0.f;
+
+    // 이동 시작
+    bMoving = true;
+}
+
+void AFZFEnergyRelay::Disappear()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[Relay] Disappear: %s / Current=%s / Hidden=%s"),
+        *GetName(),
+        *GetActorLocation().ToString(),
+        *HiddenLocation.ToString()
+    );
+
+    // 현재 위치를 이동 시작 위치로 저장
+    StartLocation = GetActorLocation();
+
+    // 목표 위치를 땅속 위치로 설정
+    TargetLocation = HiddenLocation;
+
+    // 이동 시간 초기화
+    ElapsedTime = 0.f;
+
+    // 이동 시작
+    bMoving = true;
 }

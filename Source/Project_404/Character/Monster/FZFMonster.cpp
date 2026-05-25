@@ -383,7 +383,7 @@ void AFZFMonster::SetDead()
 	AFZFAIController* AIController = Cast<AFZFAIController>(GetController());
 	if (AIController)
 	{
-		AIController->StopAI();;
+		AIController->StopAI();
 	}
 	
 
