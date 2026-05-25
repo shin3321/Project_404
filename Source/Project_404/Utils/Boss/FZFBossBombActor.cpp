@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Character/Monster/Boss/FZFBoss.h"
 
 // Sets default values
 AFZFBossBombActor::AFZFBossBombActor()
@@ -57,12 +58,31 @@ void AFZFBossBombActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 	//	GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AFZFBossBombActor::Explode, 2.0f, false);
 	//}
 
-	if (OtherActor && OtherActor->IsA(AFZFCharacterPlayer::StaticClass()))
+	if (!HasAuthority())
 	{
-		AFZFCharacterPlayer* Player = Cast<AFZFCharacterPlayer>(OtherActor);
-		GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AFZFBossBombActor::Explode, 2.0f, false);
-		//Explode();
+		return;
 	}
+
+	if (bExploding)
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[Bomb] Overlap Actor=%s Comp=%s HasAuthority=%d"),
+		*GetNameSafe(OtherActor),
+		*GetNameSafe(OtherComp),
+		HasAuthority());
+
+	AFZFBoss* Boss = Cast<AFZFBoss>(OtherActor);
+	if (!Boss)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Bomb] Not Boss: %s"), *GetNameSafe(OtherActor));
+		return;
+	}
+
+	bExploding = true;
+
+	GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AFZFBossBombActor::Explode, 2.0f, false);
 }
 
 void AFZFBossBombActor::Explode()

@@ -14,7 +14,7 @@ UFZFPlayerSet::UFZFPlayerSet()
 	// Todo : 무기 데이터
 	InitAttackRange(800);
 	InitAttackRadius(30);
-	InitAttack(5.0f);
+	InitAttack(0.0f);
 }
 
 void UFZFPlayerSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

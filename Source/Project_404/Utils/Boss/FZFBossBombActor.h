@@ -55,4 +55,6 @@ public:
 	
 private:
 	class AFZFTestBoss* BossActor = nullptr;
+
+	bool bExploding = false;
 };
