@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Character/FZFCharacterBase.h"
 #include "InputActionValue.h"
+#include "GameplayTagContainer.h"
 #include "FZFCharacterPlayer.generated.h"
 
 // 전방선언.
@@ -190,8 +191,10 @@ public:
 	UFUNCTION()
 	void OnStaminaChanged(float NewValue, float MaxValue);
 
-	protected:
-	// 이전 체력을 기억하여 데미지 여부 판단
+	// 쿨타임 태그 변화 감지 핸들러
+	virtual void OnCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	protected:	// 이전 체력을 기억하여 데미지 여부 판단
 	float PreviousHP = 0.0f;
 
 	// 현재 카메라 조준점에 들어와 있는 타겟 (UI 표시용)

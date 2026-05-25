@@ -95,4 +95,5 @@ namespace FZFGameplayTags
 
 	// GameplayCue
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_Laser, "GameplayCue.Weapon.Laser");
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_ChargeComplete, "GameplayCue.Weapon.ChargeComplete");
 	}

@@ -60,6 +60,10 @@ public:
     UPROPERTY(EditAnywhere, Category = "GAS")
     FGameplayTag ItemAbilityTag;
 
+    // 무기 쿨타임을 판별할 태그 (예: Cooldown.Attack.Sword)
+    UPROPERTY(EditAnywhere, Category = "GAS")
+    FGameplayTag CooldownTag;
+
     // 이 무기가 타겟에게 적용할 효과 (데미지, 기절 등)
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
     TArray<TSubclassOf<class UGameplayEffect>> AllowedEffectClasses;
@@ -84,4 +88,8 @@ public:
     // 무기 발사 시 사용할 나이아가라 레이저 이펙트
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
     TObjectPtr<UNiagaraSystem> WeaponLaserEffect;
+
+    // 쿨타임 충전 완료 시 보여줄 나이아가라 파티클
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Visual")
+    TObjectPtr<UNiagaraSystem> WeaponReadyEffect;
 };

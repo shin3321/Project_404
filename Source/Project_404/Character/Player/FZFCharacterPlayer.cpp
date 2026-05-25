@@ -1,4 +1,4 @@
-﻿#include "Character/Player/FZFCharacterPlayer.h"
+#include "Character/Player/FZFCharacterPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 
@@ -350,7 +350,6 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 {
 	Super::InitAbilitySystem();
 
-	int32 InputID = 0;
 	if (AFZFPlayerState* PS = GetPlayerState<AFZFPlayerState>())
 	{
 		/** * [GAS 핵심 설정]
@@ -400,6 +399,11 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 				}
 			}
 		}
+
+		// 쿨타임 태그 변화 감지 바인딩 (서버/클라이언트 모두 실행하여 이펙트 동기화)
+		ASC->RegisterGameplayTagEvent(FZFGameplayTags::Cooldown_Attack_Sword, EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &AFZFCharacterPlayer::OnCooldownTagChanged);
+
 		// 오직 로컬 플레이어 일 때만 HUD 생성 및 델리게이트 구독 진행
 		if (IsLocallyControlled() && HUDWidgetClass)
 		{
@@ -1222,5 +1226,17 @@ void AFZFCharacterPlayer::StopBossroomHold()
 	{
 		HUDWidget->HideHoldProgress();
 		HUDWidget->UpdateHoldProgress(0.0f);
+	}
+}
+
+void AFZFCharacterPlayer::OnCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount == 0)
+	{
+		// 쿨타임 종료! 충전 완료 이펙트 실행
+		if (ASC)
+		{
+			ASC->ExecuteGameplayCue(FZFGameplayTags::GameplayCue_Weapon_ChargeComplete);
+		}
 	}
 }
