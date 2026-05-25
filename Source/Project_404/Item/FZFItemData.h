@@ -32,6 +32,11 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World")
     FVector MeshScale = FVector(1.0f, 1.0f, 1.0f);
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World Placement")
+    FRotator GroundRotation = FRotator::ZeroRotator;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World Placement")
+    bool bRandomGroundYaw = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
     FText Description;

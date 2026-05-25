@@ -26,6 +26,7 @@
 
 #include "Boss/FZFBossroomBtn.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 AFZFCharacterPlayer::AFZFCharacterPlayer()
 {
@@ -246,6 +247,15 @@ void AFZFCharacterPlayer::BeginPlay()
 	bHolding = false;
 }
 
+void AFZFCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AFZFCharacterPlayer, CurrentBossroomBtn);
+	DOREPLIFETIME(AFZFCharacterPlayer, CurrentHoldTime);
+	DOREPLIFETIME(AFZFCharacterPlayer, bHolding);
+}
+
 void AFZFCharacterPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -259,10 +269,13 @@ void AFZFCharacterPlayer::Tick(float DeltaTime)
 	// 현재 버튼 액터가 없으면 홀드 취소
 	if (!CurrentBossroomBtn)
 	{
-		bHolding = false;
-		CurrentHoldTime = 0.0f;
+		if (HasAuthority())
+		{
+			bHolding = false;
+			CurrentHoldTime = 0.0f;
+		}
 
-		if (HUDWidget)
+		if (IsLocallyControlled() && HUDWidget)
 		{
 			HUDWidget->HideHoldProgress();
 			HUDWidget->UpdateHoldProgress(0.0f);
@@ -273,10 +286,13 @@ void AFZFCharacterPlayer::Tick(float DeltaTime)
 	// 버튼 범위 밖으로 나가면 홀드 취소
 	if (!CurrentBossroomBtn->CanInteract(this))
 	{
-		bHolding = false;
-		CurrentHoldTime = 0.0f;
+		if (HasAuthority())
+		{
+			bHolding = false;
+			CurrentHoldTime = 0.0f;
+		}
 
-		if (HUDWidget)
+		if (IsLocallyControlled() && HUDWidget)
 		{
 			HUDWidget->HideHoldProgress();
 			HUDWidget->UpdateHoldProgress(0.0f);
@@ -284,35 +300,35 @@ void AFZFCharacterPlayer::Tick(float DeltaTime)
 		return;
 	}
 
-	// 홀드 시간 누적
-	CurrentHoldTime += DeltaTime;
+	// 홀드 시간 누적 (서버에서 주도적으로 계산)
+	if (HasAuthority())
+	{
+		CurrentHoldTime += DeltaTime;
+	}
+	else if (IsLocallyControlled())
+	{
+		// 클라이언트는 부드러운 UI 연출을 위해 자체적으로도 누적 (예측)
+		CurrentHoldTime += DeltaTime;
+	}
 
 	// 진행률 계산
 	const float Progress = FMath::Clamp(CurrentHoldTime / HoldRequiredTime, 0.0f, 1.0f);
 
-	// 로그 확인
-	UE_LOG(LogTemp, Warning, TEXT("Hold Progress = %f"), Progress);
-
-	// HUD에 홀드 진행률 반영
-	if (HUDWidget)
+	// HUD에 홀드 진행률 반영 (로컬 플레이어만)
+	if (IsLocallyControlled() && HUDWidget)
 	{
 		HUDWidget->ShowHoldProgress();
 		HUDWidget->UpdateHoldProgress(Progress);
 	}
 
-	// 홀드 완료 시 보스방 레벨 이동
-	if (Progress >= 1.0f)
+	// 홀드 완료 시 보스방 레벨 이동 (서버에서 수행)
+	if (HasAuthority() && Progress >= 1.0f)
 	{
 		bHolding = false;
 		CurrentHoldTime = 0.0f;
 
-		if (HUDWidget)
-		{
-			HUDWidget->HideHoldProgress();
-			HUDWidget->UpdateHoldProgress(0.0f);
-		}
-
-		UGameplayStatics::OpenLevel(GetWorld(), TEXT("FZFBossLevel"));
+		// 서버 트래블로 모든 플레이어 이동 (또는 개별 이동 로직에 따라 변경 가능)
+		GetWorld()->ServerTravel(TEXT("FZFBossLevel"));
 	}
 }
 
@@ -401,19 +417,60 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 				HUDWidget->HideWidget();
 				HUDWidget->SetCrosshairNormal();
 
-				// 플레이어 전용 AttributeSet으로 다운캐스팅하여 안전하게 바인딩
-				if (UFZFPlayerSet* PlayerSet = Cast<UFZFPlayerSet>(AttributeSet))
+				// AttributeSet의 이벤트를 Character의 핸들러와 연결
+				if (AttributeSet)
 				{
-					// C++ 델리게이트와 HUD 업데이트 함수 다이내믹 바인딩 (구독 시작)
-					PlayerSet->OnHPChanged.AddDynamic(HUDWidget, &UFZFHUD::UpdateHpText);
-					PlayerSet->OnStaminaChanged.AddDynamic(HUDWidget, &UFZFHUD::UpdateStaminaBar);
+					// Character가 먼저 체력/스테미너 변화를 감지하도록 바인딩
+					AttributeSet->OnHPChanged.AddUniqueDynamic(this, &AFZFCharacterPlayer::OnHpChanged);
+					AttributeSet->OnStaminaChanged.AddUniqueDynamic(this, &AFZFCharacterPlayer::OnStaminaChanged);
 
-					// 초기 데이터 동기화 (게임 진입 즉시 만땅 상태 UI에 출력)
-					HUDWidget->UpdateHpText(PlayerSet->GetHP(), PlayerSet->GetMaxHP());
-					HUDWidget->UpdateStaminaBar(PlayerSet->GetStamina(), PlayerSet->GetMaxStamina());
+					// 초기 데이터 동기화
+					PreviousHP = AttributeSet->GetHP();
+					OnHpChanged(AttributeSet->GetHP(), AttributeSet->GetMaxHP());
+					
+					if (UFZFPlayerSet* PlayerSet = Cast<UFZFPlayerSet>(AttributeSet))
+					{
+						OnStaminaChanged(PlayerSet->GetStamina(), PlayerSet->GetMaxStamina());
+					}
 				}
 			}
 		}
+	}
+}
+
+void AFZFCharacterPlayer::OnHpChanged(float NewValue, float MaxValue)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[FZFCharacterPlayer] OnHpChanged: %.1f / %.1f"), NewValue, MaxValue);
+
+	// HUD 위젯 업데이트
+	if (HUDWidget)
+	{
+		HUDWidget->UpdateHpText(NewValue, MaxValue);
+	}
+
+	// 데미지 발생 여부 체크 (체력이 줄어들었을 때)
+	if (NewValue < PreviousHP)
+	{
+		// 피격 사운드 재생
+		ServerPlaySound(TEXT("PlayerDamage"), GetActorLocation());
+
+		// 화면 피격 이펙트 (Red Flash) 실행
+		if (HUDWidget)
+		{
+			HUDWidget->PlayDamageEffect();
+		}
+	}
+
+	// 현재 체력 저장
+	PreviousHP = NewValue;
+}
+
+void AFZFCharacterPlayer::OnStaminaChanged(float NewValue, float MaxValue)
+{
+	// HUD 위젯 업데이트
+	if (HUDWidget)
+	{
+		HUDWidget->UpdateStaminaBar(NewValue, MaxValue);
 	}
 }
 
@@ -1063,12 +1120,17 @@ void AFZFCharacterPlayer::SelectSlot5()
 // E키를 뗐을 때 홀드 상호작용 종료
 void AFZFCharacterPlayer::StopHoldInteract()
 {
+	if (!HasAuthority())
+	{
+		ServerStopBossroomHold();
+	}
+
 	// 홀드 상태 종료
 	bHolding = false;
 	CurrentHoldTime = 0.0f;
 
 	// HUD 홀드 UI 숨김 및 진행률 초기화
-	if (HUDWidget)
+	if (IsLocallyControlled() && HUDWidget)
 	{
 		HUDWidget->HideHoldProgress();
 		HUDWidget->UpdateHoldProgress(0.0f);
@@ -1090,6 +1152,11 @@ void AFZFCharacterPlayer::BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn)
 		return;
 	}
 
+	if (!HasAuthority())
+	{
+		ServerBeginBossroomHold(InBossroomBtn);
+	}
+
 	// 현재 홀드 버튼 저장
 	CurrentBossroomBtn = InBossroomBtn;
 
@@ -1098,15 +1165,30 @@ void AFZFCharacterPlayer::BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn)
 	CurrentHoldTime = 0.0f;
 
 	// HUD에 홀드 UI 표시 및 진행률 초기화
-	if (HUDWidget)
+	if (IsLocallyControlled() && HUDWidget)
 	{
 		HUDWidget->ShowHoldProgress();
 		HUDWidget->UpdateHoldProgress(0.0f);
 	}
 }
 
+void AFZFCharacterPlayer::ServerBeginBossroomHold_Implementation(AFZFBossroomBtn* InBossroomBtn)
+{
+	BeginBossroomHold(InBossroomBtn);
+}
+
+void AFZFCharacterPlayer::ServerStopBossroomHold_Implementation()
+{
+	StopBossroomHold();
+}
+
 void AFZFCharacterPlayer::StopBossroomHold()
 {
+	if (!HasAuthority())
+	{
+		ServerStopBossroomHold();
+	}
+
 	// 홀드 상태 해제
 	bHolding = false;
 
@@ -1117,7 +1199,7 @@ void AFZFCharacterPlayer::StopBossroomHold()
 	CurrentBossroomBtn = nullptr;
 
 	// HUD 홀드바 숨기고 0으로 초기화
-	if (HUDWidget)
+	if (IsLocallyControlled() && HUDWidget)
 	{
 		HUDWidget->HideHoldProgress();
 		HUDWidget->UpdateHoldProgress(0.0f);

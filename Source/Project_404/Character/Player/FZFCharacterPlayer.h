@@ -56,9 +56,6 @@ public:
 	void EquipPickaxe();
 	void UnEquipPickaxe();
 
-
-	void StopBossroomHold();
-
 	// 현재 들고있는 아이템을 가져오기 위한 Get함수.
 	UFZFHeldItemComponent* GetHeldItemComponent() { return HeldItemComponent; }
 
@@ -178,7 +175,25 @@ public:
 	// 보스방 버튼 홀드 시작 요청 함수
 	void BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn);
 
-protected:
+	UFUNCTION(Server, Reliable)
+	void ServerBeginBossroomHold(AFZFBossroomBtn* InBossroomBtn);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStopBossroomHold();
+
+	void StopBossroomHold();
+
+	// Attribute 변경 핸들러 함수들
+	UFUNCTION()
+	void OnHpChanged(float NewValue, float MaxValue);
+
+	UFUNCTION()
+	void OnStaminaChanged(float NewValue, float MaxValue);
+
+	protected:
+	// 이전 체력을 기억하여 데미지 여부 판단
+	float PreviousHP = 0.0f;
+
 	// 현재 카메라 조준점에 들어와 있는 타겟 (UI 표시용)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	TWeakObjectPtr<class UPrimitiveComponent> CurrentInteractableTarget;
@@ -208,16 +223,18 @@ protected:
 	TObjectPtr<UFZFHUD> HUDWidget;
 
 	// 현재 조준 중인 보스방 버튼 액터
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	TObjectPtr<AFZFBossroomBtn> CurrentBossroomBtn;
 
 	// 홀드 총 시간 (C++ 고정값)
 	float HoldRequiredTime = 2.0f;
 
 	// 현재 누르고 있는 시간
+	UPROPERTY(Replicated)
 	float CurrentHoldTime = 0.0f;
 
 	// 현재 홀드 중인지 여부
+	UPROPERTY(Replicated)
 	bool bHolding = false;
 
 	// 선택된 인벤토리 아이템을 손에 들게 처리하는 컴포넌트

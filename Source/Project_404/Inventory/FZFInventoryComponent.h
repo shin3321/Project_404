@@ -62,11 +62,17 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     bool AddItem(UFZFItemData* InItemData);
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_SelectedSlotIndex, Category = "Inventory")
     int32 SelectedSlotIndex = -1;
+
+    UFUNCTION()
+    void OnRep_SelectedSlotIndex();
 
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     void SelectSlot(int32 InSlotIndex);
+
+    UFUNCTION(Server, Reliable)
+    void ServerSelectSlot(int32 InSlotIndex);
 
     
     UFUNCTION()

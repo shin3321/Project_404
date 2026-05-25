@@ -74,7 +74,10 @@ void AFZFSpawnManager::BeginPlay()
 				{
 					UE_LOG(LogTemp, Warning, TEXT("ItemClass: 스폰 위치: (%lf, %f, %lf)"), SpawnLocation.X, SpawnLocation.Y,
 					       SpawnLocation.Z);
-					GetWorld()->SpawnActor<AFZFItemBase>(ItemClass, SpawnLocation, SpawnRotation, SpawnParams);
+
+					AFZFItemBase* ItemActor = GetWorld()->SpawnActor<AFZFItemBase>(ItemClass, SpawnLocation, SpawnRotation, SpawnParams);
+					ItemActor->ApplyGroundRotation();
+					ItemActor->PlaceOnGround();
 				}
 			}
 			else if (SpawnPoint->ActorHasTag("MonsterSpawnSlot"))
@@ -153,13 +156,15 @@ void AFZFSpawnManager::ServerSpawnItem_Implementation(FName ItemId, FVector Spaw
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	AActor* SpawnedItem = GetWorld()->SpawnActor<
-		AActor>(Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
+	AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
 	if (AFZFItemBase* ItemBase = Cast<AFZFItemBase>(SpawnedItem))
 	{
 		// 중요: 스폰된 아이템에 데이터를 넣어주어야 상호작용 및 장착이가능합니다.
 		ItemBase->InitializeItem(Row->ItemData);
+		ItemBase->ApplyGroundRotation();
+		ItemBase->PlaceOnGround();
 	}
+
 	if (SpawnedItem)
 	{
 		// 스폰된 아이템 액터에 런타임 데이터 세팅이 필요하다면 여기서 수행

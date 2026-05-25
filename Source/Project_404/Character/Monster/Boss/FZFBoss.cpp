@@ -16,6 +16,7 @@
 #include "Boss/FZFEnergyRelay.h"
 #include "Manager/FZFBossLevelManager.h"
 #include "DrawDebugHelpers.h"
+#include "Net/UnrealNetwork.h"
 
 AFZFBoss::AFZFBoss()
 {
@@ -484,6 +485,19 @@ void AFZFBoss::ResetBossAction()
 	StopMapPattern();
 }
 
+void AFZFBoss::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AFZFBoss, BossPhase);
+}
+
+void AFZFBoss::OnRep_BossPhase()
+{
+	// 서버에서 넘어온 페이즈 값을 바탕으로 연출 실행 (클라이언트)
+	OnBossPhaseTransition(BossPhase);
+}
+
 // 외부 동력원 델리게이트 전달 함수.
 void AFZFBoss::NotifyWaitingStarted()
 {
@@ -498,13 +512,13 @@ void AFZFBoss::NotifyWaitingEnded()
 
 void AFZFBoss::OnBossPhaseTransition(int32 NewPhase)
 {
-	if (!HasAuthority())
+	if (HasAuthority())
 	{
-		return;
+		BossPhase = NewPhase;
 	}
 
 	// 맨 뒤 배열 고리부터 숨김.
-	const int32 RingIndex = RingMeshes.Num() - (NewPhase-1);
+	const int32 RingIndex = RingMeshes.Num() - (NewPhase - 1);
 
 	if (!RingMeshes.IsValidIndex(RingIndex) || !RingMeshes[RingIndex])
 	{
@@ -520,40 +534,43 @@ void AFZFBoss::OnBossPhaseTransition(int32 NewPhase)
 	const FVector SpawnLocation = RingComp->GetComponentLocation();
 	const FRotator SpawnRotation = RingComp->GetComponentRotation();
 
+	// 시각적 연출은 서버/클라이언트 모두에서 수행
 	RingComp->SetVisibility(false, true);
 
-	// TODO: 여기서 스태틱 메시/파편 액터 스폰
-	if (BrokenRingActorClasses.IsValidIndex(RingIndex) && BrokenRingActorClasses[RingIndex])
+	// 파편 스폰은 서버에서만 수행 (복제됨)
+	if (HasAuthority())
 	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.Instigator = this;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-		AActor* BrokenRing = GetWorld()->SpawnActor<AActor>(
-			BrokenRingActorClasses[RingIndex],
-			SpawnLocation,
-			SpawnRotation,
-			SpawnParams
-		);
-
-		if (BrokenRing)
+		if (BrokenRingActorClasses.IsValidIndex(RingIndex) && BrokenRingActorClasses[RingIndex])
 		{
-			BrokenRing->SetLifeSpan(5.0f);
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = this;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-			if (USkeletalMeshComponent* MeshComp = BrokenRing->FindComponentByClass<USkeletalMeshComponent>())
+			AActor* BrokenRing = GetWorld()->SpawnActor<AActor>(
+				BrokenRingActorClasses[RingIndex],
+				SpawnLocation,
+				SpawnRotation,
+				SpawnParams
+			);
+
+			if (BrokenRing)
 			{
-				MeshComp->SetSimulatePhysics(true);
-				MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				BrokenRing->SetLifeSpan(5.0f);
 
-				MeshComp->AddImpulse(
-					FVector(0.f, 0.f, -300.f),
-					NAME_None,
-					true
-				);
+				if (USkeletalMeshComponent* MeshComp = BrokenRing->FindComponentByClass<USkeletalMeshComponent>())
+				{
+					MeshComp->SetSimulatePhysics(true);
+					MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+					MeshComp->AddImpulse(
+						FVector(0.f, 0.f, -300.f),
+						NAME_None,
+						true
+					);
+				}
 			}
 		}
-	}
 
 	// 페이즈 변경 시 함정 소환
 	if (BossLevelManager)
@@ -565,7 +582,6 @@ void AFZFBoss::OnBossPhaseTransition(int32 NewPhase)
 	if (NewPhase >= 4)
 	{
 		SetDead();
-		return;
 	}
 }
 

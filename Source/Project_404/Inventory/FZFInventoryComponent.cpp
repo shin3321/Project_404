@@ -27,6 +27,7 @@ void UFZFInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(UFZFInventoryComponent, InventoryItems);
+    DOREPLIFETIME(UFZFInventoryComponent, SelectedSlotIndex);
 }
 
 void UFZFInventoryComponent::OnRep_InventoryItems()
@@ -35,6 +36,18 @@ void UFZFInventoryComponent::OnRep_InventoryItems()
     {
         InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
     }
+}
+
+void UFZFInventoryComponent::OnRep_SelectedSlotIndex()
+{
+    // 선택 상태 변경 후 UI 갱신
+    if (InventoryWidget)
+    {
+        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
+    }
+
+    // 선택된 슬롯에 맞춰 손에 들 아이템 갱신
+    UpdateHeldItemBySelectedSlot();
 }
 
 void UFZFInventoryComponent::InitializeComponent()
@@ -133,6 +146,15 @@ void UFZFInventoryComponent::HideInventory()
 // 선택한 슬롯 인덱스를 저장하는 함수
 void UFZFInventoryComponent::SelectSlot(int32 InSlotIndex)
 {
+    if (!GetOwner()->HasAuthority())
+    {
+        ServerSelectSlot(InSlotIndex);
+        // 클라이언트에서 즉시 UI 반응을 위해 로컬 값도 변경 (예측)
+        SelectedSlotIndex = InSlotIndex;
+        OnRep_SelectedSlotIndex();
+        return;
+    }
+
     // 선택한 슬롯 번호가 인벤토리 범위를 벗어나면 선택 해제
     if (InSlotIndex < 0 || InSlotIndex >= MaxItemCount)
     {
@@ -146,14 +168,13 @@ void UFZFInventoryComponent::SelectSlot(int32 InSlotIndex)
 
     UE_LOG(LogTemp, Warning, TEXT("Selected Slot Index: %d"), SelectedSlotIndex);
 
-    // 선택 상태 변경 후 UI 갱신
-    if (InventoryWidget)
-    {
-        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
-    }
+    // 서버에서도 직접 호출 (리슨 서버 등)
+    OnRep_SelectedSlotIndex();
+}
 
-    // 선택된 슬롯에 맞춰 손에 들 아이템 갱신
-    UpdateHeldItemBySelectedSlot();
+void UFZFInventoryComponent::ServerSelectSlot_Implementation(int32 InSlotIndex)
+{
+    SelectSlot(InSlotIndex);
 }
 
 UFZFItemData* UFZFInventoryComponent::GetSelectedItemData() const

@@ -23,8 +23,19 @@ public:
 	UFZFItemData* GetItemData() const { return ItemData; }
 	void InitializeItem(UFZFItemData* InItemData);
 
+	UFUNCTION()
+	void OnRep_ItemData();
+
 	void Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent) override;
 	FText GetInteractableName(UPrimitiveComponent* HitComponent) const override;
+
+	UFUNCTION(BlueprintCallable, Category = "Item|Placement")
+	void PlaceOnGround();
+
+	UFUNCTION(BlueprintCallable, Category = "Item|Placement")
+	void ApplyGroundRotation();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 
@@ -47,6 +58,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Item)
 	TObjectPtr<class UParticleSystemComponent> Effect;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_ItemData, Category = "Item")
 	TObjectPtr<UFZFItemData> ItemData = nullptr;
 };

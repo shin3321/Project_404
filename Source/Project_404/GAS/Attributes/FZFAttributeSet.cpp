@@ -10,8 +10,11 @@
 #include "Character/FZFCharacterBase.h"
 #include "Character/Monster/FZFMonster.h"
 #include "Character/Monster/MonsterData/FZFMonsterData.h"
+#include "Character/Monster/Boss/FZFBoss.h"
+#include "Character/Monster/MonsterData/FZFBossData.h"
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Utils/Boss/FZFLaserActor.h"
+#include "GameplayTag/FZFGameplayTags.h"
 
 UFZFAttributeSet::UFZFAttributeSet()
 {
@@ -50,7 +53,7 @@ void UFZFAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, f
 
 void UFZFAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
-	Super::PostAttributeBaseChange(Attribute, OldValue, NewValue);
+	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
 	// 이동 속도 어트리뷰트가 변경되었는지 확인
 	if (Attribute == GetMovementSpeedAttribute())
@@ -62,22 +65,21 @@ void UFZFAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, 
 			Character->GetCharacterMovement()->MaxWalkSpeed = NewValue;
 		}
 	}
-
-	// [추가] HP나 MaxHP가 (GE가 아닌 직접적인 Set 등으로) 변경되었을 때 UI 갱신
-	if (Attribute == GetHPAttribute() || Attribute == GetMaxHPAttribute())
+// [추가] HP나 MaxHP가 (GE가 아닌 직접적인 Set 등으로) 변경되었을 때 UI 갱신
+if (Attribute == GetHPAttribute() || Attribute == GetMaxHPAttribute())
+{
+	if (OnHPChanged.IsBound())
 	{
-		if (OnHPChanged.IsBound())
-		{
-			OnHPChanged.Broadcast(GetHP(), GetMaxHP());
-		}
+		OnHPChanged.Broadcast(GetHP(), GetMaxHP());
 	}
+}
 }
 
 void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
 
-
+	/*
 	// 이펙트를 유발한 가해자(공격자)의 정보와 GE 정보 추출
 	AActor* InstigatorActor = Data.EffectSpec.GetContext().GetInstigator();
 	const UGameplayEffect* AppliedGE = Data.EffectSpec.Def;
@@ -126,6 +128,13 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 				AllowedEffects = MData->AllowedEffectClasses;
 			}
 		}
+		else if (AFZFBoss* Boss = Cast<AFZFBoss>(InstigatorActor))
+		{
+			if (UFZFBossData* BData = Boss->GetData())
+			{
+				AllowedEffects = BData->AllowedEffectClasses;
+			}
+		}
 		// 공격 주체가 레이저 엑터 본인이거나 레이저를 쏜 원인이 레이져인 경우
 		else if (AFZFLaserActor* Laser = Cast<AFZFLaserActor>(InstigatorActor))
 		{
@@ -137,6 +146,21 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		}
 
 	}
+
+	// [추가] 태그 기반 검증 로직 (보완책)
+	// GE에 특정 태그(예: Ability.Action.Attack)가 있으면 유효한 공격으로 간주할 수 있음
+	if (!bIsValidEffect)
+	{
+		FGameplayTagContainer AssetTags;
+		Data.EffectSpec.GetAllAssetTags(AssetTags);
+		
+		// 몬스터의 공격임을 나타내는 태그가 있다면 허용 (예: Ability.Action.Attack)
+		if (AssetTags.HasTag(FZFGameplayTags::Ability_Action_Attack))
+		{
+			bIsValidEffect = true;
+		}
+	}
+
 	// 현재 들어온 이펙트(아이템,몬스터)가 검증된 이펙트 목록에 있는지 확인
 	if (!bIsValidEffect && AllowedEffects.Num() > 0)
 	{
@@ -155,11 +179,12 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	{
 		if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[GAS_Debug] 경고: 유효하지 않은 이펙트가 적용되었습니다. 데미지가 무효화됩니다."));
+			UE_LOG(LogTemp, Warning, TEXT("[GAS_Debug] 경고: 유효하지 않은 이펙트가 적용되었습니다. 데미지가 무효화됩니다. GE Class: %s"), *AppliedGE->GetName());
 			SetDamage(0.0f);
 			return;
 		}
 	}
+	*/
 
 	// 검증 성공 시, Attribute별 실제 처리
 	// 데미지 처리

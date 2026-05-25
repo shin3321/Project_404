@@ -134,7 +134,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<AFZFItemBase> SpawnedItem;
 	
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	AFZFCharacterPlayer* TargetInteractor;
 
 // 제작대 효과.
@@ -182,4 +182,25 @@ protected:
 	void SetBasePartFrameRotating(bool bShouldRotate);
 	void SetCorePartFrameRotating(bool bShouldRotate);
 	void ResetWorkbench();
+
+// 빨간 재질의 아이템 보여주기.
+protected:
+
+	// Ghost Preview Mesh
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> BasePartGhostMeshRef;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> CorePartGhostMeshRef;
+
+	// 빨간 Ghost 재질
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Workbench|Ghost")
+	TObjectPtr<UMaterialInterface> GhostMaterial;
+
+	// Ghost Preview 갱신
+	void UpdateGhostPreviewMeshes();
+
+	// 레시피 기준으로 필요한 반대 부품 찾기
+	UFZFCraftPartItemData* FindRequiredCorePartByBasePart(UFZFCraftPartItemData* BasePart) const;
+	UFZFCraftPartItemData* FindRequiredBasePartByCorePart(UFZFCraftPartItemData* CorePart) const;
 };
