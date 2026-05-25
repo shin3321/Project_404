@@ -12,6 +12,13 @@ void AFZFLobbyGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// 이미 월드에 스폰 매니저가 있는지 확인 (중복 생성 방지)
+	if (UGameplayStatics::GetActorOfClass(GetWorld(), AFZFSpawnManager::StaticClass()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("서버: 월드에 이미 스폰 매니저가 존재합니다. 추가 생성을 건너뜁니다."));
+		return;
+	}
+
 	if (SpawnManagerClass)
 	{
 		FActorSpawnParameters SpawnParams;
