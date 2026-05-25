@@ -24,12 +24,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	UFUNCTION()
-	void HandlePhaseChanged(EBossPhase NewPhase);
+	void StartMapPattern(FName PatternName);
+
+	void StopMapPattern();
 	
-	UFUNCTION()
-	void FirstPhase();
-	
+	/* 맵 공격 패턴 - 레이저 */
 	UFUNCTION()
 	void Laser();
 	
@@ -47,9 +46,10 @@ protected:
 	
 	int32 LaserCount = 20;
 
+	/* 페이즈 변경 - 함정 소환 */
 public:
-	UFUNCTION()
-	void SecondPhase();
+
+	void OnBossPhaseChanged(int32 NewPhase);
 
 	UFUNCTION()
 	void CreateTrigger();

@@ -43,11 +43,12 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 		FGameplayTagContainer AssetTags;
 		Data.EffectSpec.GetAllAssetTags(AssetTags);
 
+		FGameplayTag GunTag = FZFGameplayTags::Ability_Action_Attack_Rifle;
 		FGameplayTag PickaxeTag = FZFGameplayTags::Ability_Action_Attack_Pickaxe;
 		FGameplayTag RobotTag = FZFGameplayTags::Ability_Action_Attack_Robot;
 
 		// 조건 검사: 곡괭이 또는 로봇 공격이 맞는지 확인
-		if (AssetTags.HasTag(PickaxeTag) || AssetTags.HasTag(RobotTag))
+		if (AssetTags.HasTag(PickaxeTag) || AssetTags.HasTag(RobotTag)|| AssetTags.HasTag(GunTag))
 		{
 			// 유효한 공격이므로 실제 HP를 차감하고, 0 아래로 내려가지 않게 Clamping
 			const float NewHP = FMath::Max(GetHP() - LocalDamage, 0.0f);
