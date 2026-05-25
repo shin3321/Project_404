@@ -102,10 +102,21 @@ private:
 	UPROPERTY(Replicated)
 	FVector MoveDirection;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Laser|Bounds", meta = (AllowPrivateAccess = "true"))
+	float MinY = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Laser|Bounds", meta = (AllowPrivateAccess = "true"))
+	float MaxY = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Laser|Bounds", meta = (AllowPrivateAccess = "true"))
 	float MinZ = 0.0f;
-	float MaxZ = 800.f;
-	float MinY = 0.0f;;
-	float MaxY = 5800.f;;
-	float MinX = 0.0f;;
-	float MaxX = 800.f;;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Laser|Bounds", meta = (AllowPrivateAccess = "true"))
+	float MaxZ = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Laser|Bounds", meta = (AllowPrivateAccess = "true"))
+	float MinX = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Laser|Bounds", meta = (AllowPrivateAccess = "true"))
+	float MaxX = 0.0f;
 };
