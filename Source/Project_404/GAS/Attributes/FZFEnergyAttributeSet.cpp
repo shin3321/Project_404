@@ -44,8 +44,7 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 
 		// 디버그용 로그: 어떤 무기 태그가 묻어 들어왔는지 확인
 		UE_LOG(LogTemp, Log, TEXT("[RelayAttr] 동적 주입된 무기 태그: %s"), *AssetTags.ToString());
-		// 디버그용: 현재 추출된 태그가 도대체 무엇인지 로그로 전부 출력해봅니다. (Empty 탈출용)
-		UE_LOG(LogTemp, Log, TEXT("[RelayAttr] 추출된 태그 목록: %s"), *AssetTags.ToString());
+
 		FGameplayTag GunTag = FZFGameplayTags::Ability_Action_Attack_Rifle;
 		FGameplayTag PickaxeTag = FZFGameplayTags::Ability_Action_Attack_Pickaxe;
 		FGameplayTag RobotTag = FZFGameplayTags::Ability_Action_Attack_Robot;
@@ -55,8 +54,7 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 		{
 			if (LocalDamage > 0.0f)
 			{
-				// [수정] GE단에서 이미 곡괭이 태그 검사를 마쳤으므로, 
-				// C++ 내부의 복잡한 if (AssetTags.HasTag) 조건문 없이 바로 데미지를 적용합니다.
+				// 데미지 로직 적용
 				const float NewHP = FMath::Max(GetHP() - LocalDamage, 0.0f);
 				SetHP(NewHP);
 
