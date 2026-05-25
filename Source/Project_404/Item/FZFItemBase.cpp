@@ -118,3 +118,67 @@ FText AFZFItemBase::GetInteractableName(UPrimitiveComponent* HitComponent) const
     return ItemData->ItemName;
 }
 
+// 바닥에 배치될 때 커스텀 회전값.
+void AFZFItemBase::ApplyGroundRotation()
+{
+    if (!ItemData)
+    {
+        return;
+    }
+
+    FRotator GroundRot = ItemData->GroundRotation;
+
+    if (ItemData->bRandomGroundYaw)
+    {
+        GroundRot.Yaw += FMath::RandRange(0.0f, 360.0f);
+    }
+
+    SetActorRotation(GroundRot);
+}
+
+// 바닥에 딱 맞게 배치하는 방식.
+void AFZFItemBase::PlaceOnGround()
+{
+    UWorld* World = GetWorld();
+    if (!World || !Mesh)
+    {
+        return;
+    }
+
+    FVector ActorLocation = GetActorLocation();
+
+    FVector TraceStart = ActorLocation + FVector(0.0f, 0.0f, 500.0f);
+    FVector TraceEnd = ActorLocation - FVector(0.0f, 0.0f, 3000.0f);
+
+    FHitResult HitResult;
+
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+
+    bool bHit = World->LineTraceSingleByChannel(
+        HitResult,
+        TraceStart,
+        TraceEnd,
+        ECC_Visibility,
+        Params
+    );
+
+    if (!bHit)
+    {
+        return;
+    }
+
+    const FBoxSphereBounds Bounds = Mesh->Bounds;
+
+    const float MeshBottomZ = Bounds.Origin.Z - Bounds.BoxExtent.Z;
+    const float ActorZ = GetActorLocation().Z;
+
+    const float BottomOffsetFromActor = ActorZ - MeshBottomZ;
+
+    FVector NewLocation = GetActorLocation();
+    NewLocation.X = HitResult.Location.X;
+    NewLocation.Y = HitResult.Location.Y;
+    NewLocation.Z = HitResult.Location.Z + BottomOffsetFromActor;
+
+    SetActorLocation(NewLocation);
+}

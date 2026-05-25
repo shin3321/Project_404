@@ -63,6 +63,9 @@ void AFZFEquipmentWorkbench::BeginPlay()
 	CorePartFrameMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("CorePartFrame"));
 	BasePartFrameMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("BasePartFrame"));
 
+	BasePartGhostMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("BasePartGhostMesh"));
+	CorePartGhostMeshRef = FZFFindComponentByName<UStaticMeshComponent>(this, TEXT("CorePartGhostMesh"));
+
 	auto SetupInteractionBox = [](UBoxComponent* Box)
 	{
 		if (Box == nullptr)
@@ -386,6 +389,8 @@ void AFZFEquipmentWorkbench::UpdatePreviewMeshes()
 	{
 		ResultMeshRef->SetVisibility(false);
 	}
+
+	UpdateGhostPreviewMeshes();
 }
 
 void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
@@ -577,4 +582,152 @@ bool AFZFEquipmentWorkbench::TakeBackMaterialFromSlot_Internal(EFZFWorkbenchSlot
 	ClearMaterialSlot_Internal(TargetSlot);
 
 	return true;
+}
+
+UFZFCraftPartItemData* AFZFEquipmentWorkbench::FindRequiredCorePartByBasePart(
+	UFZFCraftPartItemData* BasePart
+) const
+{
+	if (BasePart == nullptr)
+	{
+		return nullptr;
+	}
+
+	for (UFZFEquipmentRecipeData* Recipe : Recipes)
+	{
+		if (Recipe == nullptr)
+		{
+			continue;
+		}
+
+		if (Recipe->BasePart == BasePart)
+		{
+			return Recipe->CorePart;
+		}
+	}
+
+	return nullptr;
+}
+
+UFZFCraftPartItemData* AFZFEquipmentWorkbench::FindRequiredBasePartByCorePart(
+	UFZFCraftPartItemData* CorePart
+) const
+{
+	if (CorePart == nullptr)
+	{
+		return nullptr;
+	}
+
+	for (UFZFEquipmentRecipeData* Recipe : Recipes)
+	{
+		if (Recipe == nullptr)
+		{
+			continue;
+		}
+
+		if (Recipe->CorePart == CorePart)
+		{
+			return Recipe->BasePart;
+		}
+	}
+
+	return nullptr;
+}
+
+void AFZFEquipmentWorkbench::UpdateGhostPreviewMeshes()
+{
+	// 일단 Ghost 전부 초기화
+	if (BasePartGhostMeshRef)
+	{
+		BasePartGhostMeshRef->SetStaticMesh(nullptr);
+		BasePartGhostMeshRef->SetVisibility(false);
+	}
+
+	if (CorePartGhostMeshRef)
+	{
+		CorePartGhostMeshRef->SetStaticMesh(nullptr);
+		CorePartGhostMeshRef->SetVisibility(false);
+	}
+
+	// 아무것도 없으면 Ghost 없음
+	if (CurrentBasePart == nullptr && CurrentCorePart == nullptr)
+	{
+		return;
+	}
+
+	// 현재 조합이 완성된 레시피라면 Ghost 없음
+	if (CurrentBasePart != nullptr && CurrentCorePart != nullptr)
+	{
+		if (FindMatchedRecipe() != nullptr)
+		{
+			return;
+		}
+
+		// 둘 다 들어갔지만 조합이 틀린 상태.
+		// 이 경우 어떤 쪽을 기준으로 힌트를 줄지 정해야 한다.
+		//
+		// 추천:
+		// BasePart를 기준으로 필요한 CorePart를 보여준다.
+		// 즉, "이 BasePart에는 이 CorePart가 필요하다"를 알려준다.
+		UFZFCraftPartItemData* RequiredCorePart =
+			FindRequiredCorePartByBasePart(CurrentBasePart);
+
+		if (RequiredCorePart && RequiredCorePart->Mesh && CorePartGhostMeshRef)
+		{
+			CorePartGhostMeshRef->SetStaticMesh(RequiredCorePart->Mesh);
+
+			if (GhostMaterial)
+			{
+				CorePartGhostMeshRef->SetMaterial(0, GhostMaterial);
+			}
+
+			CorePartGhostMeshRef->SetVisibility(true);
+		}
+
+		return;
+	}
+
+	// BasePart만 들어간 상태
+	// 필요한 CorePart를 Ghost로 표시
+	if (CurrentBasePart != nullptr && CurrentCorePart == nullptr)
+	{
+		UFZFCraftPartItemData* RequiredCorePart =
+			FindRequiredCorePartByBasePart(CurrentBasePart);
+
+		if (RequiredCorePart && RequiredCorePart->Mesh && CorePartGhostMeshRef)
+		{
+			CorePartGhostMeshRef->SetStaticMesh(RequiredCorePart->Mesh);
+
+			if (GhostMaterial)
+			{
+				CorePartGhostMeshRef->SetMaterial(0, GhostMaterial);
+			}
+
+			CorePartGhostMeshRef->SetVisibility(true);
+		}
+
+		return;
+	}
+
+	// CorePart만 들어간 상태
+	// 필요한 BasePart를 Ghost로 표시
+	if (CurrentBasePart == nullptr && CurrentCorePart != nullptr)
+	{
+		UFZFCraftPartItemData* RequiredBasePart =
+			FindRequiredBasePartByCorePart(CurrentCorePart);
+
+		if (RequiredBasePart && RequiredBasePart->Mesh && BasePartGhostMeshRef)
+		{
+			BasePartGhostMeshRef->SetStaticMesh(RequiredBasePart->Mesh);
+
+			if (GhostMaterial)
+			{
+				BasePartGhostMeshRef->SetMaterial(0, GhostMaterial);
+			}
+
+			BasePartGhostMeshRef->SetVisibility(true);
+		}
+
+		return;
+	}
 }

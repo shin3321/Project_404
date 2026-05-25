@@ -26,6 +26,12 @@ public:
 	void Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent) override;
 	FText GetInteractableName(UPrimitiveComponent* HitComponent) const override;
 
+	UFUNCTION(BlueprintCallable, Category = "Item|Placement")
+	void PlaceOnGround();
+
+	UFUNCTION(BlueprintCallable, Category = "Item|Placement")
+	void ApplyGroundRotation();
+
 protected:
 
 	virtual void BeginPlay() override;
