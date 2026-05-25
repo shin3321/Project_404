@@ -259,6 +259,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class UGameplayEffect> DeathGameplayEffectClass;
 	
+	// 곡괭이로 EnergyRelay 공격 시, 적용할 GE
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UGameplayEffect> EnergyRelayDamageEffectClass;
 protected:
 	// 서버에서 실행될 RPC
 	UFUNCTION(Server, Unreliable)
