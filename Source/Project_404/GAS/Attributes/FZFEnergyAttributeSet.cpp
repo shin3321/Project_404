@@ -92,7 +92,7 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 		SetDamage(0.0f);
 
 		// 🎯 어빌리티에서 AppendDynamicAssetTags로 넣어준 태그 주머니를 통째로 가져옵니다.
-		FGameplayTagContainer AssetTags = Data.EffectSpec.DynamicGrantedTags;
+		FGameplayTagContainer AssetTags = Data.EffectSpec.DynamicAssetTags;
 
 		// 디버그용 로그: 어떤 무기 태그가 묻어 들어왔는지 확인
 		UE_LOG(LogTemp, Log, TEXT("[RelayAttr] 동적 주입된 무기 태그: %s"), *AssetTags.ToString());

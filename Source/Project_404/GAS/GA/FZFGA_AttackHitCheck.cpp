@@ -130,7 +130,7 @@ void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDat
 			TArray<TSubclassOf<UGameplayEffect>> EffectsToApply; // 적용할 효과 클래스담는 배열
 			if (CurrentItemData)
 			{
-				EffectsToApply = CurrentItemData->AllowedEffectClasses;
+S				EffectsToApply = CurrentItemData->AllowedEffectClasses;
 			}
 			// 플레이어 데이터가 없고 몬스터라면 몬스터 데이터의 GE 확인
 			else if (AFZFMonster* Monster = Cast<AFZFMonster>(Avatar))
