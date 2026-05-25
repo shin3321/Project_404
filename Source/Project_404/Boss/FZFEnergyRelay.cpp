@@ -2,6 +2,7 @@
 #include "Character/Monster/Boss/FZFBoss.h"
 #include "GAS/FZFAbilitySystemComponent.h"
 #include "GAS/Attributes/FZFEnergyAttributeSet.h"
+#include "Net/UnrealNetwork.h"
 
 AFZFEnergyRelay::AFZFEnergyRelay()
 {
@@ -9,11 +10,31 @@ AFZFEnergyRelay::AFZFEnergyRelay()
     PrimaryActorTick.bCanEverTick = true;
 
     bReplicates = true;
+    SetReplicateMovement(true);
 
     ASC = CreateDefaultSubobject<UFZFAbilitySystemComponent>(TEXT("AbilitySystem"));
     ASC->SetIsReplicated(true);
 
     EnergyAttributeSet = CreateDefaultSubobject<UFZFEnergyAttributeSet>(TEXT("EnergyAttributeSet"));
+}
+
+void AFZFEnergyRelay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AFZFEnergyRelay, bIsShown);
+}
+
+void AFZFEnergyRelay::OnRep_bIsShown()
+{
+    if (bIsShown)
+    {
+        Appear();
+    }
+    else
+    {
+        Disappear();
+    }
 }
 
 void AFZFEnergyRelay::BeginPlay()
@@ -34,8 +55,15 @@ void AFZFEnergyRelay::BeginPlay()
     // 땅속에 숨겨졌을 때 위치
     HiddenLocation = BaseLocation + HiddenLocationOffset;
 
-    // 처음 시작 위치를 숨김 위치로 설정
-    SetActorLocation(HiddenLocation);
+    // 처음 시작 위치를 숨김 위치로 설정 (단, 이미 나타난 상태라면 예외)
+    if (!bIsShown)
+    {
+        SetActorLocation(HiddenLocation);
+    }
+    else
+    {
+        SetActorLocation(ShownLocation);
+    }
 
 
     if (TargetBoss)
@@ -99,6 +127,11 @@ UAbilitySystemComponent* AFZFEnergyRelay::GetAbilitySystemComponent() const
 
 void AFZFEnergyRelay::HandleBossWaitingStarted()
 {
+    if (!HasAuthority())
+    {
+        return;
+    }
+
     UE_LOG(LogTemp, Warning, TEXT("[Relay] WaitingStarted: %s / bDead=%d"),
         *GetName(),
         bDead);
@@ -108,11 +141,18 @@ void AFZFEnergyRelay::HandleBossWaitingStarted()
         return;
     }
 
+    bIsShown = true;
     Appear();
 }
 
 void AFZFEnergyRelay::HandleBossWaitingEnded()
 {
+    if (!HasAuthority())
+    {
+        return;
+    }
+
+    bIsShown = false;
     Disappear();
 }
 

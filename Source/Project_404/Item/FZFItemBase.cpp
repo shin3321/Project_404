@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Inventory/FZFInventoryComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AFZFItemBase::AFZFItemBase()
@@ -22,6 +23,18 @@ AFZFItemBase::AFZFItemBase()
 
     RootComponent = Trigger;
     Mesh->SetupAttachment(Trigger);
+}
+
+void AFZFItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AFZFItemBase, ItemData);
+}
+
+void AFZFItemBase::OnRep_ItemData()
+{
+    ApplyItemData();
 }
 
 void AFZFItemBase::BeginPlay()

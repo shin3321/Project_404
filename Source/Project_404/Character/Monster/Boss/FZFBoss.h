@@ -49,14 +49,7 @@ protected:
 	// 동력원 파괴 델리게이트 초기화
 	void BindEnergyRelayEvents();
 
-	/* 인터페이스 */
-protected:
-	// BT 전달 함수
-	FORCEINLINE virtual UBehaviorTree* GetBT() override
-	{
-		return BossData ? BossData->BehaviorTree : nullptr;
-	};
-
+public:
 	// BossData 불러오기 함수
 	FORCEINLINE virtual UFZFBossData* GetData() override
 	{
@@ -67,6 +60,14 @@ protected:
 	FORCEINLINE virtual USkeletalMeshComponent* GetBossMesh() const override
 	{
 		return GetMesh();
+	};
+
+	/* 인터페이스 */
+protected:
+	// BT 전달 함수
+	FORCEINLINE virtual UBehaviorTree* GetBT() override
+	{
+		return BossData ? BossData->BehaviorTree : nullptr;
 	};
 
 	// 선택된 스킬 저장/불러오기 함수
@@ -96,6 +97,11 @@ protected:
 
 	// 페이즈 전환 함수.
 	virtual void OnBossPhaseTransition(int32 NewPhase) override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION()
+	void OnRep_BossPhase();
 
 	/* 클래스 멤버 함수*/
 public:
@@ -128,6 +134,9 @@ private:
 	bool bMonsterInitialized = false;
 
 protected:
+	UPROPERTY(ReplicatedUsing = OnRep_BossPhase)
+	int32 BossPhase = 1;
+
 	// SetAIAttackDelegate 함수로부터 전달받은 델리게이트를 저장할 변수.
 	FBossAICharacterAttackFinished OnAttackFinished;
 
