@@ -9,6 +9,7 @@
 #include "Character/Monster/MonsterData/FZFBossData.h" // 이거 보스 전용으로 변경
 #include "FZFBoss.generated.h"
 
+class AFZFBossLevelManager;
 class AFZFEnergyRelay;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBossWaitingEvent);
@@ -162,6 +163,12 @@ protected:
 	// 현재 선택된 스킬 정보
 	UPROPERTY()
 	FBossSkillInfo CurrentSelectedSkill;
+
+	// 맵 패턴 공격 관련
+	UPROPERTY(EditInstanceOnly, Category = "Boss|MapPattern")
+	TObjectPtr<AFZFBossLevelManager> BossLevelManager;
+
+	FTimerHandle MapPatternTimerHandle;
 
 	// 고리 매시 저장
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Ring")

@@ -41,12 +41,6 @@ void AFZFBossLevelManager::BeginPlay()
 		return;
 	}
 
-	AFZFTestBoss* Boss = Cast<AFZFTestBoss>(UGameplayStatics::GetActorOfClass(GetWorld(), AFZFTestBoss::StaticClass()));
-	if (Boss != nullptr)
-	{
-		Boss->OnBossPhaseChanged.AddDynamic(this, &AFZFBossLevelManager::HandlePhaseChanged);
-	}
-
 	if (LaserClass != nullptr)
 	{
 		for (int32 i = 0; i < LaserCount; ++i)
@@ -63,8 +57,6 @@ void AFZFBossLevelManager::BeginPlay()
 			}
 		}
 	}
-	FirstPhase();
-	SecondPhase();
 }
 
 // Called every frame
@@ -73,42 +65,33 @@ void AFZFBossLevelManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AFZFBossLevelManager::HandlePhaseChanged(EBossPhase NewPhase)
+void AFZFBossLevelManager::StartMapPattern(FName PatternName)
 {
-	switch (NewPhase)
+	if (PatternName == TEXT("MapLaser"))
 	{
-	case EBossPhase::Phase1:
-	{
-		FirstPhase();
-		break;
-	}
-
-	case EBossPhase::Phase2:
-	{
-		SecondPhase();
-		break;
-	}
-	case EBossPhase::Phase3:
-	{
-		break;
-	}
+		Laser();
+		return;
 	}
 }
 
-void AFZFBossLevelManager::FirstPhase()
+void AFZFBossLevelManager::StopMapPattern()
 {
-	GetWorld()->GetTimerManager().SetTimer(
-		LaserTimerHandle,
-		this,
-		&AFZFBossLevelManager::Laser,
-		5.0f,
-		true
-	);
+	if (!HasAuthority())
+	{
+		return;
+	}
 
-	// 페이즈 끝나면 타이머 끄기 
-	/*
-GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
-	*/
+	GetWorld()->GetTimerManager().ClearTimer(LaserTimerHandle);
+
+	for (AFZFLaserActor* Laser : LaserPool)
+	{
+		if (Laser)
+		{
+			Laser->DeactivateLaser();
+		}
+	}
+
+	// 필요하면 트리거/폭탄도 배열로 들고 있다가 제거
 }
 
 void AFZFBossLevelManager::Laser()
@@ -146,11 +129,21 @@ void AFZFBossLevelManager::DeactivateLaser(AFZFLaserActor* Laser)
 	AvailableLasers.Remove(Laser);
 }
 
-void AFZFBossLevelManager::SecondPhase()
+
+void AFZFBossLevelManager::OnBossPhaseChanged(int32 NewPhase)
 {
-	CreateTrigger();
+	if (NewPhase == 2)
+	{
+		CreateTrigger();
+	}
+
+	if (NewPhase == 3)
+	{
+		// 다른 환경 장치 생성
+	}
 }
 
+/* 페이즈가 바뀜에 따라 유의미한 함정 소환 */
 void AFZFBossLevelManager::CreateTrigger()
 {
 	TArray<AActor*> BossTriggers;
