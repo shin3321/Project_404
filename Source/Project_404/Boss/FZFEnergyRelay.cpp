@@ -39,44 +39,6 @@ void AFZFEnergyRelay::OnRep_bIsShown()
 
 void AFZFEnergyRelay::BeginPlay()
 {
-    //Super::BeginPlay();
-
-    //if (ASC)
-    //{
-    //    ASC->InitAbilityActorInfo(this, this);
-    //}
-
-    //// 맵에 배치된 기본 위치 저장
-    //FVector BaseLocation = GetActorLocation();
-
-    //// 완전히 등장했을 때 위치
-    //ShownLocation = BaseLocation + ShownLocationOffset;
-
-    //// 땅속에 숨겨졌을 때 위치
-    //HiddenLocation = BaseLocation + HiddenLocationOffset;
-
-    //// 처음 시작 위치를 숨김 위치로 설정
-    //SetActorLocation(HiddenLocation);
-
-
-    //if (TargetBoss)
-    //{
-    //    TargetBoss->OnBossWaitingStarted.AddDynamic(
-    //        this,
-    //        &AFZFEnergyRelay::HandleBossWaitingStarted
-    //    );
-
-    //    TargetBoss->OnBossWaitingEnded.AddDynamic(
-    //        this,
-    //        &AFZFEnergyRelay::HandleBossWaitingEnded
-    //    );
-    //}
-
-    //UE_LOG(LogTemp, Warning, TEXT("[Relay] ASC: %s / AttrSet: %s / HasAuthority: %d"),
-    //    *GetNameSafe(ASC),
-    //    *GetNameSafe(EnergyAttributeSet),
-    //    HasAuthority());
-
     Super::BeginPlay();
 
     if (ASC)
@@ -98,8 +60,13 @@ void AFZFEnergyRelay::BeginPlay()
 
     // 맵에 배치된 기본 위치 저장
     FVector BaseLocation = GetActorLocation();
+
+    // 완전히 등장했을 때 위치
     ShownLocation = BaseLocation + ShownLocationOffset;
+
+    // 땅속에 숨겨졌을 때 위치
     HiddenLocation = BaseLocation + HiddenLocationOffset;
+
 
     // 처음 시작 위치를 숨김 위치로 설정 (단, 이미 나타난 상태라면 예외)
     if (!bIsShown)
@@ -197,17 +164,6 @@ void AFZFEnergyRelay::HandleBossWaitingEnded()
 
 void AFZFEnergyRelay::HandleDead()
 {
-    UE_LOG(LogTemp, Warning, TEXT("[Relay] HandleDead: %s / bDead=%d"),
-        *GetName(),
-        bDead);
-
-    if (bDead)
-    {
-        return;
-    }
-
-    bDead = true;
-
     // 보스가 Open/Close하는 델리게이트 제거
     if (TargetBoss)
     {
@@ -226,7 +182,11 @@ void AFZFEnergyRelay::HandleDead()
     OnRelayDestroyed.Broadcast(this);
 
     // 동력원 Close
-    Disappear(); // 혹은 Destroy()
+    if (HasAuthority())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[Relay] 서버에서 %s 액터를 Destroy 합니다."), *GetName());
+        Destroy();
+    }
 }
 
 
