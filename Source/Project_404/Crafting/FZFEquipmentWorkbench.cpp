@@ -36,14 +36,18 @@ void AFZFEquipmentWorkbench::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME(AFZFEquipmentWorkbench, CurrentBasePart);
 	DOREPLIFETIME(AFZFEquipmentWorkbench, CurrentCorePart);
 	DOREPLIFETIME(AFZFEquipmentWorkbench, TargetInteractor);
+	DOREPLIFETIME(AFZFEquipmentWorkbench, bRotateBasePartFrame);
+	DOREPLIFETIME(AFZFEquipmentWorkbench, bRotateCorePartFrame);
 }
 
 void AFZFEquipmentWorkbench::DestroySpawnedItem()
 {
-	SpawnedItem->Destroy();
-	SpawnedItem = nullptr;
-
-	UpdatePreviewMeshes();
+	if (HasAuthority() && SpawnedItem)
+	{
+		SpawnedItem->Destroy();
+		SpawnedItem = nullptr;
+		UpdatePreviewMeshes();
+	}
 }
 
 void AFZFEquipmentWorkbench::BeginPlay()
@@ -428,13 +432,10 @@ void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiv
 			}
 
 			// 3. 슬롯이 비어있고 손에 든 아이템이 있으면 삽입 시도
-			if (TryInsertMaterialToSlot(HitSlot, HeldItemData) == false)
-			{
-				UE_LOG(LogTemp, Log, TEXT("Failed to insert material into workbench slot."));
-				return;
-			}
-
-			Inventory->RemoveSelectedItem();
+			// 삽입 함수 내부에 서버 RPC 호출이 포함되어 있음
+			TryInsertMaterialToSlot(HitSlot, HeldItemData);
+			
+			// [중요] 인벤토리 제거는 서버 RPC 핸들러(Server_TryInsertMaterialToSlot)에서 수행하도록 변경
 			break;
 		}
 	case EFZFWorkbenchSlot::Crafting:

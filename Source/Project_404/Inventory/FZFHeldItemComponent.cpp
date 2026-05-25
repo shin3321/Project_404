@@ -195,6 +195,12 @@ void UFZFHeldItemComponent::ClearHeldItem()
         return;
     }
 
+    // [로컬] 즉시 팔 매쉬 위치 초기화 (반응성)
+    if (AFZFCharacterPlayer* OwnerCharacter = GetOwnerCharacter())
+    {
+        OwnerCharacter->SetArmMeshDefaultTransform();
+    }
+
     if (!GetOwner()->HasAuthority())
     {
         ServerClearHeldItem();
@@ -202,9 +208,6 @@ void UFZFHeldItemComponent::ClearHeldItem()
     }
 
     ServerClearHeldItem();
-
-    if (AFZFCharacterPlayer* OwnerCharacter = GetOwnerCharacter())
-        OwnerCharacter->SetArmMeshDefaultTransform();
 }
 
 void UFZFHeldItemComponent::ServerClearHeldItem_Implementation()

@@ -44,7 +44,14 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<AFZFLaserActor>> LaserPool;
 	
-	int32 LaserCount = 20;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Laser")
+	int32 LaserPoolCount = 20;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Laser")
+	int32 MinSpawnLaserCount = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Laser")
+	int32 MaxSpawnLaserCount = 6;
 
 	/* 페이즈 변경 - 함정 소환 */
 public:
@@ -70,9 +77,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class UBoxComponent* TransferVolume;
 
-	int32 MoveSpeed = 300.0f;
-	
-	FVector MinWallLocation = FVector(0.0f, 0.0f, 0.0f);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Laser")
+	float MoveSpeed = 300.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Laser")
+	FVector MinWallLocation = FVector::ZeroVector;
 
 	UPROPERTY()
 	TArray<AFZFLaserActor*> AvailableLasers;

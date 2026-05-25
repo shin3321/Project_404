@@ -42,7 +42,11 @@ public:
     UFUNCTION(BlueprintCallable)
     void HideInventory();
 
+    UFUNCTION(BlueprintCallable, Category = "Inventory")
     void RemoveSelectedItem();
+
+    UFUNCTION(Server, Reliable)
+    void ServerRemoveSelectedItem();
 
     // 현재 인벤토리에 저장된 아이템 데이터 배열
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_InventoryItems, Category = "Inventory")

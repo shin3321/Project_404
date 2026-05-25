@@ -165,7 +165,7 @@ protected:
 	FBossSkillInfo CurrentSelectedSkill;
 
 	// 맵 패턴 공격 관련
-	UPROPERTY(EditInstanceOnly, Category = "Boss|MapPattern")
+	UPROPERTY(EditAnywhere, Category = "Boss|MapPattern")
 	TObjectPtr<AFZFBossLevelManager> BossLevelManager;
 
 	FTimerHandle MapPatternTimerHandle;
@@ -175,7 +175,7 @@ protected:
 	TArray<TObjectPtr<USkeletalMeshComponent>> RingMeshes;
 
 	// 동력원 이벤트 구독 관련
-	UPROPERTY(EditInstanceOnly, Category = "Boss|Relay")
+	UPROPERTY(EditAnywhere, Category = "Boss|Relay")
 	TArray<TObjectPtr<AFZFEnergyRelay>> EnergyRelays;
 
 	// 부서진 고리

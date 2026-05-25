@@ -187,16 +187,27 @@ UFZFItemData* UFZFInventoryComponent::GetSelectedItemData() const
 
 void UFZFInventoryComponent::RemoveSelectedItem()
 {
+    if (!GetOwner()->HasAuthority())
+    {
+        ServerRemoveSelectedItem();
+        return;
+    }
+
     if (SelectedSlotIndex < 0 || SelectedSlotIndex >= MaxItemCount)
         return;
 
     InventoryItems[SelectedSlotIndex] = nullptr;
 
-    if (InventoryWidget)
-        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
+    // 서버 측(리스닝 서버) UI 갱신을 위해 호출
+    OnRep_InventoryItems();
 
     // 삭제 후 현재 선택 슬롯 기준으로 손 아이템 다시 갱신
     UpdateHeldItemBySelectedSlot();
+}
+
+void UFZFInventoryComponent::ServerRemoveSelectedItem_Implementation()
+{
+    RemoveSelectedItem();
 }
 
 void UFZFInventoryComponent::UpdateHeldItemBySelectedSlot()

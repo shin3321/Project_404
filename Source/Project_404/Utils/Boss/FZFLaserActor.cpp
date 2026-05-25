@@ -92,6 +92,12 @@ void AFZFLaserActor::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 
 void AFZFLaserActor::ActivateLaser(FVector StartLocation, ELaserMode Mode, ELaserType Type, float MoveSpeed)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Laser] Activate / Loc=%s Mode=%d Type=%d Speed=%f"),
+		*StartLocation.ToString(),
+		(int32)Mode,
+		(int32)Type,
+		MoveSpeed);
+
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
 	SetActorLocation(StartLocation);

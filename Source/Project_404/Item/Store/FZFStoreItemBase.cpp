@@ -36,6 +36,11 @@ void AFZFStoreItemBase::OnConstruction(const FTransform& Transform)
 
 void AFZFStoreItemBase::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
 {
+    if (!HasAuthority())
+    {
+        return;
+    }
+
     // 창고에 스폰할 아이템 목록 저장
     UFZFGameInstance* GameInstance = Cast<UFZFGameInstance>(GetWorld()->GetGameInstance());
     if (!GameInstance)
@@ -44,7 +49,11 @@ void AFZFStoreItemBase::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComp
     }
     else
     {
-        GameInstance->AddStorageItem(GetItemData()->ItemId);
-        Destroy();
+        if (ItemData)
+        {
+            GameInstance->AddStorageItem(ItemData->ItemId);
+            UE_LOG(LogTemp, Warning, TEXT("서버: 창고에 아이템 추가됨: %s"), *ItemData->ItemId.ToString());
+            Destroy();
+        }
     }    
 }

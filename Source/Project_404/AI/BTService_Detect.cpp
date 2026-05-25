@@ -77,7 +77,7 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 			APawn* Pawn = Cast<APawn>(OverlapResult.GetActor());
 
 			// 플레이어인지 확인. (AI는 제외)
-			if (Pawn && Pawn->GetController()->IsPlayerController())
+			if (Pawn && Pawn->IsPlayerControlled())
 			{
 				// 감지한 정보를 블랙보드에 저장.
 				OwnerComp.GetBlackboardComponent()->SetValueAsObject(BBKEY_TARGET, Pawn);
