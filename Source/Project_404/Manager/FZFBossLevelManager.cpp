@@ -43,7 +43,7 @@ void AFZFBossLevelManager::BeginPlay()
 
 	if (LaserClass != nullptr)
 	{
-		for (int32 i = 0; i < LaserCount; ++i)
+		for (int32 i = 0; i < LaserPoolCount; ++i)
 		{
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
@@ -67,11 +67,21 @@ void AFZFBossLevelManager::Tick(float DeltaTime)
 
 void AFZFBossLevelManager::StartMapPattern(FName PatternName)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[MapPattern] StartMapPattern: %s"), *PatternName.ToString());
+
+	if (!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[MapPattern] Not Authority"));
+		return;
+	}
+
+	// 맞는 패턴으로 실행하기
 	if (PatternName == TEXT("MapLaser"))
 	{
 		Laser();
 		return;
 	}
+	UE_LOG(LogTemp, Warning, TEXT("[MapPattern] Unknown PatternName"));
 }
 
 void AFZFBossLevelManager::StopMapPattern()
@@ -96,21 +106,35 @@ void AFZFBossLevelManager::StopMapPattern()
 
 void AFZFBossLevelManager::Laser()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[MapPattern] Laser Start / Pool=%d"), LaserPool.Num());
+
 	AvailableLasers.Empty();
-	LaserCount = FMath::RandRange(2, 6);
+
+//	LaserPoolCount = FMath::RandRange(2, 6);
 
 	for (AFZFLaserActor* Laser : LaserPool)
 	{
-		if (Laser->GetLaserMode() == ELaserMode::Inactive)
+		if (Laser && Laser->GetLaserMode() == ELaserMode::Inactive)
 		{
 			AvailableLasers.Add(Laser);
 		}
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("[MapPattern] Available=%d"), AvailableLasers.Num());
+
 	if (AvailableLasers.IsEmpty()) return;
 	Algo::RandomShuffle(AvailableLasers);
 
-	int32 MaxSpawnCount = FMath::Min(FMath::RandRange(2, 6), AvailableLasers.Num());
+	const int32 SpawnCount = FMath::RandRange(
+		MinSpawnLaserCount,
+		MaxSpawnLaserCount
+	);
+
+	const int32 MaxSpawnCount = FMath::Min(
+		SpawnCount,
+		AvailableLasers.Num()
+	);
+
 	for (int32 i = 0; i < MaxSpawnCount; ++i)
 	{
 		AFZFLaserActor* SelectedLaser = AvailableLasers[i];
