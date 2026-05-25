@@ -39,4 +39,8 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = Stat, ReplicatedUsing = OnRep_MaxStamina, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData MaxStamina;
+
+private:
+
+	bool CanReceiveDamage() const;
 };
