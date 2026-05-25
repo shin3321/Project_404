@@ -77,7 +77,7 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 {
 	Super::PostGameplayEffectExecute(Data);
 
-
+	/*
 	// 이펙트를 유발한 가해자(공격자)의 정보와 GE 정보 추출
 	AActor* InstigatorActor = Data.EffectSpec.GetContext().GetInstigator();
 	const UGameplayEffect* AppliedGE = Data.EffectSpec.Def;
@@ -160,6 +160,7 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			return;
 		}
 	}
+	*/
 
 	// 검증 성공 시, Attribute별 실제 처리
 	// 데미지 처리
