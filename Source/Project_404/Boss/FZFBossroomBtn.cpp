@@ -24,8 +24,6 @@ AFZFBossroomBtn::AFZFBossroomBtn()
 	// 오버랩 함수 연결
 	InteractionBox->OnComponentBeginOverlap.AddDynamic(this, &AFZFBossroomBtn::OnBoxBeginOverlap);
 	InteractionBox->OnComponentEndOverlap.AddDynamic(this, &AFZFBossroomBtn::OnBoxEndOverlap);
-
-	OverlappingPlayer = nullptr;
 }
 
 void AFZFBossroomBtn::BeginPlay()
@@ -33,10 +31,11 @@ void AFZFBossroomBtn::BeginPlay()
 	Super::BeginPlay();
 }
 
-// 현재 플레이어가 범위 안에 있는지 확인
+// 해당 플레이어가 현재 버튼 범위 안에 있는지 확인
 bool AFZFBossroomBtn::CanInteract(APawn* InPawn) const
 {
-	return OverlappingPlayer && InPawn && OverlappingPlayer == InPawn;
+	// 플레이어가 유효하고, 범위 안 플레이어 목록에 들어있으면 상호작용 가능
+	return InPawn && OverlappingPlayers.Contains(InPawn);
 }
 
 // HUD에 표시할 상호작용 이름 반환
@@ -64,7 +63,7 @@ void AFZFBossroomBtn::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveCompon
 	Interactor->BeginBossroomHold(this);
 }
 
-// 플레이어가 범위에 들어왔을 때
+// 플레이어가 버튼 범위에 들어왔을 때
 void AFZFBossroomBtn::OnBoxBeginOverlap(
 	UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor,
@@ -74,14 +73,18 @@ void AFZFBossroomBtn::OnBoxBeginOverlap(
 	const FHitResult& SweepResult
 )
 {
+	// 오버랩한 액터가 Pawn인지 확인
 	APawn* OverlappedPawn = Cast<APawn>(OtherActor);
-	if (OverlappedPawn)
+	if (!OverlappedPawn)
 	{
-		OverlappingPlayer = OverlappedPawn;
+		return;
 	}
+
+	// 범위 안 플레이어 목록에 추가
+	OverlappingPlayers.Add(OverlappedPawn);
 }
 
-// 플레이어가 범위에서 나갔을 때
+// 플레이어가 버튼 범위에서 나갔을 때
 void AFZFBossroomBtn::OnBoxEndOverlap(
 	UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor,
@@ -89,16 +92,16 @@ void AFZFBossroomBtn::OnBoxEndOverlap(
 	int32 OtherBodyIndex
 )
 {
+	// 나간 액터가 플레이어 캐릭터인지 확인
 	AFZFCharacterPlayer* Player = Cast<AFZFCharacterPlayer>(OtherActor);
 	if (!Player)
 	{
 		return;
 	}
 
-	// 이 버튼 범위에서 나간 플레이어라면 홀드 취소
-	if (OtherActor == OverlappingPlayer)
-	{
-		Player->StopBossroomHold();
-		OverlappingPlayer = nullptr;
-	}
+	// 범위 안 플레이어 목록에서 제거
+	OverlappingPlayers.Remove(Player);
+
+	// 해당 플레이어가 범위를 나갔으므로 보스방 홀드 종료
+	Player->EndBossroomHold();
 }

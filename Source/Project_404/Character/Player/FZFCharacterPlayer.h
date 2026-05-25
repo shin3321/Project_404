@@ -172,16 +172,20 @@ protected:
 public:
 	virtual void HandleDeath() override;
 
-	// 보스방 버튼 홀드 시작 요청 함수
+public:
+	// 보스방 버튼 홀드 시작
 	void BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn);
 
+	// 보스방 버튼 홀드 종료 / 취소
+	void EndBossroomHold();
+
+	// 서버에서 보스방 홀드 시작
 	UFUNCTION(Server, Reliable)
 	void ServerBeginBossroomHold(AFZFBossroomBtn* InBossroomBtn);
 
+	// 서버에서 보스방 홀드 종료
 	UFUNCTION(Server, Reliable)
-	void ServerStopBossroomHold();
-
-	void StopBossroomHold();
+	void ServerEndBossroomHold();
 
 	// Attribute 변경 핸들러 함수들
 	UFUNCTION()

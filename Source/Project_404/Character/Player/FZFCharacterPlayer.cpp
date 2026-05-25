@@ -1134,51 +1134,32 @@ void AFZFCharacterPlayer::SelectSlot5()
 // E키를 뗐을 때 홀드 상호작용 종료
 void AFZFCharacterPlayer::StopHoldInteract()
 {
-	if (!HasAuthority())
-	{
-		ServerStopBossroomHold();
-	}
-
-	// 홀드 상태 종료
-	bHolding = false;
-	CurrentHoldTime = 0.0f;
-
-	// HUD 홀드 UI 숨김 및 진행률 초기화
-	if (IsLocallyControlled() && HUDWidget)
-	{
-		HUDWidget->HideHoldProgress();
-		HUDWidget->UpdateHoldProgress(0.0f);
-	}
+	// 보스방 홀드 종료 처리
+	EndBossroomHold();
 }
 
-// 보스방 버튼이 플레이어에게 홀드 시작을 요청하는 함수
+// 보스방 버튼 홀드 시작
 void AFZFCharacterPlayer::BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn)
 {
-	// 버튼 액터가 없으면 종료
+	// 버튼이 없으면 시작 불가
 	if (!InBossroomBtn)
 	{
 		return;
 	}
 
-	// 버튼 범위 안에 있는 플레이어만 홀드 시작 가능
-	if (!InBossroomBtn->CanInteract(this))
-	{
-		return;
-	}
-
+	// 클라이언트에서 호출됐다면 서버로 홀드 시작 요청
 	if (!HasAuthority())
 	{
 		ServerBeginBossroomHold(InBossroomBtn);
+		return;
 	}
 
-	// 현재 홀드 버튼 저장
+	// 서버에서 실제 홀드 상태 시작
 	CurrentBossroomBtn = InBossroomBtn;
-
-	// 홀드 시작
-	bHolding = true;
 	CurrentHoldTime = 0.0f;
+	bHolding = true;
 
-	// HUD에 홀드 UI 표시 및 진행률 초기화
+	// 로컬 플레이어라면 홀드 UI 표시
 	if (IsLocallyControlled() && HUDWidget)
 	{
 		HUDWidget->ShowHoldProgress();
@@ -1186,33 +1167,21 @@ void AFZFCharacterPlayer::BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn)
 	}
 }
 
-void AFZFCharacterPlayer::ServerBeginBossroomHold_Implementation(AFZFBossroomBtn* InBossroomBtn)
+// 보스방 버튼 홀드 종료 / 취소
+void AFZFCharacterPlayer::EndBossroomHold()
 {
-	BeginBossroomHold(InBossroomBtn);
-}
-
-void AFZFCharacterPlayer::ServerStopBossroomHold_Implementation()
-{
-	StopBossroomHold();
-}
-
-void AFZFCharacterPlayer::StopBossroomHold()
-{
+	// 클라이언트에서 호출됐다면 서버로 홀드 종료 요청
 	if (!HasAuthority())
 	{
-		ServerStopBossroomHold();
+		ServerEndBossroomHold();
 	}
 
-	// 홀드 상태 해제
+	// 로컬에서도 즉시 홀드 상태 해제
 	bHolding = false;
-
-	// 홀드 시간 초기화
 	CurrentHoldTime = 0.0f;
-
-	// 현재 버튼 참조 제거
 	CurrentBossroomBtn = nullptr;
 
-	// HUD 홀드바 숨기고 0으로 초기화
+	// 로컬 플레이어라면 홀드 UI 숨김
 	if (IsLocallyControlled() && HUDWidget)
 	{
 		HUDWidget->HideHoldProgress();

@@ -8,6 +8,7 @@
 
 class UTextBlock;
 class UImage;
+class UMaterialInstanceDynamic;
 
 UCLASS()
 class PROJECT_404_API UFZFHUD : public UUserWidget
@@ -88,13 +89,10 @@ protected:
     UPROPERTY(meta = (BindWidgetAnim), Transient)
     TObjectPtr<UWidgetAnimation> DamageFade;
 
+protected:
     // 홀드 진행률 이미지
-    UPROPERTY(meta = (BindWidget))
-    UImage* HoldProgressImage;
-
-    // 홀드 진행률용 머티리얼
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hold")
-    TObjectPtr<UMaterialInterface> HoldProgressMaterial;
+    UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "Hold")
+    TObjectPtr<UImage> HoldProgressImage;
 
     // 홀드 진행률 Dynamic Material
     UPROPERTY()

@@ -12,13 +12,14 @@ void UFZFHUD::NativeConstruct()
         StaminaDynamicMaterial = StaminaBar->GetDynamicMaterial();
     }
 
-    // 홀드 진행률 머티리얼 동적 생성
-    if (HoldProgressImage && HoldProgressMaterial)
+    // 홀드 진행률 이미지에 들어있는 Brush Material을 Dynamic Material로 변환
+    if (HoldProgressImage)
     {
-        HoldProgressDynamicMaterial = UMaterialInstanceDynamic::Create(HoldProgressMaterial, this);
+        HoldProgressDynamicMaterial = HoldProgressImage->GetDynamicMaterial();
+
         if (HoldProgressDynamicMaterial)
         {
-            HoldProgressImage->SetBrushFromMaterial(HoldProgressDynamicMaterial);
+            // 처음에는 0%로 시작
             HoldProgressDynamicMaterial->SetScalarParameterValue(TEXT("Progress"), 0.0f);
         }
 
@@ -124,6 +125,9 @@ void UFZFHUD::HideHoldProgress()
     {
         HoldProgressImage->SetVisibility(ESlateVisibility::Hidden);
     }
+
+    // 숨길 때 진행률도 초기화
+    UpdateHoldProgress(0.0f);
 }
 
 // 홀드 진행률 갱신
