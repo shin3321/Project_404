@@ -183,5 +183,6 @@ private:
 	void UpdatePreviewMeshes();
 
 	// 지정한 위치에 부품 장착 이펙트를 재생한다.
+	UFUNCTION(NetMulticast, Unreliable)
 	void PlayInsertPartEffect(USceneComponent* EffectPoint);
 };

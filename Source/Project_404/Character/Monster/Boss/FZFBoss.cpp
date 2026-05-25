@@ -585,7 +585,6 @@ void AFZFBoss::OnBossPhaseTransition(int32 NewPhase)
 		}
 	}
 }
-
 /* 클래스 멤버 함수 구현 */
 void AFZFBoss::NotifyAttackActionEnd()
 {

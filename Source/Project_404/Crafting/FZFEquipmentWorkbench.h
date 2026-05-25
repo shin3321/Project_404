@@ -148,11 +148,11 @@ protected:
 	TObjectPtr<UStaticMeshComponent> BasePartFrameMeshRef;
 
 	// BasePartFrame 회전 여부
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Workbench|Frame")
+	UPROPERTY(ReplicatedUsing=OnRep_WorkbenchParts, VisibleAnywhere, BlueprintReadOnly, Category = "Workbench|Frame")
 	bool bRotateBasePartFrame = false;
 
 	// CorePartFrame 회전 여부
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Workbench|Frame")
+	UPROPERTY(ReplicatedUsing=OnRep_WorkbenchParts, VisibleAnywhere, BlueprintReadOnly, Category = "Workbench|Frame")
 	bool bRotateCorePartFrame = false;
 
 	// BasePartFrame Z축 회전 속도, 초당 도 단위

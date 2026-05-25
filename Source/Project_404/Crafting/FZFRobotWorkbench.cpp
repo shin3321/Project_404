@@ -112,48 +112,26 @@ void AFZFRobotWorkbench::BeginPlay()
 
 void AFZFRobotWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
 {
-	// 상호작용한 플레이어가 유효하지 않으면 종료
 	if (!IsValid(Interactor))
 	{
 		return;
 	}
 
-	// 플레이어의 인벤토리 컴포넌트 가져오기
 	UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent();
 	if (!IsValid(Inventory))
 	{
 		return;
 	}
 
-	// 라인트레이스에 맞은 컴포넌트가 제작대인지 판별
 	EFZFRobotWorkbenchSlot HitSlot = GetSlotFromHitComponent(HitComponent);
 
-	switch (HitSlot)
+	if (HitSlot == EFZFRobotWorkbenchSlot::Workbench)
 	{
-	case EFZFRobotWorkbenchSlot::Workbench:
-	{
-		// 현재 선택 중인 아이템 데이터 가져오기
 		UFZFItemData* SelectedItemData = Inventory->GetSelectedItemData();
 
-		// 선택한 아이템의 MaterialTag를 보고 맞는 로봇 부품 위치에 넣기 시도
-		if (TryInsertRobotPart(SelectedItemData) == false)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to insert robot part."));
-			return;
-		}
-
-		// 부품 넣기에 성공했으면 인벤토리에서 선택 아이템 제거
-		Inventory->RemoveSelectedItem();
-
-		// 부품을 넣은 직후, 모든 부품이 들어갔는지 확인한다.
-		// 전부 들어갔다면 자동으로 조립 성공 처리된다.
-		TryCraftRobot();
-
-		break;
-	}
-
-	default:
-		break;
+		// TryInsertRobotPart 내부에서 서버 요청(RPC) 또는 직접 실행을 처리함.
+		// 성공 여부와 인벤토리 제거, 조립 확인은 모두 서버에서 안전하게 수행됨.
+		TryInsertRobotPart(SelectedItemData);
 	}
 }
 
@@ -234,7 +212,7 @@ void AFZFRobotWorkbench::UpdatePreviewMeshes()
 	}
 }
 
-void AFZFRobotWorkbench::PlayInsertPartEffect(USceneComponent* EffectPoint)
+void AFZFRobotWorkbench::PlayInsertPartEffect_Implementation(USceneComponent* EffectPoint)
 {
 	// 나이아가라 시스템이나 위치 컴포넌트가 없으면 실행하지 않는다.
 	if (InsertPartEffect == nullptr || EffectPoint == nullptr)
@@ -268,7 +246,7 @@ bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
 
 void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* ItemData)
 {
-		// 선택한 아이템 데이터가 없으면 실패
+	// 선택한 아이템 데이터가 없으면 실패
 	if (ItemData == nullptr)
 	{
 		return ;
@@ -281,114 +259,79 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 		return ;
 	}
 
+	bool bInserted = false;
+
 	// 몸통 부품이면 몸통 위치에 넣는다.
 	if (RobotPartData->MaterialTag == TEXT("RobotBody"))
 	{
-		if (CurrentBodyPart != nullptr)
+		if (CurrentBodyPart == nullptr)
 		{
-			return ;
+			CurrentBodyPart = RobotPartData;
+			if (RobotBodyGuideMeshRef) RobotBodyGuideMeshRef->SetVisibility(false);
+			PlayInsertPartEffect(BodyEffectPointRef);
+			bInserted = true;
 		}
-
-		CurrentBodyPart = RobotPartData;
-		UpdatePreviewMeshes();
-
-		// 몸통 부품 장착이 끝났으므로 몸통 가이드 메시 숨김
-		if (RobotBodyGuideMeshRef)
-		{
-			RobotBodyGuideMeshRef->SetVisibility(false);
-		}
-
-		// 원하는 위치용 SceneComponent에서 파티클 재생
-		PlayInsertPartEffect(BodyEffectPointRef);
-
-		return ;
 	}
-
 	// 왼팔 부품이면 왼팔 위치에 넣는다.
-	if (RobotPartData->MaterialTag == TEXT("RobotLArm"))
+	else if (RobotPartData->MaterialTag == TEXT("RobotLArm"))
 	{
-		if (CurrentLArmPart != nullptr)
+		if (CurrentLArmPart == nullptr)
 		{
-			return ;
+			CurrentLArmPart = RobotPartData;
+			if (RobotLArmGuideMeshRef) RobotLArmGuideMeshRef->SetVisibility(false);
+			PlayInsertPartEffect(LArmEffectPointRef);
+			bInserted = true;
 		}
-
-		CurrentLArmPart = RobotPartData;
-		UpdatePreviewMeshes();
-
-		if (RobotLArmGuideMeshRef)
-		{
-			RobotLArmGuideMeshRef->SetVisibility(false);
-		}
-
-		PlayInsertPartEffect(LArmEffectPointRef);
-
-		return;
 	}
-
 	// 오른팔 부품이면 오른팔 위치에 넣는다.
-	if (RobotPartData->MaterialTag == TEXT("RobotRArm"))
+	else if (RobotPartData->MaterialTag == TEXT("RobotRArm"))
 	{
-		if (CurrentRArmPart != nullptr)
+		if (CurrentRArmPart == nullptr)
 		{
-			return;
+			CurrentRArmPart = RobotPartData;
+			if (RobotRArmGuideMeshRef) RobotRArmGuideMeshRef->SetVisibility(false);
+			PlayInsertPartEffect(RArmEffectPointRef);
+			bInserted = true;
 		}
-
-		CurrentRArmPart = RobotPartData;
-		UpdatePreviewMeshes();
-
-		if (RobotRArmGuideMeshRef)
-		{
-			RobotRArmGuideMeshRef->SetVisibility(false);
-		}
-
-		PlayInsertPartEffect(RArmEffectPointRef);
-
-		return;
 	}
-
 	// 왼다리 부품이면 왼다리 위치에 넣는다.
-	if (RobotPartData->MaterialTag == TEXT("RobotLLeg"))
+	else if (RobotPartData->MaterialTag == TEXT("RobotLLeg"))
 	{
-		if (CurrentLLegPart != nullptr)
+		if (CurrentLLegPart == nullptr)
 		{
-			return;
+			CurrentLLegPart = RobotPartData;
+			if (RobotLLegGuideMeshRef) RobotLLegGuideMeshRef->SetVisibility(false);
+			PlayInsertPartEffect(LLegEffectPointRef);
+			bInserted = true;
 		}
-
-		CurrentLLegPart = RobotPartData;
-		UpdatePreviewMeshes();
-
-		if (RobotLLegGuideMeshRef)
-		{
-			RobotLLegGuideMeshRef->SetVisibility(false);
-		}
-
-		PlayInsertPartEffect(LLegEffectPointRef);
-		return;
 	}
-
 	// 오른다리 부품이면 오른다리 위치에 넣는다.
-	if (RobotPartData->MaterialTag == TEXT("RobotRLeg"))
+	else if (RobotPartData->MaterialTag == TEXT("RobotRLeg"))
 	{
-		if (CurrentRLegPart != nullptr)
+		if (CurrentRLegPart == nullptr)
 		{
-			return;
+			CurrentRLegPart = RobotPartData;
+			if (RobotRLegGuideMeshRef) RobotRLegGuideMeshRef->SetVisibility(false);
+			PlayInsertPartEffect(RLegEffectPointRef);
+			bInserted = true;
 		}
-
-		CurrentRLegPart = RobotPartData;
-		UpdatePreviewMeshes();
-
-		if (RobotRLegGuideMeshRef)
-		{
-			RobotRLegGuideMeshRef->SetVisibility(false);
-		}
-
-		PlayInsertPartEffect(RLegEffectPointRef);
-
-		return ;
 	}
 
-	// 로봇 부품 태그가 아니면 실패
-	return ;
+	if (bInserted)
+	{
+		UpdatePreviewMeshes();
+		
+		// 서버 측에서 상호작용한 플레이어의 인벤토리 아이템 제거
+		if (APawn* InstigatorPawn = GetInstigator())
+		{
+			if (UFZFInventoryComponent* Inventory = InstigatorPawn->FindComponentByClass<UFZFInventoryComponent>())
+			{
+				Inventory->RemoveSelectedItem();
+			}
+		}
+		
+		TryCraftRobot();
+	}
 }
 
 bool AFZFRobotWorkbench::TryCraftRobot()

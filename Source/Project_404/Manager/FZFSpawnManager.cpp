@@ -49,6 +49,10 @@ void AFZFSpawnManager::BeginPlay()
 	TArray<AActor*> SpawnPoints;
 	// 시작 위치 설정
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATargetPoint::StaticClass(), SpawnPoints);
+
+	// 창고 아이템 스폰을 위한 인덱스 관리
+	int32 StorageItemIdx = 0;
+
 	if (SpawnPoints.Num() > 0)
 	{
 		for (AActor* SpawnPoint : SpawnPoints)
@@ -103,31 +107,43 @@ void AFZFSpawnManager::BeginPlay()
 			else if (SpawnPoint->ActorHasTag("StorageItemSlot"))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("창고 아이템 스폰 지역을 찾았습니다"));
-				for (int i = 0; i < GameInstance->StorageItems.Num(); ++i)
+				
+				// 해당 슬롯에 스폰할 아이템이 남아있는지 확인
+				if (StorageItemIdx < GameInstance->StorageItems.Num())
 				{
-					FName ItemKey = GameInstance->StorageItems[i];
+					FName ItemKey = GameInstance->StorageItems[StorageItemIdx];
 					FFZFItemRow* Row = ItemTable->FindRow<FFZFItemRow>(
 						ItemKey, TEXT("AFZFSpawnManager::SpawnStorageItem"));
-					if (!Row || !Row->ItemActorClass)
+					
+					if (Row && Row->ItemActorClass)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("창고 아이템 스폰 (%d): %s, 위치: (%lf, %f, %lf)"), 
+							StorageItemIdx, *ItemKey.ToString(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z);
+						
+						AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(
+							Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
+						
+						if (AFZFItemBase* ItemBase = Cast<AFZFItemBase>(SpawnedItem))
+						{
+							ItemBase->InitializeItem(Row->ItemData);
+						}
+						
+						// 다음 아이템으로 인덱스 증가
+						StorageItemIdx++;
+					}
+					else
 					{
 						UE_LOG(LogTemp, Warning, TEXT("해당 키에 매핑된 아이템 클래스가 없습니다: %s"), *ItemKey.ToString());
-						return;
-					}
-
-					UE_LOG(LogTemp, Warning, TEXT("창고 아이템 스폰: 스폰 위치: (%lf, %f, %lf)"), SpawnLocation.X,
-					       SpawnLocation.Y, SpawnLocation.Z);
-					AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(
-						Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
-					if (AFZFItemBase* ItemBase = Cast<AFZFItemBase>(SpawnedItem))
-					{
-						ItemBase->InitializeItem(Row->ItemData);
-					}
-					if (SpawnedItem)
-					{
-						// 스폰된 아이템 액터에 런타임 데이터 세팅이 필요하다면 여기서 수행
 					}
 				}
 			}
+		}
+
+		// 모든 아이템 스폰이 끝난 후, 중복 스폰 방지를 위해 목록 초기화
+		if (StorageItemIdx > 0)
+		{
+			GameInstance->StorageItems.Empty();
+			UE_LOG(LogTemp, Warning, TEXT("서버: 창고 아이템 스폰 완료. 목록을 비웠습니다."));
 		}
 	}
 	else
