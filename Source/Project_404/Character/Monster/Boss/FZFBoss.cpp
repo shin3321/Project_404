@@ -14,6 +14,7 @@
 #include "AI/Boss/FZFBossState.h"
 #include "AI/Boss/FZFBossAI.h"
 #include "Boss/FZFEnergyRelay.h"
+#include "Manager/FZFBossLevelManager.h"
 #include "DrawDebugHelpers.h"
 
 AFZFBoss::AFZFBoss()
@@ -391,13 +392,26 @@ void AFZFBoss::AttackByAI()
 // 맵 패턴 호출
 void AFZFBoss::RequestMapPattern(const FBossSkillInfo& Skill)
 {
-	// 맵 패턴 메니저에게 패턴 시작 요청
+	if (!HasAuthority())
+	{
+		return;
+	}
 
+	UE_LOG(LogTemp, Warning, TEXT("맵 패턴 시작합니다: %s"), *Skill.SkillName.ToString());
+
+	if (!BossLevelManager)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BossLevelManager is null"));
+		NotifyAttackActionEnd();
+		return;
+	}
+
+	// 맵 패턴 메니저에게 패턴 시작 요청
+	BossLevelManager->StartMapPattern(Skill.SkillName);
 
 	// 정해진 스킬 시간동안 패턴 실행 후 중단되게 시간 설정.
-	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
-		TimerHandle,
+		MapPatternTimerHandle,
 		this,
 		&AFZFBoss::NotifyAttackActionEnd,
 		Skill.MapPatternDuration,
@@ -410,7 +424,16 @@ void AFZFBoss::RequestMapPattern(const FBossSkillInfo& Skill)
 // 맵 패턴 중지
 void AFZFBoss::StopMapPattern()
 {
-	// TODO: MapPatternManager에게 현재 패턴 정지 요청
+	// MapPatternManager에게 현재 패턴 정지 요청
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(MapPatternTimerHandle);
+	}
+
+	if (BossLevelManager)
+	{
+		BossLevelManager->StopMapPattern();
+	}
 }
 
 void AFZFBoss::HandleEnergyRelayDestroyed(AFZFEnergyRelay* Relay)
@@ -530,6 +553,12 @@ void AFZFBoss::OnBossPhaseTransition(int32 NewPhase)
 				);
 			}
 		}
+	}
+
+	// 페이즈 변경 시 함정 소환
+	if (BossLevelManager)
+	{
+		BossLevelManager->OnBossPhaseChanged(NewPhase);
 	}
 
 	// 보스 죽음 처리
