@@ -178,7 +178,7 @@ public:
 	void BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn);
 
 	// 보스방 버튼 홀드 종료 / 취소
-	void EndBossroomHold();
+	void StopBossroomHold();
 
 	// 서버에서 보스방 홀드 시작
 	UFUNCTION(Server, Reliable)
@@ -186,7 +186,7 @@ public:
 
 	// 서버에서 보스방 홀드 종료
 	UFUNCTION(Server, Reliable)
-	void ServerEndBossroomHold();
+	void ServerStopBossroomHold();
 
 	// Attribute 변경 핸들러 함수들
 	UFUNCTION()

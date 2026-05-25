@@ -103,5 +103,5 @@ void AFZFBossroomBtn::OnBoxEndOverlap(
 	OverlappingPlayers.Remove(Player);
 
 	// 해당 플레이어가 범위를 나갔으므로 보스방 홀드 종료
-	Player->EndBossroomHold();
+	Player->StopBossroomHold();
 }

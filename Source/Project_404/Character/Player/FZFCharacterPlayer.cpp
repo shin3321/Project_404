@@ -1,4 +1,4 @@
-#include "Character/Player/FZFCharacterPlayer.h"
+﻿#include "Character/Player/FZFCharacterPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 
@@ -512,7 +512,7 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this,
-		                                   &AFZFCharacterPlayer::Interact);
+			&AFZFCharacterPlayer::Interact);
 
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this,
@@ -520,25 +520,26 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 		// Interaction
 		EnhancedInputComponent->BindAction(PickaxeAction, ETriggerEvent::Started, this,
-		                                   &AFZFCharacterPlayer::TogglePickaxe);
+			&AFZFCharacterPlayer::TogglePickaxe);
 
 		// DropItem
 		EnhancedInputComponent->BindAction(DropItemAction, ETriggerEvent::Started, this,
-		                                   &AFZFCharacterPlayer::DropSelectedItem);
+			&AFZFCharacterPlayer::DropSelectedItem);
 
 		// 숫자키 입력과 슬롯 선택 함수 연결
 		EnhancedInputComponent->BindAction(Slot1Action, ETriggerEvent::Started, this,
-		                                   &AFZFCharacterPlayer::SelectSlot1);
+			&AFZFCharacterPlayer::SelectSlot1);
 		EnhancedInputComponent->BindAction(Slot2Action, ETriggerEvent::Started, this,
-		                                   &AFZFCharacterPlayer::SelectSlot2);
+			&AFZFCharacterPlayer::SelectSlot2);
 		EnhancedInputComponent->BindAction(Slot3Action, ETriggerEvent::Started, this,
-		                                   &AFZFCharacterPlayer::SelectSlot3);
+			&AFZFCharacterPlayer::SelectSlot3);
 		EnhancedInputComponent->BindAction(Slot4Action, ETriggerEvent::Started, this,
-		                                   &AFZFCharacterPlayer::SelectSlot4);
+			&AFZFCharacterPlayer::SelectSlot4);
 		EnhancedInputComponent->BindAction(Slot5Action, ETriggerEvent::Started, this,
-		                                   &AFZFCharacterPlayer::SelectSlot5);
+			&AFZFCharacterPlayer::SelectSlot5);
 	}
 }
+
 
 void AFZFCharacterPlayer::ApplyMappingContext(UInputMappingContext* InMappingContext)
 {
@@ -1144,7 +1145,7 @@ void AFZFCharacterPlayer::SelectSlot5()
 void AFZFCharacterPlayer::StopHoldInteract()
 {
 	// 보스방 홀드 종료 처리
-	EndBossroomHold();
+	StopBossroomHold();
 }
 
 // 보스방 버튼 홀드 시작
@@ -1152,6 +1153,12 @@ void AFZFCharacterPlayer::BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn)
 {
 	// 버튼이 없으면 시작 불가
 	if (!InBossroomBtn)
+	{
+		return;
+	}
+
+	// 버튼 범위 안에 있는 플레이어만 홀드 시작 가능
+	if (!InBossroomBtn->CanInteract(this))
 	{
 		return;
 	}
@@ -1176,13 +1183,19 @@ void AFZFCharacterPlayer::BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn)
 	}
 }
 
+// 서버에서 보스방 홀드 시작 처리
+void AFZFCharacterPlayer::ServerBeginBossroomHold_Implementation(AFZFBossroomBtn* InBossroomBtn)
+{
+	BeginBossroomHold(InBossroomBtn);
+}
+
 // 보스방 버튼 홀드 종료 / 취소
-void AFZFCharacterPlayer::EndBossroomHold()
+void AFZFCharacterPlayer::StopBossroomHold()
 {
 	// 클라이언트에서 호출됐다면 서버로 홀드 종료 요청
 	if (!HasAuthority())
 	{
-		ServerEndBossroomHold();
+		ServerStopBossroomHold();
 	}
 
 	// 로컬에서도 즉시 홀드 상태 해제
@@ -1196,6 +1209,12 @@ void AFZFCharacterPlayer::EndBossroomHold()
 		HUDWidget->HideHoldProgress();
 		HUDWidget->UpdateHoldProgress(0.0f);
 	}
+}
+
+// 서버에서 보스방 홀드 종료 처리
+void AFZFCharacterPlayer::ServerStopBossroomHold_Implementation()
+{
+	StopBossroomHold();
 }
 
 void AFZFCharacterPlayer::OnCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
