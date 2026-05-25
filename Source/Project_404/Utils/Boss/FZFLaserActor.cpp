@@ -10,6 +10,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "Character/Player/FZFCharacterPlayer.h"
+#include "Physics/FZFCollision.h"
 
 // Sets default values
 AFZFLaserActor::AFZFLaserActor()
@@ -31,7 +32,7 @@ AFZFLaserActor::AFZFLaserActor()
 
 	//
 	CollisionComp->SetBoxExtent(FVector(500.f, 10.f, 10.f));
-	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	CollisionComp->SetCollisionResponseToChannel(CCHANNEL_FZFPLAYER, ECR_Overlap);
 	
 	LaserEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LaserEffectComp"));
 	LaserEffectComp->SetupAttachment(CollisionComp); // 콜리전을 따라다니도록 설정
@@ -42,13 +43,11 @@ AFZFLaserActor::AFZFLaserActor()
 	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AFZFLaserActor::OnComponentBeginOverlap);
 }
 
-// Called when the game starts or when spawned
 void AFZFLaserActor::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-// Called every frame
 void AFZFLaserActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
