@@ -98,7 +98,8 @@ void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDat
 		{
 			// 현재 장착된 아이템 데이터 가져오기
 			UFZFItemData* CurrentItemData = nullptr;
-			if (UFZFHeldItemComponent* HeldItemComp = Avatar->FindComponentByClass<UFZFHeldItemComponent>())
+			UFZFHeldItemComponent* HeldItemComp = Avatar->FindComponentByClass<UFZFHeldItemComponent>(); // 태그 추출을 위해 바깥으로 변수 선언 통합
+			if (HeldItemComp)
 			{
 				CurrentItemData = HeldItemComp->GetCurrentItemData();
 			}
@@ -106,6 +107,7 @@ void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDat
 			// 서버에서만 GameplayCue 실행 (모든 클라이언트에 복제됨)
 			if (HasAuthority(&CurrentActivationInfo))
 			{
+				FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
 				FGameplayCueParameters CueParams;
 				// 히트 결과가 있다면 해당 위치를, 없다면 기본 사거리 끝 지점을 사용하도록 TA에서 데이터를 잘 만들어줌
 				const FHitResult* HitResult = DataHandle.Get(0)->GetHitResult();
@@ -115,7 +117,7 @@ void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDat
 					// Trace 시작점이나 방향 정보가 필요하다면 Normal이나 Origin 등을 활용 가능
 					CueParams.Normal = HitResult->ImpactNormal;
 				}
-				
+
 				// 시전자 정보를 넘겨서 시작 위치(총구 등)를 계산할 수 있게 함
 				CueParams.Instigator = Avatar;
 
@@ -154,6 +156,17 @@ void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDat
 						FGameplayEffectSpecHandle NewSpecHandle = ASC->MakeOutgoingSpec(EffectClass, GetAbilityLevel(), EffectContext);
 						if (NewSpecHandle.IsValid())
 						{
+							// 현재 장착 무기의 AttackTag를 이펙트 스펙에 동적으로 주입
+							if (HeldItemComp)
+							{
+								FGameplayTag WeaponAttackTag = HeldItemComp->GetCurrentAttackTag();
+								if (WeaponAttackTag.IsValid())
+								{
+									NewSpecHandle.Data.Get()->AppendDynamicAssetTags(FGameplayTagContainer(WeaponAttackTag));
+									UE_LOG(LogTemp, Log, TEXT("[AttackHitCheck] 성공: 무기 동적 태그 주입 -> %s"), *WeaponAttackTag.ToString());
+								}
+							}
+
 							// 타겟 데이터 핸들(DataHandle) 내에 있는 대상들에게 스펙 적용
 							ApplyGameplayEffectSpecToTarget(
 								CurrentSpecHandle,      // 어빌리티 스펙 핸들
@@ -166,7 +179,7 @@ void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDat
 					}
 				}
 			}
-		}		
+		}
 	}
 
 	// 모든 로직이 완료되면 능력을 종료

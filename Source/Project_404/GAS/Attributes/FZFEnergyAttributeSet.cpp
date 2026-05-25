@@ -91,40 +91,44 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 		// 데미지 버퍼 변수는 누적되지 않도록 즉시 0
 		SetDamage(0.0f);
 
-		// 들어온 이펙트의 Asset Tags 확인
-		// => GE : Component -> AssetTags에 추가할 수 있음
-		FGameplayTagContainer AssetTags;
-		Data.EffectSpec.GetAllAssetTags(AssetTags);
+		// 🎯 어빌리티에서 AppendDynamicAssetTags로 넣어준 태그 주머니를 통째로 가져옵니다.
+		FGameplayTagContainer AssetTags = Data.EffectSpec.DynamicGrantedTags;
 
+		// 디버그용 로그: 어떤 무기 태그가 묻어 들어왔는지 확인
+		UE_LOG(LogTemp, Log, TEXT("[RelayAttr] 동적 주입된 무기 태그: %s"), *AssetTags.ToString());
+		// 디버그용: 현재 추출된 태그가 도대체 무엇인지 로그로 전부 출력해봅니다. (Empty 탈출용)
+		UE_LOG(LogTemp, Log, TEXT("[RelayAttr] 추출된 태그 목록: %s"), *AssetTags.ToString());
 		FGameplayTag GunTag = FZFGameplayTags::Ability_Action_Attack_Rifle;
 		FGameplayTag PickaxeTag = FZFGameplayTags::Ability_Action_Attack_Pickaxe;
 		FGameplayTag RobotTag = FZFGameplayTags::Ability_Action_Attack_Robot;
 
 		// 조건 검사: 곡괭이 또는 로봇 공격이 맞는지 확인
-		if (AssetTags.HasTag(PickaxeTag) || AssetTags.HasTag(RobotTag)|| AssetTags.HasTag(GunTag))
-		if (LocalDamage > 0.0f)
+		if (AssetTags.HasTag(PickaxeTag) || AssetTags.HasTag(RobotTag) || AssetTags.HasTag(GunTag))
 		{
-			// [수정] GE단에서 이미 곡괭이 태그 검사를 마쳤으므로, 
-			// C++ 내부의 복잡한 if (AssetTags.HasTag) 조건문 없이 바로 데미지를 적용합니다.
-			const float NewHP = FMath::Max(GetHP() - LocalDamage, 0.0f);
-			SetHP(NewHP);
-
-			UE_LOG(LogTemp, Warning, TEXT("[RelayAttr] 데미지 적중! Damage=%f | 남은 HP=%f"),
-				LocalDamage,
-				GetHP());
-
-			// 체력이 0이 되었을 때 보스 연동 처리
-			if (NewHP <= 0.0f)
+			if (LocalDamage > 0.0f)
 			{
-				AActor* OwnerActor = Data.Target.GetAvatarActor();
-				if (OwnerActor)
+				// [수정] GE단에서 이미 곡괭이 태그 검사를 마쳤으므로, 
+				// C++ 내부의 복잡한 if (AssetTags.HasTag) 조건문 없이 바로 데미지를 적용합니다.
+				const float NewHP = FMath::Max(GetHP() - LocalDamage, 0.0f);
+				SetHP(NewHP);
+
+				UE_LOG(LogTemp, Warning, TEXT("[RelayAttr] 데미지 적중! Damage=%f | 남은 HP=%f"),
+					LocalDamage,
+					GetHP());
+
+				// 체력이 0이 되었을 때 보스 연동 처리
+				if (NewHP <= 0.0f)
 				{
-					// 동력원 액터로 캐스팅
-					AFZFEnergyRelay* EnergyRelay = Cast<AFZFEnergyRelay>(OwnerActor);
-					if (EnergyRelay)
+					AActor* OwnerActor = Data.Target.GetAvatarActor();
+					if (OwnerActor)
 					{
-						// 보스 피 깎기 및 고리 파괴 함수 호출
-						EnergyRelay->HandleDead();
+						// 동력원 액터로 캐스팅
+						AFZFEnergyRelay* EnergyRelay = Cast<AFZFEnergyRelay>(OwnerActor);
+						if (EnergyRelay)
+						{
+							// 보스 피 깎기 및 고리 파괴 함수 호출
+							EnergyRelay->HandleDead();
+						}
 					}
 				}
 			}
