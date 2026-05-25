@@ -10,6 +10,8 @@
 
 class AFZFCharacterPlayer;
 class UPrimitiveComponent;
+class UNiagaraComponent;
+class UNiagaraSystem;
 
 UCLASS()
 class PROJECT_404_API AFZFItemBase : public AActor, public IFZFInteractableInterface
@@ -41,6 +43,25 @@ protected:
 	void ApplyAutoFitMeshScale();
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Effect")
+	TObjectPtr<UNiagaraComponent> WeaponParticle;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Effect")
+	TObjectPtr<UNiagaraComponent> MaterialParticle;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Effect")
+	TObjectPtr<UNiagaraComponent> RobotPartParticle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Effect")
+	TObjectPtr<UNiagaraSystem> WeaponParticleSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Effect")
+	TObjectPtr<UNiagaraSystem> MaterialParticleSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Effect")
+	TObjectPtr<UNiagaraSystem> RobotPartParticleSystem;
+	
+protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Item)
 	TObjectPtr<class UBoxComponent> Trigger;
@@ -55,4 +76,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<UFZFItemData> ItemData = nullptr;
+
+protected:
+	void UpdateItemParticle();
+
+	void DeactivateAllItemParticles();
 };

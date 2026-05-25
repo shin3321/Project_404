@@ -6,6 +6,11 @@
 #include "Components/StaticMeshComponent.h"
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "Inventory/FZFInventoryComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
+#include "Item/ItemTypes.h"
+#include "Item/CraftMaterial/FZFCraftPartItemData.h"
+#include "Item/CraftMaterial/FZFRobotPartItemData.h"
 
 // Sets default values
 AFZFItemBase::AFZFItemBase()
@@ -22,6 +27,45 @@ AFZFItemBase::AFZFItemBase()
 
     RootComponent = Trigger;
     Mesh->SetupAttachment(Trigger);
+
+    WeaponParticle = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WeaponParticle"));
+    WeaponParticle->SetupAttachment(Trigger);
+    WeaponParticle->SetAutoActivate(false);
+
+    MaterialParticle = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MaterialParticle"));
+    MaterialParticle->SetupAttachment(Trigger);
+    MaterialParticle->SetAutoActivate(false);
+
+    RobotPartParticle = CreateDefaultSubobject<UNiagaraComponent>(TEXT("RobotPartParticle"));
+    RobotPartParticle->SetupAttachment(Trigger);
+    RobotPartParticle->SetAutoActivate(false);
+
+    static ConstructorHelpers::FObjectFinder<UNiagaraSystem> WeaponVFXObj(
+        TEXT("/Game/Project404/Item/VFX/Niagara/NS_EuipmentItem.NS_EuipmentItem")
+    );
+
+    if (WeaponVFXObj.Succeeded())
+    {
+        WeaponParticleSystem = WeaponVFXObj.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UNiagaraSystem> VFXMaterialObj(
+        TEXT("/Game/Project404/Item/VFX/Niagara/NS_EquipmentMaterialItem.NS_EquipmentMaterialItem")
+    );
+
+    if (VFXMaterialObj.Succeeded())
+    {
+        MaterialParticleSystem = VFXMaterialObj.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UNiagaraSystem> RobotPartVFXObj(
+        TEXT("/Game/Project404/Item/VFX/Niagara/NS_RobotPartItem.NS_RobotPartItem")
+    );
+
+    if (RobotPartVFXObj.Succeeded())
+    {
+        RobotPartParticleSystem = RobotPartVFXObj.Object;
+    }
 }
 
 void AFZFItemBase::BeginPlay()
@@ -47,21 +91,24 @@ void AFZFItemBase::InitializeItem(UFZFItemData* InItemData)
 
 void AFZFItemBase::ApplyItemData()
 {
-    if (ItemData && ItemData->Mesh)
+    if (!ItemData || !ItemData->Mesh)
     {
-        Mesh->SetStaticMesh(ItemData->Mesh);
-        //
-        //UE_LOG(LogTemp, Log, TEXT("%s"), *ItemData->MeshScale.ToString());
-
-        if (ItemData->bAutoFitMeshToTrigger)
-        {
-            ApplyAutoFitMeshScale();
-        }
-        else
-        {
-            Mesh->SetRelativeScale3D(ItemData->MeshScale);
-        }
+        DeactivateAllItemParticles();
+        return;
     }
+
+    Mesh->SetStaticMesh(ItemData->Mesh);
+       
+    if (ItemData->bAutoFitMeshToTrigger)
+    {
+        ApplyAutoFitMeshScale();
+    }
+    else
+    {
+        Mesh->SetRelativeScale3D(ItemData->MeshScale);
+    }
+
+    UpdateItemParticle();
 }
 
 void AFZFItemBase::ApplyAutoFitMeshScale()
@@ -86,6 +133,68 @@ void AFZFItemBase::ApplyAutoFitMeshScale()
 
     Mesh->SetRelativeScale3D(FVector(FinalScale));
 }
+
+void AFZFItemBase::UpdateItemParticle()
+{
+    DeactivateAllItemParticles();
+
+    if (!ItemData)
+    {
+        return;
+    }
+
+    if (ItemData->ItemType == EItemType::Equipment)
+    {
+        if (WeaponParticle && WeaponParticleSystem)
+        {
+            WeaponParticle->SetAsset(WeaponParticleSystem);
+            WeaponParticle->Activate(true);
+        }
+
+        return;
+    }
+
+    if (ItemData->ItemType == EItemType::CraftMaterial && Cast<UFZFRobotPartItemData>(ItemData))
+    {
+        if (RobotPartParticle && RobotPartParticleSystem)
+        {
+            RobotPartParticle->SetAsset(RobotPartParticleSystem);
+            RobotPartParticle->Activate(true);
+        }
+
+        return;
+    }
+
+    if (ItemData->ItemType == EItemType::CraftMaterial && Cast<UFZFCraftPartItemData>(ItemData))
+    {
+        if (MaterialParticle && MaterialParticleSystem)
+        {
+            MaterialParticle->SetAsset(MaterialParticleSystem);
+            MaterialParticle->Activate(true);
+        }
+
+        return;
+    }
+}
+
+void AFZFItemBase::DeactivateAllItemParticles()
+{
+    if (WeaponParticle)
+    {
+        WeaponParticle->Deactivate();
+    }
+
+    if (MaterialParticle)
+    {
+        MaterialParticle->Deactivate();
+    }
+
+    if (RobotPartParticle)
+    {
+        RobotPartParticle->Deactivate();
+    }
+}
+
 
 void AFZFItemBase::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
 {
@@ -133,7 +242,8 @@ void AFZFItemBase::ApplyGroundRotation()
         GroundRot.Yaw += FMath::RandRange(0.0f, 360.0f);
     }
 
-    SetActorRotation(GroundRot);
+    //SetActorRotation(GroundRot);
+    Mesh->SetRelativeRotation(GroundRot);
 }
 
 // 바닥에 딱 맞게 배치하는 방식.
