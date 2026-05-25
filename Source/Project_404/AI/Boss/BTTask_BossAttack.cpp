@@ -27,32 +27,32 @@ EBTNodeResult::Type UBTTask_BossAttack::ExecuteTask(UBehaviorTreeComponent& Owne
 		return EBTNodeResult::Failed;
 	}
 
-	// 더미 동력원 파괴 테스트
-	TArray<AActor*> FoundRelays;
+	//// 더미 동력원 파괴 테스트
+	//TArray<AActor*> FoundRelays;
 
-	UGameplayStatics::GetAllActorsOfClass(
-		GetWorld(),
-		AFZFEnergyRelay::StaticClass(),
-		FoundRelays
-	);
+	//UGameplayStatics::GetAllActorsOfClass(
+	//	GetWorld(),
+	//	AFZFEnergyRelay::StaticClass(),
+	//	FoundRelays
+	//);
 
-	for (AActor* Actor : FoundRelays)
-	{
-		AFZFEnergyRelay* Relay = Cast<AFZFEnergyRelay>(Actor);
-		if (!Relay)
-		{
-			continue;
-		}
+	//for (AActor* Actor : FoundRelays)
+	//{
+	//	AFZFEnergyRelay* Relay = Cast<AFZFEnergyRelay>(Actor);
+	//	if (!Relay)
+	//	{
+	//		continue;
+	//	}
 
-		if (Relay->IsDead())
-		{
-			continue;
-		}
+	//	if (Relay->IsDead())
+	//	{
+	//		continue;
+	//	}
 
-		Relay->HandleDead();
-		break;
-	}
-	// 여기까지
+	//	Relay->HandleDead();
+	//	break;
+	//}
+	//// 여기까지
 
 	FBossAICharacterAttackFinished OnAttackFinished;
 
