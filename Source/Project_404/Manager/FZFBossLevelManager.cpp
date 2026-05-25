@@ -12,6 +12,7 @@
 #include "Engine/TargetPoint.h"
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "ProfilingDebugging/StallDetector.h"
+#include "Physics/FZFCollision.h"
 
 
 // Sets default values
@@ -186,7 +187,26 @@ void AFZFBossLevelManager::CreateTrigger()
 			UE_LOG(LogTemp, Warning, TEXT("보스 트리거 스폰 지역을 찾았습니다"));
 			if (SpawnedTrigger)
 			{
-				SpawnedTrigger->CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFZFBossLevelManager::OnBombTriggerOverlap);
+				SpawnedTrigger->CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+				// BossTrigger 채널로 변경
+				SpawnedTrigger->CollisionBox->SetCollisionObjectType(CCHANNEL_FZFBOSSTRIGGER);
+
+				// 일단 전부 무시
+				SpawnedTrigger->CollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+				// 플레이어만 오버랩
+				SpawnedTrigger->CollisionBox->SetCollisionResponseToChannel(CCHANNEL_FZFPLAYER, ECR_Overlap);
+
+				// 혹시 플레이어 캡슐이 Pawn이면 이것도
+				SpawnedTrigger->CollisionBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+				SpawnedTrigger->CollisionBox->SetGenerateOverlapEvents(true);
+
+				SpawnedTrigger->CollisionBox->OnComponentBeginOverlap.AddDynamic(
+					this,
+					&AFZFBossLevelManager::OnBombTriggerOverlap
+				);
 				UE_LOG(LogTemp, Warning, TEXT("보스 트리거 스폰 성공: %s"), *SpawnLocation.ToString());
 			}
 			else
@@ -213,7 +233,9 @@ void AFZFBossLevelManager::CreateBomb(FVector SpawnLocation)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("보스 폭탄 설치됨"));
 	}
-	// Todo 보스에게 신호 주기
+
+	// 보스에게 함정 유도 신호 주기
+	OnBossBombCreated.Broadcast(SpawnLocation);
 }
 
 void AFZFBossLevelManager::OnBombTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

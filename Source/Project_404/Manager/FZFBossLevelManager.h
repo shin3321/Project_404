@@ -7,6 +7,8 @@
 #include "FZFBossLevelManager.generated.h"
 class AFZFLaserActor;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBossBombCreatedEvent, FVector, BombLocation);
+
 UCLASS()
 class PROJECT_404_API AFZFBossLevelManager : public AActor
 {
@@ -34,6 +36,9 @@ public:
 	
 	UFUNCTION()
 	void DeactivateLaser(AFZFLaserActor* Laser);
+
+	UPROPERTY(BlueprintAssignable, Category = "Boss|Event")
+	FBossBombCreatedEvent OnBossBombCreated;
 
 protected:
 	FTimerHandle LaserTimerHandle;

@@ -47,8 +47,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Value", meta = (EditCondition = "ValueType == ESetBBValueType::Float"))
 	float FloatValue = 0.0f;
 
+	// 컴포짓 들어왔던 기존 상태
 	UPROPERTY(EditAnywhere, Category = "Value", meta = (EditCondition = "ValueType == ESetBBValueType::Enum_BossState"))
-	EBossState BossStateValue = EBossState::Active;
+	EBossState ExpectedState = EBossState::Waiting;
+
+	// 다음 전이 원하는 상태
+	UPROPERTY(EditAnywhere, Category = "Value", meta = (EditCondition = "ValueType == ESetBBValueType::Enum_BossState"))
+	EBossState NextState = EBossState::Active;
 
 	UPROPERTY(EditAnywhere, Category = "Value", meta = (EditCondition = "ValueType == ESetBBValueType::Vector"))
 	FVector VectorValue = FVector::ZeroVector;
