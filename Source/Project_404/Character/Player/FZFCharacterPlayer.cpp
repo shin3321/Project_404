@@ -652,12 +652,26 @@ void AFZFCharacterPlayer::EquipPickaxe()
 	// 손에 들고 있는 아이템 해제 후 도끼 생성.
 	InventoryComponent->SelectSlot(-1);
 	HeldItemComponent->HoldItem(PickaxeData);
+	if (ASC)
+	{
+		FGameplayTag PickaxeTag = FZFGameplayTags::Ability_Action_Attack_Pickaxe;
+		ASC->AddLooseGameplayTag(PickaxeTag);
+
+		UE_LOG(LogTemp, Warning, TEXT("[Pickaxe] 곡괭이 태그가 플레이어에게 부여되었습니다."));
+	}
 }
 
 void AFZFCharacterPlayer::UnEquipPickaxe()
 {
 	// 현재 들고있는 곡괭이 해제.
 	HeldItemComponent->ClearHeldItem();
+	if (ASC)
+	{
+		FGameplayTag PickaxeTag = FZFGameplayTags::Ability_Action_Attack_Pickaxe;
+		ASC->RemoveLooseGameplayTag(PickaxeTag);
+
+		UE_LOG(LogTemp, Warning, TEXT("[Pickaxe] 곡괭이 태그가 제거되었습니다."));
+	}
 }
 
 void AFZFCharacterPlayer::DropSelectedItem()

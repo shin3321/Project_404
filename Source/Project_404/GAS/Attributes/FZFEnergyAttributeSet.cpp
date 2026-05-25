@@ -29,6 +29,59 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 {
 	Super::PostGameplayEffectExecute(Data);
 
+	//// Gameplay Effect를 통해 'Damage' 속성이 들어왔을 때 처리
+	//if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	//{
+	//	// 들어온 임시 데미지 양을 로컬 변수에 저장
+	//	const float LocalDamage = GetDamage();
+
+	//	// 데미지 버퍼 변수는 누적되지 않도록 즉시 0
+	//	SetDamage(0.0f);
+
+	//	// 들어온 이펙트의 Asset Tags 확인
+	//	// => GE : Component -> AssetTags에 추가할 수 있음
+	//	FGameplayTagContainer AssetTags;
+	//	Data.EffectSpec.GetAllAssetTags(AssetTags);
+
+	//	FGameplayTag PickaxeTag = FZFGameplayTags::Ability_Action_Attack_Pickaxe;
+	//	FGameplayTag RobotTag = FZFGameplayTags::Ability_Action_Attack_Robot;
+
+	//	// 조건 검사: 곡괭이 또는 로봇 공격이 맞는지 확인
+	//	if (AssetTags.HasTag(PickaxeTag) || AssetTags.HasTag(RobotTag))
+	//	{
+	//		// 유효한 공격이므로 실제 HP를 차감하고, 0 아래로 내려가지 않게 Clamping
+	//		const float NewHP = FMath::Max(GetHP() - LocalDamage, 0.0f);
+	//		SetHP(NewHP);
+
+	//		UE_LOG(LogTemp, Warning, TEXT("[RelayAttr] Damage=%f HP=%f"),
+	//			LocalDamage,
+	//			GetHP());
+
+	//		// 체력이 0 이하(정확히 0)가 되었을 때 보스 연동 처리
+	//		if (NewHP <= 0.0f)
+	//		{
+	//			AActor* OwnerActor = Data.Target.GetAvatarActor();
+	//			if (OwnerActor)
+	//			{
+	//				// 동력원 액터로 캐스팅
+	//				AFZFEnergyRelay* EnergyRelay = Cast<AFZFEnergyRelay>(OwnerActor);
+	//				if (!EnergyRelay)
+	//				{
+	//					return;
+	//				}
+
+	//				// 보스 피 깎기 및 고리 파괴 함수 호출
+	//				EnergyRelay->HandleDead();
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		// 곡괭이나 로봇이 아니면 무시
+	//		// HP를 건드리지 않으므로 아무런 이펙트 변화 없이 데미지가 공중분해
+	//	}
+	//}
+
 	// Gameplay Effect를 통해 'Damage' 속성이 들어왔을 때 처리
 	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
@@ -38,26 +91,18 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 		// 데미지 버퍼 변수는 누적되지 않도록 즉시 0
 		SetDamage(0.0f);
 
-		// 들어온 이펙트의 Asset Tags 확인
-		// => GE : Component -> AssetTags에 추가할 수 있음
-		FGameplayTagContainer AssetTags;
-		Data.EffectSpec.GetAllAssetTags(AssetTags);
-
-		FGameplayTag PickaxeTag = FZFGameplayTags::Ability_Action_Attack_Pickaxe;
-		FGameplayTag RobotTag = FZFGameplayTags::Ability_Action_Attack_Robot;
-
-		// 조건 검사: 곡괭이 또는 로봇 공격이 맞는지 확인
-		if (AssetTags.HasTag(PickaxeTag) || AssetTags.HasTag(RobotTag))
+		if (LocalDamage > 0.0f)
 		{
-			// 유효한 공격이므로 실제 HP를 차감하고, 0 아래로 내려가지 않게 Clamping
+			// [수정] GE단에서 이미 곡괭이 태그 검사를 마쳤으므로, 
+			// C++ 내부의 복잡한 if (AssetTags.HasTag) 조건문 없이 바로 데미지를 적용합니다.
 			const float NewHP = FMath::Max(GetHP() - LocalDamage, 0.0f);
 			SetHP(NewHP);
 
-			UE_LOG(LogTemp, Warning, TEXT("[RelayAttr] Damage=%f HP=%f"),
+			UE_LOG(LogTemp, Warning, TEXT("[RelayAttr] 데미지 적중! Damage=%f | 남은 HP=%f"),
 				LocalDamage,
 				GetHP());
 
-			// 체력이 0 이하(정확히 0)가 되었을 때 보스 연동 처리
+			// 체력이 0이 되었을 때 보스 연동 처리
 			if (NewHP <= 0.0f)
 			{
 				AActor* OwnerActor = Data.Target.GetAvatarActor();
@@ -65,20 +110,13 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 				{
 					// 동력원 액터로 캐스팅
 					AFZFEnergyRelay* EnergyRelay = Cast<AFZFEnergyRelay>(OwnerActor);
-					if (!EnergyRelay)
+					if (EnergyRelay)
 					{
-						return;
+						// 보스 피 깎기 및 고리 파괴 함수 호출
+						EnergyRelay->HandleDead();
 					}
-
-					// 보스 피 깎기 및 고리 파괴 함수 호출
-					EnergyRelay->HandleDead();
 				}
 			}
-		}
-		else
-		{
-			// 곡괭이나 로봇이 아니면 무시
-			// HP를 건드리지 않으므로 아무런 이펙트 변화 없이 데미지가 공중분해
 		}
 	}
 }

@@ -18,39 +18,76 @@ AFZFEnergyRelay::AFZFEnergyRelay()
 
 void AFZFEnergyRelay::BeginPlay()
 {
+    //Super::BeginPlay();
+
+    //if (ASC)
+    //{
+    //    ASC->InitAbilityActorInfo(this, this);
+    //}
+
+    //// 맵에 배치된 기본 위치 저장
+    //FVector BaseLocation = GetActorLocation();
+
+    //// 완전히 등장했을 때 위치
+    //ShownLocation = BaseLocation + ShownLocationOffset;
+
+    //// 땅속에 숨겨졌을 때 위치
+    //HiddenLocation = BaseLocation + HiddenLocationOffset;
+
+    //// 처음 시작 위치를 숨김 위치로 설정
+    //SetActorLocation(HiddenLocation);
+
+
+    //if (TargetBoss)
+    //{
+    //    TargetBoss->OnBossWaitingStarted.AddDynamic(
+    //        this,
+    //        &AFZFEnergyRelay::HandleBossWaitingStarted
+    //    );
+
+    //    TargetBoss->OnBossWaitingEnded.AddDynamic(
+    //        this,
+    //        &AFZFEnergyRelay::HandleBossWaitingEnded
+    //    );
+    //}
+
+    //UE_LOG(LogTemp, Warning, TEXT("[Relay] ASC: %s / AttrSet: %s / HasAuthority: %d"),
+    //    *GetNameSafe(ASC),
+    //    *GetNameSafe(EnergyAttributeSet),
+    //    HasAuthority());
+
     Super::BeginPlay();
 
     if (ASC)
     {
+        // 1. ActorInfo 초기화
         ASC->InitAbilityActorInfo(this, this);
+
+        // 💡 [핵심 추가] ASC에게 생성된 AttributeSet을 강제로 명시적 등록/스폰 확인을 해줍니다.
+        // 이 코드가 들어가야 GAS가 "아, 나한테 EnergyAttributeSet 주머니가 있구나!" 하고 데미지를 받기 시작합니다.
+        if (EnergyAttributeSet)
+        {
+            // 아직 등록되지 않았다면 ASC의 SpawnedAttributes 배열에 추가해 주는 안전장치
+            if (!ASC->GetSpawnedAttributes().Contains(EnergyAttributeSet))
+            {
+                ASC->AddSpawnedAttribute(EnergyAttributeSet);
+            }
+        }
     }
 
     // 맵에 배치된 기본 위치 저장
     FVector BaseLocation = GetActorLocation();
-
-    // 완전히 등장했을 때 위치
     ShownLocation = BaseLocation + ShownLocationOffset;
-
-    // 땅속에 숨겨졌을 때 위치
     HiddenLocation = BaseLocation + HiddenLocationOffset;
-
-    // 처음 시작 위치를 숨김 위치로 설정
     SetActorLocation(HiddenLocation);
-
 
     if (TargetBoss)
     {
-        TargetBoss->OnBossWaitingStarted.AddDynamic(
-            this,
-            &AFZFEnergyRelay::HandleBossWaitingStarted
-        );
-
-        TargetBoss->OnBossWaitingEnded.AddDynamic(
-            this,
-            &AFZFEnergyRelay::HandleBossWaitingEnded
-        );
+        TargetBoss->OnBossWaitingStarted.AddDynamic(this, &AFZFEnergyRelay::HandleBossWaitingStarted);
+        TargetBoss->OnBossWaitingEnded.AddDynamic(this, &AFZFEnergyRelay::HandleBossWaitingEnded);
     }
 
+    // 디버그 로그로 확실하게 살피기
     UE_LOG(LogTemp, Warning, TEXT("[Relay] ASC: %s / AttrSet: %s / HasAuthority: %d"),
         *GetNameSafe(ASC),
         *GetNameSafe(EnergyAttributeSet),
