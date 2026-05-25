@@ -9,6 +9,10 @@
 #include "Character/Monster/MonsterData/FZFBossData.h" // 이거 보스 전용으로 변경
 #include "FZFBoss.generated.h"
 
+class AFZFEnergyRelay;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBossWaitingEvent);
+
 /**
  * 
  */
@@ -42,6 +46,9 @@ protected:
 	// AttributeSet 초기화
 	virtual void InitAttributesFromData();
 
+	// 동력원 파괴 델리게이트 초기화
+	void BindEnergyRelayEvents();
+
 	/* 인터페이스 */
 protected:
 	// BT 전달 함수
@@ -50,11 +57,70 @@ protected:
 		return BossData ? BossData->BehaviorTree : nullptr;
 	};
 
+	// BossData 불러오기 함수
+	FORCEINLINE virtual UFZFBossData* GetData() override
+	{
+		return BossData ? BossData : nullptr;
+	};
+
+	// BossMesh 가져오기.
+	FORCEINLINE virtual USkeletalMeshComponent* GetBossMesh() const override
+	{
+		return GetMesh();
+	};
+
+	// 선택된 스킬 저장/불러오기 함수
+	FORCEINLINE void SetCurrentSelectedSkill(const FBossSkillInfo& Skill) override
+	{
+		CurrentSelectedSkill = Skill;
+	};
+	FORCEINLINE const FBossSkillInfo* GetCurrentSelectedSkill() const override
+	{
+		return &CurrentSelectedSkill;
+	};
+
+
 	// Task에서 공격 처리 호출 함수
 	virtual void SetAIAttackDelegate(const FBossAICharacterAttackFinished& InOnAttackFinished) override;
 	virtual void AttackByAI() override;
+	virtual void RequestMapPattern(const FBossSkillInfo& Skill) override;
+
+	// 공격 종료/정리 함수.
+	virtual void ResetBossAction() override;
+
+	// 외부 동력원 델리게이트 전달 함수.
+	UFUNCTION()
+	void NotifyWaitingStarted() override;
+	UFUNCTION()
+	void NotifyWaitingEnded() override;
+
+	// 페이즈 전환 함수.
+	virtual void OnBossPhaseTransition(int32 NewPhase) override;
+
+	/* 클래스 멤버 함수*/
+public:
+	// 공격 모션(몽타주 재생) 종료 시 호출되는 이벤트 함수.
+	void NotifyAttackActionEnd();
+
+	void StopMapPattern();
+
+protected:
+	// 동력원 파괴 델리게이트 호출 함수
+	UFUNCTION()
+	void HandleEnergyRelayDestroyed(AFZFEnergyRelay* Relay);
+
+	// 죽음 처리 함수
+	virtual void SetDead() override;
 
 	/* 클래스 멤버 변수 */
+public:
+	// 외부 동력원 델리게이트 호출 관련
+	UPROPERTY(BlueprintAssignable, Category = "Boss|Event")
+	FBossWaitingEvent OnBossWaitingStarted;
+
+	UPROPERTY(BlueprintAssignable, Category = "Boss|Event")
+	FBossWaitingEvent OnBossWaitingEnded;
+
 private:
 	// 초기화 순서 체크 플래그
 	bool bBeginPlayReady = false;
@@ -84,7 +150,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data)
 	TObjectPtr<UFZFBossData> BossData;
 
+	// 현재 선택된 스킬 정보
+	UPROPERTY()
+	FBossSkillInfo CurrentSelectedSkill;
+
+	// 고리 매시 저장
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Ring")
 	TArray<TObjectPtr<USkeletalMeshComponent>> RingMeshes;
 
+	// 동력원 이벤트 구독 관련
+	UPROPERTY(EditInstanceOnly, Category = "Boss|Relay")
+	TArray<TObjectPtr<AFZFEnergyRelay>> EnergyRelays;
+
+	// 부서진 고리
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Ring")
+	TArray<TSubclassOf<AActor>> BrokenRingActorClasses;
+
+	// 죽은 후 대기할 시간 값(단위: 초).
+	float DeadEventDelayTime = 7.0f;
 };

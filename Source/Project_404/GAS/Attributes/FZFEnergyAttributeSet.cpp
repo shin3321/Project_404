@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 #include "GameplayTag/FZFGameplayTags.h"
+#include "Boss/FZFEnergyRelay.h"
 
 UFZFEnergyAttributeSet::UFZFEnergyAttributeSet()
 {
@@ -52,6 +53,10 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 			const float NewHP = FMath::Max(GetHP() - LocalDamage, 0.0f);
 			SetHP(NewHP);
 
+			UE_LOG(LogTemp, Warning, TEXT("[RelayAttr] Damage=%f HP=%f"),
+				LocalDamage,
+				GetHP());
+
 			// 4. 체력이 0 이하(정확히 0)가 되었을 때 보스 연동 처리
 			if (NewHP <= 0.0f)
 			{
@@ -59,8 +64,14 @@ void UFZFEnergyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 				if (OwnerActor)
 				{
 					// 동력원 액터로 캐스팅
+					AFZFEnergyRelay* EnergyRelay = Cast<AFZFEnergyRelay>(OwnerActor);
+					if (!EnergyRelay)
+					{
+						return;
+					}
 
 					// 보스 피 깎기 및 고리 파괴 함수 호출
+					EnergyRelay->HandleDead();
 				}
 			}
 		}

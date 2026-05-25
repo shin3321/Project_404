@@ -7,8 +7,13 @@
 #include "AI/Boss/FZFBossAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayTag/FZFGameplayTags.h"
+#include "Abilities/GameplayAbility.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Character/Monster/MonsterData/FZFBossData.h" // 이거 보스 전용으로 변경
+#include "BehaviorTree/BlackboardComponent.h"
+#include "AI/Boss/FZFBossState.h"
+#include "AI/Boss/FZFBossAI.h"
+#include "Boss/FZFEnergyRelay.h"
 #include "DrawDebugHelpers.h"
 
 AFZFBoss::AFZFBoss()
@@ -185,8 +190,12 @@ void AFZFBoss::InitializeBossServer()
 	// 3. AttributeSet 값 초기화
 	InitAttributesFromData();
 
+	// 4. 동력원 파괴 이벤트 바인딩
+	BindEnergyRelayEvents();
+
+
 	// Fix: 나중에 Intro 연출 후 실행되게 빼야함!
-	// 4. BT 실행 
+	// 5. BT 실행 
 	AFZFBossAIController* AIController = Cast<AFZFBossAIController>(GetController());
 	if (!AIController || !BossData || !BossData->BehaviorTree)
 	{
@@ -226,12 +235,33 @@ void AFZFBoss::InitAbilitySystem()
 
 		if (HasAuthority())
 		{
+			TSet<TSubclassOf<UGameplayAbility>> GrantedAbilityClasses;
+
+			// 기존 공통 Ability 지급
 			for (const auto& StartupAbility : StartupAbilities)
 			{
-				if (StartupAbility)
+				if (StartupAbility &&
+					!GrantedAbilityClasses.Contains(StartupAbility))
 				{
-					FGameplayAbilitySpec StartSpec(StartupAbility);
-					ASC->GiveAbility(StartSpec);
+					ASC->GiveAbility(
+						FGameplayAbilitySpec(StartupAbility)
+					);
+
+					GrantedAbilityClasses.Add(StartupAbility);
+				}
+			}
+
+			// SkillList의 Ability 지급
+			for (const FBossSkillInfo& Skill : BossData->SkillList)
+			{
+				if (Skill.AbilityClass &&
+					!GrantedAbilityClasses.Contains(Skill.AbilityClass))
+				{
+					ASC->GiveAbility(
+						FGameplayAbilitySpec(Skill.AbilityClass)
+					);
+
+					GrantedAbilityClasses.Add(Skill.AbilityClass);
 				}
 			}
 		}
@@ -272,6 +302,28 @@ void AFZFBoss::InitAttributesFromData() // 보스 전용을 만들면 AttributeS
 	FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
 }
 
+void AFZFBoss::BindEnergyRelayEvents()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	for (AFZFEnergyRelay* Relay : EnergyRelays)
+	{
+		if (!Relay)
+		{
+			continue;
+		}
+
+		Relay->OnRelayDestroyed.AddDynamic(
+			this,
+			&AFZFBoss::HandleEnergyRelayDestroyed
+		);
+	}
+}
+
+
 // 공격 여부 델리게이트 저장
 void AFZFBoss::SetAIAttackDelegate(const FBossAICharacterAttackFinished& InOnAttackFinished)
 {
@@ -290,9 +342,262 @@ void AFZFBoss::AttackByAI()
 		return;
 	}
 
-	// GAS 어빌리티 실행 (태그 기반)
+	const FBossSkillInfo* Skill = GetCurrentSelectedSkill();
+	if (!Skill)
+	{
+		NotifyAttackActionEnd();
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Selected AbilityClass: %s"),
+		*GetNameSafe(Skill->AbilityClass));
+
 	if (ASC)
 	{
-		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(FZFGameplayTags::Ability_Action_Attack));
+		for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Given Ability: %s"),
+				*GetNameSafe(Spec.Ability ? Spec.Ability->GetClass() : nullptr));
+		}
 	}
+	
+	// 1. 맵 패턴 공격 실행
+	if (Skill->bIsMapPattern)
+	{
+		RequestMapPattern(*Skill);
+		return;
+	}
+	else 
+	{
+		// 자체 공격 실행
+		if (!ASC || !Skill->AbilityClass)
+		{
+			NotifyAttackActionEnd();
+			return;
+		}
+
+		// SelfAttack 실행
+		// GAS 어빌리티 실행 (클래스 호출)
+		const bool bActivated = ASC->TryActivateAbilityByClass(Skill->AbilityClass);
+		UE_LOG(LogTemp, Warning, TEXT("Ability Activated: %d"), bActivated);
+
+		if (!bActivated)
+		{
+			NotifyAttackActionEnd();
+		}
+	}
+}
+
+// 맵 패턴 호출
+void AFZFBoss::RequestMapPattern(const FBossSkillInfo& Skill)
+{
+	// 맵 패턴 메니저에게 패턴 시작 요청
+
+
+	// 정해진 스킬 시간동안 패턴 실행 후 중단되게 시간 설정.
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		this,
+		&AFZFBoss::NotifyAttackActionEnd,
+		Skill.MapPatternDuration,
+		false
+	);
+
+	// 기존 스킬 어빌리티나 몽타주 재생 정지는 Waiting 상태로 가서 한번에 정리할거임.
+}
+
+// 맵 패턴 중지
+void AFZFBoss::StopMapPattern()
+{
+	// TODO: MapPatternManager에게 현재 패턴 정지 요청
+}
+
+void AFZFBoss::HandleEnergyRelayDestroyed(AFZFEnergyRelay* Relay)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (AFZFBossAIController* BossAI = Cast<AFZFBossAIController>(GetController()))
+	{
+		if (UBlackboardComponent* BB = BossAI->GetBlackboardComponent())
+		{
+			BB->SetValueAsEnum(BBKEY_BOSSSTATE, static_cast<uint8>(EBossState::PhaseTransition));
+		}
+	}
+}
+
+void AFZFBoss::ResetBossAction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[BossReset] ResetBossAction Called"));
+
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[BossReset] Finish Attack Task"));
+	// 1. 진행 중인 공격 BTTask 먼저 종료.
+	NotifyAttackActionEnd();
+	
+	// 2. 실행 중인 GAS Ability 취소.
+	if (ASC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BossReset] Cancel All Abilities"));
+		ASC->CancelAllAbilities();
+	}
+
+	// 3. 몽타주 정지
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BossReset] Stop Montage"));
+		AnimInstance->Montage_Stop(0.2f);
+	}
+
+	// 4. 맵 패턴 정지
+	UE_LOG(LogTemp, Warning, TEXT("[BossReset] Stop Map Pattern"));
+	StopMapPattern();
+}
+
+// 외부 동력원 델리게이트 전달 함수.
+void AFZFBoss::NotifyWaitingStarted()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[Boss] WaitingStarted Broadcast"));
+	OnBossWaitingStarted.Broadcast();
+}
+
+void AFZFBoss::NotifyWaitingEnded()
+{
+	OnBossWaitingEnded.Broadcast();
+}
+
+void AFZFBoss::OnBossPhaseTransition(int32 NewPhase)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// 맨 뒤 배열 고리부터 숨김.
+	const int32 RingIndex = RingMeshes.Num() - (NewPhase-1);
+
+	if (!RingMeshes.IsValidIndex(RingIndex) || !RingMeshes[RingIndex])
+	{
+		return;
+	}
+
+	USkeletalMeshComponent* RingComp = RingMeshes[RingIndex];
+	if (!RingComp)
+	{
+		return;
+	}
+
+	const FVector SpawnLocation = RingComp->GetComponentLocation();
+	const FRotator SpawnRotation = RingComp->GetComponentRotation();
+
+	RingComp->SetVisibility(false, true);
+
+	// TODO: 여기서 스태틱 메시/파편 액터 스폰
+	if (BrokenRingActorClasses.IsValidIndex(RingIndex) && BrokenRingActorClasses[RingIndex])
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = this;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		AActor* BrokenRing = GetWorld()->SpawnActor<AActor>(
+			BrokenRingActorClasses[RingIndex],
+			SpawnLocation,
+			SpawnRotation,
+			SpawnParams
+		);
+
+		if (BrokenRing)
+		{
+			BrokenRing->SetLifeSpan(5.0f);
+
+			if (USkeletalMeshComponent* MeshComp = BrokenRing->FindComponentByClass<USkeletalMeshComponent>())
+			{
+				MeshComp->SetSimulatePhysics(true);
+				MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+				MeshComp->AddImpulse(
+					FVector(0.f, 0.f, -300.f),
+					NAME_None,
+					true
+				);
+			}
+		}
+	}
+
+	// 보스 죽음 처리
+	if (NewPhase >= 4)
+	{
+		SetDead();
+		return;
+	}
+}
+
+/* 클래스 멤버 함수 구현 */
+void AFZFBoss::NotifyAttackActionEnd()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[BossReset] NotifyAttackActionEnd"));
+
+	// 앞서 전달받은 델리게이트 실행.
+	if (OnAttackFinished.IsBound())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BossReset] Attack Task Finished"));
+		OnAttackFinished.Execute();
+		OnAttackFinished.Unbind(); // 실행 후 언바인드
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BossReset] OnAttackFinished Not Bound"));
+	}
+}
+
+void AFZFBoss::SetDead()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// 진행 중인 공격/어빌리티/몽타주/맵패턴 정리
+	ResetBossAction();
+
+	// 공격 BTTask 델리게이트 정리
+	OnAttackFinished.Unbind();
+
+
+	// BT 중지
+	AFZFBossAIController* AIController = Cast<AFZFBossAIController>(GetController());
+	if (AIController)
+	{
+		AIController->StopAI();
+	}
+
+	// 외부 동력원 이벤트 정리
+	OnBossWaitingStarted.Clear();
+	OnBossWaitingEnded.Clear();
+
+	// 부모 사망 처리: 이동 끄기, 어빌리티 취소/삭제, 충돌 끄기
+	Super::SetDead();
+
+	// 사망 몽타주 재생
+	PlayDeadAnimation();
+
+	// 일정 시간 뒤 제거
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		[this]()
+		{
+			Destroy();
+		},
+		DeadEventDelayTime,
+		false
+	);
 }

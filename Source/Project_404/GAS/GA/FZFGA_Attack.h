@@ -4,6 +4,11 @@
 #include "Abilities/GameplayAbility.h"
 #include "FZFGA_Attack.generated.h"
 
+class AFZFBoss;
+class AFZFMonster;
+class AFZFCharacterPlayer;
+class AFZFSkillBase;
+
 UCLASS()
 class PROJECT_404_API UFZFGA_Attack : public UGameplayAbility
 {
@@ -72,6 +77,15 @@ private:
 
     void PlayMonsterAttack(
         class AFZFMonster* Monster,
+        float AttackSpeed,
+        const FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        const FGameplayAbilityActivationInfo ActivationInfo
+    );
+    
+    // 보스 공격 추가
+    void PlayBossAttack(
+        AFZFBoss* Boss,
         float AttackSpeed,
         const FGameplayAbilitySpecHandle Handle,
         const FGameplayAbilityActorInfo* ActorInfo,

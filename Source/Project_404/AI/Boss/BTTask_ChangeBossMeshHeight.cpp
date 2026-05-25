@@ -3,8 +3,9 @@
 
 #include "AI/Boss/BTTask_ChangeBossMeshHeight.h"
 #include "AIController.h"
-#include "AI/FZFAI.h"
-#include "Character/Monster/FZFMonster.h"
+#include "AI/Boss/FZFBossAI.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Interface/FZFBossAIInterface.h"
 
 UBTTask_ChangeBossMeshHeight::UBTTask_ChangeBossMeshHeight()
 {
@@ -30,13 +31,28 @@ void UBTTask_ChangeBossMeshHeight::TickTask(UBehaviorTreeComponent& OwnerComp, u
 		return;
 	}
 
-	// Fix: 보스 다시 구현할 때 인터페이스로 이후 교체 필요!
-	AFZFMonster* Boss = Cast<AFZFMonster>(ControllingPawn);
-	if (!Boss || !Boss->GetMesh())
+	IFZFBossAIInterface* AIPawn = Cast<IFZFBossAIInterface>(ControllingPawn);
+	if (!AIPawn)
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
 	}
+	USkeletalMeshComponent* Mesh = AIPawn->GetBossMesh();
+	if (!Mesh)
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
+	}
+
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB)
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
+	}
+
+	// 이동 좌표 정보 가져오기
+	const float FinalTargetMeshZ = bUseBlackboardTargetZ ? BB->GetValueAsFloat(BBKEY_MESHTARGETZOFFSET) : TargetMeshZ;
 
 	// InterpSpeed <= 0이면 보간이 안 될 수 있음
 	if (InterpSpeed <= 0.f)
@@ -45,21 +61,21 @@ void UBTTask_ChangeBossMeshHeight::TickTask(UBehaviorTreeComponent& OwnerComp, u
 		return;
 	}
 
-	FVector Loc = Boss->GetMesh()->GetRelativeLocation();
+	FVector Loc = Mesh->GetRelativeLocation();
 
 	Loc.Z = FMath::FInterpTo(
 		Loc.Z,
-		TargetMeshZ,
+		FinalTargetMeshZ,
 		DeltaSeconds,
 		InterpSpeed
 	);
 
-	Boss->GetMesh()->SetRelativeLocation(Loc);
+	Mesh->SetRelativeLocation(Loc);
 
-	if (FMath::Abs(Loc.Z - TargetMeshZ) <= Tolerance)
+	if (FMath::Abs(Loc.Z - FinalTargetMeshZ) <= Tolerance)
 	{
-		Loc.Z = TargetMeshZ;
-		Boss->GetMesh()->SetRelativeLocation(Loc);
+		Loc.Z = FinalTargetMeshZ;
+		Mesh->SetRelativeLocation(Loc);
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
