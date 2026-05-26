@@ -116,6 +116,10 @@ protected:
 	UFUNCTION()
 	void HandleEnergyRelayDestroyed(AFZFEnergyRelay* Relay);
 
+	// 보스 함정 델리게이트 호출 함수
+	UFUNCTION()
+	void HandleBossBombCreated(FVector BombLocation);
+
 	// 죽음 처리 함수
 	virtual void SetDead() override;
 

@@ -198,7 +198,7 @@ void AFZFGameMode::BossDefeated()
 		if (GameInstance)
 		{
 			GameInstance->bWinGame = true;
-			// GetWorld()->ServerTravel("/Game/Maps/LobbyMap?listen");
+			GetWorld()->ServerTravel("/Game/Maps/Lobby?listen");
 		}
 	}
 }

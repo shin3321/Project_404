@@ -38,8 +38,41 @@ EBTNodeResult::Type UBTTask_SetBBKey::ExecuteTask(
 		break;
 
 	case ESetBBValueType::Enum_BossState:
-		BB->SetValueAsEnum(KeyName, static_cast<uint8>(BossStateValue));
+	{
+		const EBossState CurrentState = static_cast<EBossState>(BB->GetValueAsEnum(KeyName));
+
+		UE_LOG(LogTemp, Warning,
+			TEXT("[SetBBKey] Current=%d Expected=%d Next=%d Key=%s"),
+			static_cast<uint8>(CurrentState),
+			static_cast<uint8>(ExpectedState),
+			static_cast<uint8>(NextState),
+			*KeyName.ToString()
+		);
+
+		if (CurrentState != ExpectedState)
+		{
+			UE_LOG(LogTemp, Warning,
+				TEXT("[SetBBKey] BossState already changed. Current=%d Expected=%d. Skip Set NextState=%d"),
+				static_cast<uint8>(CurrentState),
+				static_cast<uint8>(ExpectedState),
+				static_cast<uint8>(NextState)
+			);
+
+			return EBTNodeResult::Succeeded;
+		}
+
+		BB->SetValueAsEnum(KeyName, static_cast<uint8>(NextState));
+
+		const EBossState AfterState =
+			static_cast<EBossState>(BB->GetValueAsEnum(KeyName));
+
+		UE_LOG(LogTemp, Warning,
+			TEXT("[SetBBKey] After Set BossState=%d"),
+			static_cast<uint8>(AfterState)
+		);
+
 		break;
+	}
 
 	case ESetBBValueType::Vector:
 		BB->SetValueAsVector(KeyName, VectorValue);

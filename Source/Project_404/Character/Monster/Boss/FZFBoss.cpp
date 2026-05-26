@@ -16,6 +16,7 @@
 #include "Boss/FZFEnergyRelay.h"
 #include "Manager/FZFBossLevelManager.h"
 #include "DrawDebugHelpers.h"
+#include "Game/FZFGameMode.h"
 #include "Net/UnrealNetwork.h"
 
 AFZFBoss::AFZFBoss()
@@ -195,9 +196,18 @@ void AFZFBoss::InitializeBossServer()
 	// 4. 동력원 파괴 이벤트 바인딩
 	BindEnergyRelayEvents();
 
+	// 5. 보스 함정 이벤트 바인딩
+	if (BossLevelManager)
+	{
+		BossLevelManager->OnBossBombCreated.AddDynamic(
+			this,
+			&AFZFBoss::HandleBossBombCreated
+		);
+	}
+
 
 	// Fix: 나중에 Intro 연출 후 실행되게 빼야함!
-	// 5. BT 실행 
+	// 6. BT 실행 
 	AFZFBossAIController* AIController = Cast<AFZFBossAIController>(GetController());
 	if (!AIController || !BossData || !BossData->BehaviorTree)
 	{
@@ -304,6 +314,7 @@ void AFZFBoss::InitAttributesFromData() // 보스 전용을 만들면 AttributeS
 	FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec);
 }
 
+// 동력원 파괴 델리게이트 등록
 void AFZFBoss::BindEnergyRelayEvents()
 {
 	if (!HasAuthority())
@@ -449,6 +460,24 @@ void AFZFBoss::HandleEnergyRelayDestroyed(AFZFEnergyRelay* Relay)
 		if (UBlackboardComponent* BB = BossAI->GetBlackboardComponent())
 		{
 			BB->SetValueAsEnum(BBKEY_BOSSSTATE, static_cast<uint8>(EBossState::PhaseTransition));
+		}
+	}
+}
+
+void AFZFBoss::HandleBossBombCreated(FVector BombLocation)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (AFZFBossAIController* BossAI = Cast<AFZFBossAIController>(GetController()))
+	{
+		if (UBlackboardComponent* BB = BossAI->GetBlackboardComponent())
+		{
+			BB->SetValueAsEnum(BBKEY_BOSSSTATE,static_cast<uint8>(EBossState::LuredToTrap));
+
+			BB->SetValueAsVector(BBKEY_TARGETPOS,BombLocation);
 		}
 	}
 }
@@ -645,4 +674,11 @@ void AFZFBoss::SetDead()
 		DeadEventDelayTime,
 		false
 	);
+	
+	// 죽은 뒤 돌아가기
+	AFZFGameMode* GameMode = Cast<AFZFGameMode>(GetWorld()->GetAuthGameMode());
+	if (GameMode)
+	{
+		GameMode->BossDefeated();
+	}
 }

@@ -21,6 +21,12 @@ public:
     // 생성자
     UFZFHeldItemComponent();
 
+    UFUNCTION(BlueprintCallable, Category = Character)
+    class USceneComponent* GetHeldItemRootComponent() const;
+    
+    UFUNCTION(BlueprintCallable, Category = Character)
+    class USceneComponent* GetHeldFirstItemRootComponent() const;
+    
     // 선택된 아이템을 손에 들게 하는 함수
     void HoldItem(UFZFItemData* ItemData);
 

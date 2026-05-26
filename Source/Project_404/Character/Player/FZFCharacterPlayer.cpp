@@ -402,7 +402,7 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 
 		// 쿨타임 태그 변화 감지 바인딩 (서버/클라이언트 모두 실행하여 이펙트 동기화)
 		ASC->RegisterGameplayTagEvent(FZFGameplayTags::Cooldown_Attack_Sword, EGameplayTagEventType::NewOrRemoved)
-			.AddUObject(this, &AFZFCharacterPlayer::OnCooldownTagChanged);
+		   .AddUObject(this, &AFZFCharacterPlayer::OnCooldownTagChanged);
 
 		// 오직 로컬 플레이어 일 때만 HUD 생성 및 델리게이트 구독 진행
 		if (IsLocallyControlled() && HUDWidgetClass)
@@ -431,7 +431,7 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 					// 초기 데이터 동기화
 					PreviousHP = AttributeSet->GetHP();
 					OnHpChanged(AttributeSet->GetHP(), AttributeSet->GetMaxHP());
-					
+
 					if (UFZFPlayerSet* PlayerSet = Cast<UFZFPlayerSet>(AttributeSet))
 					{
 						OnStaminaChanged(PlayerSet->GetStamina(), PlayerSet->GetMaxStamina());
@@ -445,7 +445,8 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 void AFZFCharacterPlayer::OnHpChanged(float NewValue, float MaxValue)
 {
 	// [로그] 현재 체력 변화 추적
-	UE_LOG(LogTemp, Log, TEXT("[FZFCharacterPlayer] HP Change: %.1f -> %.1f (Max: %.1f)"), PreviousHP, NewValue, MaxValue);
+	UE_LOG(LogTemp, Log, TEXT("[FZFCharacterPlayer] HP Change: %.1f -> %.1f (Max: %.1f)"), PreviousHP, NewValue,
+	       MaxValue);
 
 	// HUD 위젯 업데이트
 	if (HUDWidget)
@@ -512,31 +513,31 @@ void AFZFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this,
-			&AFZFCharacterPlayer::Interact);
+		                                   &AFZFCharacterPlayer::Interact);
 
 		// Interaction
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this,
-			&AFZFCharacterPlayer::StopHoldInteract);
+		                                   &AFZFCharacterPlayer::StopHoldInteract);
 
 		// Interaction
 		EnhancedInputComponent->BindAction(PickaxeAction, ETriggerEvent::Started, this,
-			&AFZFCharacterPlayer::TogglePickaxe);
+		                                   &AFZFCharacterPlayer::TogglePickaxe);
 
 		// DropItem
 		EnhancedInputComponent->BindAction(DropItemAction, ETriggerEvent::Started, this,
-			&AFZFCharacterPlayer::DropSelectedItem);
+		                                   &AFZFCharacterPlayer::DropSelectedItem);
 
 		// 숫자키 입력과 슬롯 선택 함수 연결
 		EnhancedInputComponent->BindAction(Slot1Action, ETriggerEvent::Started, this,
-			&AFZFCharacterPlayer::SelectSlot1);
+		                                   &AFZFCharacterPlayer::SelectSlot1);
 		EnhancedInputComponent->BindAction(Slot2Action, ETriggerEvent::Started, this,
-			&AFZFCharacterPlayer::SelectSlot2);
+		                                   &AFZFCharacterPlayer::SelectSlot2);
 		EnhancedInputComponent->BindAction(Slot3Action, ETriggerEvent::Started, this,
-			&AFZFCharacterPlayer::SelectSlot3);
+		                                   &AFZFCharacterPlayer::SelectSlot3);
 		EnhancedInputComponent->BindAction(Slot4Action, ETriggerEvent::Started, this,
-			&AFZFCharacterPlayer::SelectSlot4);
+		                                   &AFZFCharacterPlayer::SelectSlot4);
 		EnhancedInputComponent->BindAction(Slot5Action, ETriggerEvent::Started, this,
-			&AFZFCharacterPlayer::SelectSlot5);
+		                                   &AFZFCharacterPlayer::SelectSlot5);
 	}
 }
 
@@ -819,7 +820,7 @@ void AFZFCharacterPlayer::Attack()
 		// 일반 무기들은 기존처럼 작동
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
 	}
-	
+
 	ServerPlaySound(TEXT("Weapon_LaserGun"), GetActorLocation());
 }
 
@@ -916,8 +917,8 @@ void AFZFCharacterPlayer::ServerSpawnSkillActor_Implementation(
 		SpawnedSkill->InitializeSkill(this);
 
 		UE_LOG(LogTemp, Warning, TEXT("[SkillSpawn] Server spawned skill actor: %s / HasAuthority: %d"),
-			*GetNameSafe(SpawnedSkill),
-			SpawnedSkill->HasAuthority()
+		       *GetNameSafe(SpawnedSkill),
+		       SpawnedSkill->HasAuthority()
 		);
 	}
 }
@@ -1175,6 +1176,8 @@ void AFZFCharacterPlayer::BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn)
 	CurrentHoldTime = 0.0f;
 	bHolding = true;
 
+	//sound : Bossroom_Button_Hold
+
 	// 로컬 플레이어라면 홀드 UI 표시
 	if (IsLocallyControlled() && HUDWidget)
 	{
@@ -1219,12 +1222,17 @@ void AFZFCharacterPlayer::ServerStopBossroomHold_Implementation()
 
 void AFZFCharacterPlayer::OnCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
-	if (NewCount == 0)
+	if (!ASC) return;
+
+	if (NewCount >= 1)
 	{
-		// 쿨타임 종료! 충전 완료 이펙트 실행
+		ASC->RemoveGameplayCue(FZFGameplayTags::GameplayCue_Weapon_ChargeComplete);
+	}
+	else if (NewCount == 0)
+	{
 		if (ASC)
 		{
-			ASC->ExecuteGameplayCue(FZFGameplayTags::GameplayCue_Weapon_ChargeComplete);
+			ASC->AddGameplayCue(FZFGameplayTags::GameplayCue_Weapon_ChargeComplete);
 		}
 	}
 }

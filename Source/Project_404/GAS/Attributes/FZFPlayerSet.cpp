@@ -2,6 +2,7 @@
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h" // DOREPLIFETIME 매크로 사용을 위해 필수!
 #include "AbilitySystemComponent.h"
+#include "GameplayTag/FZFGameplayTags.h"
 
 UFZFPlayerSet::UFZFPlayerSet()
 {
@@ -14,7 +15,7 @@ UFZFPlayerSet::UFZFPlayerSet()
 	// Todo : 무기 데이터
 	InitAttackRange(800);
 	InitAttackRadius(30);
-	InitAttack(5.0f);
+	InitAttack(0.0f);
 }
 
 void UFZFPlayerSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -44,6 +45,13 @@ void UFZFPlayerSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackDa
 
 	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
+		// 무적이면 데미지 무효화
+		if (!CanReceiveDamage())
+		{
+			SetDamage(0.0f);
+			return;
+		}
+
 		// 부모에서 이미 HP 삭감 및 클램핑이 끝난 상태로 HUD에 발송
 		if (OnHPChanged.IsBound())
 		{
@@ -98,4 +106,17 @@ void UFZFPlayerSet::OnRep_Stamina(const FGameplayAttributeData& OldStamina)
 	{
 		OnStaminaChanged.Broadcast(GetStamina(), GetMaxStamina());
 	}
+}
+
+// 무적 버프를 가지고 있지 않으면 데미지를 받을 수 있는 상태이다.
+bool UFZFPlayerSet::CanReceiveDamage() const
+{
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+
+	if (!ASC)
+	{
+		return true;
+	}
+
+	return !ASC->HasMatchingGameplayTag(FZFGameplayTags::State_Buff_Invincible);
 }
