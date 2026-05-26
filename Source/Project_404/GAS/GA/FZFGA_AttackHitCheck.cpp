@@ -183,8 +183,8 @@ void UFZFGA_AttackHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDat
 		}
 	}
 
-	//// 모든 로직이 완료되면 능력을 종료
-	//EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	// 모든 로직이 완료되면 능력을 종료
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UFZFGA_AttackHitCheck::OnTargetDataCancelled(const FGameplayAbilityTargetDataHandle& DataHandle)

@@ -190,6 +190,8 @@ void UFZFAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	// 데미지 처리
 	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
+		UE_LOG(LogTemp, Error, TEXT("[AttributeDebug] 몬스터 공격 도달! 들어온 Damage 수치: %.2f"), GetDamage());
+	
 		const float LocalDamage = GetDamage();
 		// 값 넣어주자 마자 리셋시킴
 		SetDamage(0.0f);

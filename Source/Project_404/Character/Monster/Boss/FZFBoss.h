@@ -56,6 +56,12 @@ public:
 	{
 		return BossData ? BossData : nullptr;
 	};
+	
+	//Boss AttributeSet 게터 함수
+	FORCEINLINE class UFZFMonsterSet* GetBossAttributeSet() const 
+	{
+		return BossAttributeSet; 
+	}
 
 	// BossMesh 가져오기.
 	FORCEINLINE virtual USkeletalMeshComponent* GetBossMesh() const override
