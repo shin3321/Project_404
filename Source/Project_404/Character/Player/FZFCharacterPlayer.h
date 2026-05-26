@@ -282,6 +282,5 @@ private:
 	FVector LastFootstepLocation;
 	UPROPERTY(EditDefaultsOnly, Category= "Sound")
 	float FootstepDistance = 250.f;
-	
 };
 

@@ -1221,16 +1221,14 @@ void AFZFCharacterPlayer::ServerStopBossroomHold_Implementation()
 void AFZFCharacterPlayer::OnCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
 	if (!ASC) return;
-
+	FVector Location = GetActorLocation();
 	if (NewCount >= 1)
 	{
 		ASC->RemoveGameplayCue(FZFGameplayTags::GameplayCue_Weapon_ChargeComplete);
 	}
 	else if (NewCount == 0)
 	{
-		if (ASC)
-		{
-			ASC->AddGameplayCue(FZFGameplayTags::GameplayCue_Weapon_ChargeComplete);
-		}
+		ASC->AddGameplayCue(FZFGameplayTags::GameplayCue_Weapon_ChargeComplete);
+		SoundManager->PlaySFXAtLocation("Weapon_Charge", Location);
 	}
 }
