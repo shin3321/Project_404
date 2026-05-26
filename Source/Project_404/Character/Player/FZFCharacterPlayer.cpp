@@ -1175,6 +1175,8 @@ void AFZFCharacterPlayer::BeginBossroomHold(AFZFBossroomBtn* InBossroomBtn)
 	CurrentHoldTime = 0.0f;
 	bHolding = true;
 
+	//sound : Bossroom_Button_Hold
+
 	// 로컬 플레이어라면 홀드 UI 표시
 	if (IsLocallyControlled() && HUDWidget)
 	{
