@@ -11,7 +11,7 @@ UFZFEnergyAttributeSet::UFZFEnergyAttributeSet()
 {
 	// Todo: 추후 HP 10으로 변경
 	// 기본값 초기화
-	InitHP(5.0f); 
+	InitHP(1.0f); 
 	InitMaxHP(GetHP());
 
 	InitDamage(0.0f);

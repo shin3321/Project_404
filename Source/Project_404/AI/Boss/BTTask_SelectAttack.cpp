@@ -90,6 +90,7 @@ EBTNodeResult::Type UBTTask_SelectAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 			BB->SetValueAsBool(BBKEY_USEROTATEBEFOREATTACK, Skill.bUseRotateBeforeAttack);
 			BB->SetValueAsFloat(BBKEY_TARGETYAWOFFSET, Skill.TargetYawOffset);
 			BB->SetValueAsFloat(BBKEY_TARGETMESHPITCH, Skill.TargetMeshPitch);
+			BB->SetValueAsBool(BBKEY_BUSEMAPPATTERN, Skill.bIsMapPattern);
 
 			return EBTNodeResult::Succeeded;
 		}
