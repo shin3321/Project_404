@@ -321,6 +321,15 @@ void UFZFHeldItemComponent::AttachThirdPersonHeldItem()
 
 	CurrentHeldItem->SetThirdPersonVisualMode();
 
+	if (OwnerCharacter->IsLocallyControlled())
+	{
+		if (UStaticMeshComponent* MeshComp = CurrentHeldItem->GetItemMeshComponent())
+		{
+			MeshComp->SetOwnerNoSee(true);
+			MeshComp->SetHiddenInGame(true);
+		}
+	}
+
 	CurrentHeldItem->AttachToComponent(
 		OwnerCharacter->GetMesh(),
 		FAttachmentTransformRules::SnapToTargetIncludingScale,
@@ -388,6 +397,13 @@ void UFZFHeldItemComponent::RefreshLocalFirstPersonHeldItem()
 
 	LocalFirstPersonHeldItem->SetHeldItemData(CurrentHeldItemData);
 	LocalFirstPersonHeldItem->SetFirstPersonVisualMode();
+
+	// [중요] 본인에게만 보여야 함 (확실하게 보이기 위해 HiddenInGame 해제)
+	if (UStaticMeshComponent* MeshComp = LocalFirstPersonHeldItem->GetItemMeshComponent())
+	{
+		MeshComp->SetOnlyOwnerSee(true);
+		MeshComp->SetHiddenInGame(false);
+	}
 
 	LocalFirstPersonHeldItem->AttachToComponent(
 		ArmMesh,
