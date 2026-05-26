@@ -125,8 +125,9 @@ void AFZFSpawnManager::BeginPlay()
 
 
 	// 5. 몬스터 스폰 실행
-	if (MonsterPool.Num() != 0)
+	if (MonsterSlots.Num() != 0 && MonsterPool.Num() != 0)
 	{
+		int32 MaxItemCount = FMath::Min(MonsterSlots.Num(), MonsterPool.Num());
 		for (int32 i = 0; i < MonsterPool.Num(); ++i)
 		{
 			AActor* Slot = MonsterSlots[i];

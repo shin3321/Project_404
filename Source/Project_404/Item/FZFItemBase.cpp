@@ -271,8 +271,8 @@ void AFZFItemBase::PlaceOnGround()
 
     FVector ActorLocation = GetActorLocation();
 
-    FVector TraceStart = ActorLocation + FVector(0.0f, 0.0f, 500.0f);
-    FVector TraceEnd = ActorLocation - FVector(0.0f, 0.0f, 3000.0f);
+    FVector TraceStart = ActorLocation + FVector(0.0f, 0.0f, 10.0f);
+    FVector TraceEnd = ActorLocation - FVector(0.0f, 0.0f, 1000.0f);
 
     FHitResult HitResult;
 

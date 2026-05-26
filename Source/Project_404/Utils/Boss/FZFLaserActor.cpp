@@ -58,16 +58,21 @@ void AFZFLaserActor::Tick(float DeltaTime)
 	if (CurrentType == ELaserType::Horizon && CurrentMode == ELaserMode::Moving)
 	{
 		NewLocation.Z += Speed * MoveDirection.Z * DeltaTime;
+
 		if (NewLocation.Z < MinZ || NewLocation.Z > MaxZ)
 		{
-			MoveDirection.Z *= -1.0;
+			MoveDirection.Z *= -1.0f;
 		}
 	}
-	if (CurrentType == ELaserType::Vertical)
+
+	if (CurrentType == ELaserType::Vertical && CurrentMode == ELaserMode::Moving)
 	{
 		NewLocation.X += Speed * MoveDirection.X * DeltaTime;
-		if (NewLocation.X < 0.0f || NewLocation.X > MaxX)
-			MoveDirection.X *= -1.0;
+
+		if (NewLocation.X < MinX || NewLocation.X > MaxX)
+		{
+			MoveDirection.X *= -1.0f;
+		}
 	}
 
 	NewLocation.Y += Speed * MoveDirection.Y * DeltaTime;
@@ -106,12 +111,23 @@ void AFZFLaserActor::ActivateLaser(FVector StartLocation, ELaserMode Mode, ELase
 
 	if (CurrentType == ELaserType::Horizon)
 	{
-		// 가로 방향 설정 로직
+		SetActorRotation(FRotator::ZeroRotator);
+
+		MoveDirection = FVector(
+			0.f,
+			FMath::RandBool() ? 1.f : -1.f,
+			FMath::RandBool() ? 1.f : -1.f
+		);
 	}
 	else if (CurrentType == ELaserType::Vertical)
 	{
-		// 세로 방향 설정 로직 (예: Pitch 90도 회전)
 		SetActorRotation(FRotator(90.f, 0.f, 0.f));
+
+		MoveDirection = FVector(
+			FMath::RandBool() ? 1.f : -1.f,
+			FMath::RandBool() ? 1.f : -1.f,
+			0.f
+		);
 	}
 
 	// 콜리전 및 이펙트 활성화
