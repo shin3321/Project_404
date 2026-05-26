@@ -52,6 +52,13 @@ public:
 	void ShowLoadingAndTravel(const FString& LevelPath);
 
 protected:
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastShowLoadingWidget();
+
+	UFUNCTION(Client, Reliable)
+	void ClientSetTeleportWidgetVisible(APlayerController* PC, bool bVisible);
+
+protected:
 
 	// 로딩 화면 위젯 클래스
 	UPROPERTY(EditAnywhere, Category = "UI")

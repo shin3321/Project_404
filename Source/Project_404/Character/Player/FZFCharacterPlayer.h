@@ -58,6 +58,7 @@ public:
 	void UnEquipPickaxe();
 
 	// 현재 들고있는 아이템을 가져오기 위한 Get함수.
+	UFUNCTION(BlueprintCallable, Category = Character)
 	UFZFHeldItemComponent* GetHeldItemComponent() { return HeldItemComponent; }
 
 protected:
