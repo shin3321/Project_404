@@ -22,4 +22,7 @@ public:
 private:
 	// 공격자의 공격력을 가져올 변수
 	FGameplayEffectAttributeCaptureDefinition AttackDef;
+
+	// 몬스터의 공격력을 가져올 변수
+	FGameplayEffectAttributeCaptureDefinition MonsterAttackDef;
 };

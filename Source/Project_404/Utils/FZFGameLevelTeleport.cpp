@@ -10,6 +10,8 @@ AFZFGameLevelTeleport::AFZFGameLevelTeleport()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	bReplicates = true;
+
 	TransferVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TransferVolume"));
 
 	RootComponent = TransferVolume;
@@ -50,19 +52,11 @@ void AFZFGameLevelTeleport::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, 
 {
 	if (!HasAuthority()) return;
 
-	if (Cast<AFZFCharacterBase>(OtherActor))
+	if (AFZFCharacterBase* Character = Cast<AFZFCharacterBase>(OtherActor))
 	{
-		if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		if (APlayerController* PC = Cast<APlayerController>(Character->GetController()))
 		{
-			EnableInput(PlayerController);
-			if (TeleportWidgetInstance != nullptr && !TeleportWidgetInstance->IsInViewport())
-			{
-				TeleportWidgetInstance->AddToViewport();
-			}
-			if (InputComponent)
-			{
-				InputComponent->BindKey(EKeys::E, IE_Pressed, this, &AFZFGameLevelTeleport::OnTeleportKeyPressed);
-			}
+			ClientSetTeleportWidgetVisible(PC, true);
 		}
 	}
 }
@@ -70,13 +64,40 @@ void AFZFGameLevelTeleport::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, 
 void AFZFGameLevelTeleport::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (TeleportWidgetInstance != nullptr && TeleportWidgetInstance->IsInViewport())
-	{
-		TeleportWidgetInstance->RemoveFromParent();
-	}
+	if (!HasAuthority()) return;
+
 	if (AFZFCharacterBase* Character = Cast<AFZFCharacterBase>(OtherActor))
 	{
-		DisableInput(Cast<APlayerController>(Character->GetController()));
+		if (APlayerController* PC = Cast<APlayerController>(Character->GetController()))
+		{
+			ClientSetTeleportWidgetVisible(PC, false);
+		}
+	}
+}
+
+void AFZFGameLevelTeleport::ClientSetTeleportWidgetVisible_Implementation(APlayerController* PC, bool bVisible)
+{
+	if (!PC) return;
+
+	if (bVisible)
+	{
+		EnableInput(PC);
+		if (TeleportWidgetInstance != nullptr && !TeleportWidgetInstance->IsInViewport())
+		{
+			TeleportWidgetInstance->AddToViewport();
+		}
+		if (InputComponent)
+		{
+			InputComponent->BindKey(EKeys::E, IE_Pressed, this, &AFZFGameLevelTeleport::OnTeleportKeyPressed);
+		}
+	}
+	else
+	{
+		if (TeleportWidgetInstance != nullptr && TeleportWidgetInstance->IsInViewport())
+		{
+			TeleportWidgetInstance->RemoveFromParent();
+		}
+		DisableInput(PC);
 	}
 }
 
@@ -108,7 +129,7 @@ void AFZFGameLevelTeleport::EnterLobbyLevel()
 
 void AFZFGameLevelTeleport::TravelToLobbyLevel()
 {
-	if (GetWorld())
+	if (GetWorld() && HasAuthority())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("=== Traveling to: %s ==="), *PendingLevelPath);
 
@@ -119,9 +140,26 @@ void AFZFGameLevelTeleport::TravelToLobbyLevel()
 
 void AFZFGameLevelTeleport::ShowLoadingAndTravel(const FString& LevelPath)
 {
+	if (!HasAuthority()) return;
+
+	// 모든 클라이언트에게 로딩 화면을 띄우라고 알림
+	MulticastShowLoadingWidget();
+
 	// 이동할 레벨 경로 저장
 	PendingLevelPath = LevelPath;
 
+	// 로딩 화면을 잠깐 보여준 뒤 실제 레벨 이동
+	GetWorldTimerManager().SetTimer(
+		LevelTravelTimerHandle,
+		this,
+		&AFZFGameLevelTeleport::TravelToLobbyLevel,
+		3.0f,
+		false
+	);
+}
+
+void AFZFGameLevelTeleport::MulticastShowLoadingWidget_Implementation()
+{
 	// 로딩 화면 위젯 생성
 	if (LoadingWidgetClass)
 	{
@@ -133,13 +171,4 @@ void AFZFGameLevelTeleport::ShowLoadingAndTravel(const FString& LevelPath)
 			LoadingWidgetInstance->AddToViewport(999);
 		}
 	}
-
-	// 로딩 화면을 잠깐 보여준 뒤 실제 레벨 이동
-	GetWorldTimerManager().SetTimer(
-		LevelTravelTimerHandle,
-		this,
-		&AFZFGameLevelTeleport::TravelToLobbyLevel,
-		3.0f,
-		false
-	);
 }

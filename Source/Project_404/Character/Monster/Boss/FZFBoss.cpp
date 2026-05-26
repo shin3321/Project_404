@@ -16,6 +16,7 @@
 #include "Boss/FZFEnergyRelay.h"
 #include "Manager/FZFBossLevelManager.h"
 #include "DrawDebugHelpers.h"
+#include "Game/FZFGameMode.h"
 #include "Net/UnrealNetwork.h"
 
 AFZFBoss::AFZFBoss()
@@ -673,4 +674,11 @@ void AFZFBoss::SetDead()
 		DeadEventDelayTime,
 		false
 	);
+	
+	// 죽은 뒤 돌아가기
+	AFZFGameMode* GameMode = Cast<AFZFGameMode>(GetWorld()->GetAuthGameMode());
+	if (GameMode)
+	{
+		GameMode->BossDefeated();
+	}
 }
