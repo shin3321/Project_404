@@ -57,11 +57,11 @@ private:
 	EFZFWorkbenchSlot GetSlotFromHitComponent(UPrimitiveComponent* HitComponent) const;
 
 	// 재료를 슬롯에 넣기를 시도하는 함수.
-	bool TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData);
+	bool TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData, AFZFCharacterPlayer* Interactor);
 
 	// 서버에게 실행해 달라고 요청하는 함수 (Server RPC)
 	UFUNCTION(Server, Reliable)
-	void Server_TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData);
+	void Server_TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData, AFZFCharacterPlayer* Interactor);
 
 	bool InsertMaterialToSlot_Internal(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData);
 	

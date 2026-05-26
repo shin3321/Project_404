@@ -143,7 +143,7 @@ void AFZFRobotWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveCom
 
 		// TryInsertRobotPart 내부에서 서버 요청(RPC) 또는 직접 실행을 처리함.
 		// 성공 여부와 인벤토리 제거, 조립 확인은 모두 서버에서 안전하게 수행됨.
-		TryInsertRobotPart(SelectedItemData);
+		TryInsertRobotPart(SelectedItemData, Interactor);
 	}
 }
 
@@ -240,25 +240,25 @@ void AFZFRobotWorkbench::PlayInsertPartEffect_Implementation(USceneComponent* Ef
 	);
 }
 
-bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
+bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData, AFZFCharacterPlayer* Interactor)
 {
 	if (HasAuthority())
 	{
 		// 이미 서버라면 바로 실행
-		Server_TryInsertRobotPart_Implementation(ItemData);
+		Server_TryInsertRobotPart_Implementation(ItemData, Interactor);
 	}
 	else
 	{
 		// 클라이언트라면 서버에 요청을 보냄
-		Server_TryInsertRobotPart(ItemData);
+		Server_TryInsertRobotPart(ItemData, Interactor);
 	}
 	return true;
 }
 
-void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* ItemData)
+void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* ItemData, AFZFCharacterPlayer* Interactor)
 {
 	// 선택한 아이템 데이터가 없으면 실패
-	if (ItemData == nullptr)
+	if (ItemData == nullptr || Interactor == nullptr)
 	{
 		return;
 	}
@@ -341,12 +341,9 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 		UpdatePreviewMeshes();
 
 		// 서버 측에서 상호작용한 플레이어의 인벤토리 아이템 제거
-		if (APawn* InstigatorPawn = GetInstigator())
+		if (UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent())
 		{
-			if (UFZFInventoryComponent* Inventory = InstigatorPawn->FindComponentByClass<UFZFInventoryComponent>())
-			{
-				Inventory->RemoveSelectedItem();
-			}
+			Inventory->RemoveSelectedItem();
 		}
 
 		TryCraftRobot();
