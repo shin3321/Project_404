@@ -3,6 +3,7 @@
 
 #include "GAS/MMC/FZFMMC_AttackDamage.h"
 #include "GAS/Attributes/FZFAttributeSet.h"
+#include "GAS/Attributes/FZFMonsterSet.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/FZFGameplayTags.h"
 
@@ -14,6 +15,11 @@ UFZFMMC_AttackDamage::UFZFMMC_AttackDamage()
     
     // 저장할 주요 속성 -> AttackDef 추가
     RelevantAttributesToCapture.Add(AttackDef);
+
+    MonsterAttackDef.AttributeToCapture = UFZFMonsterSet::GetAttackAttribute();
+    MonsterAttackDef.AttributeSource = EGameplayEffectAttributeCaptureSource::Source;
+    MonsterAttackDef.bSnapshot = false;
+    RelevantAttributesToCapture.Add(MonsterAttackDef);
 }
 
 float UFZFMMC_AttackDamage::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const
@@ -29,7 +35,11 @@ float UFZFMMC_AttackDamage::CalculateBaseMagnitude_Implementation(const FGamepla
 
     float BaseAttack = 0.0f;
     GetCapturedAttributeMagnitude(AttackDef, Spec, EvaluationParameters, BaseAttack);
-
+    
+    if (BaseAttack <= 0.0f)
+    {
+        GetCapturedAttributeMagnitude(MonsterAttackDef, Spec, EvaluationParameters, BaseAttack);
+    }
     // 공격자의 ASC 가져오기
     UAbilitySystemComponent* SourceASC = Spec.GetContext().GetInstigatorAbilitySystemComponent();
     if (SourceASC)
