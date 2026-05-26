@@ -13,6 +13,7 @@
 #include "FZFHeldItemActor.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Engine/OverlapResult.h"
 
 AFZFTA_LaserSweep::AFZFTA_LaserSweep()
 {
@@ -151,8 +152,8 @@ FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 			// 보스 데이터 에셋에 설정된 눈 소켓(AttackSocket) 위치를 정확하게 시작점으로 계산
 			Start = Character->GetMesh()->GetSocketLocation(StartSocketName);
 
-			// 보스의 몸통 회전이 아닌, 눈 소켓(소켓 창에 배치한 뼈대 방향)의 정면 방향을 획득
-			Forward = Character->GetActorForwardVector();
+			// 몸통 정면이 아니라, 애니메이션에 따라 부드럽게 돌아가는 소켓의 '진짜 정면 벡터'를 획득
+			Forward = Character->GetMesh()->GetSocketRotation(StartSocketName).Vector();
 
 			UE_LOG(LogTemp, Warning, TEXT("[LaserRangeDebug] 보스 소켓 기반 판정 -> 소켓명: %s"), *StartSocketName.ToString());
 		}
@@ -187,36 +188,50 @@ FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 	// 공격 주체에 따른 트레이스 채널 동적 결정
 	ECollisionChannel AttackChannel = bIsPlayer ? CCHANNEL_FZFPLAYER_ATTACK : CCHANNEL_FZFMONSTER_ATTACK;
 
-	TArray<FHitResult> HitResults;
+	TArray<FOverlapResult> OverlapResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(AFZFTA_LaserSweep), false, Character);
 
-	bool HitDetected = GetWorld()->SweepMultiByChannel(
-		HitResults,
-		Start,
-		End,
-		FQuat::Identity,
+	// 회전된 각도(Forward)의 원통/캡슐 주머니를 월드에 생성해 검사
+	FVector CapsuleOrigin = Start + Forward * (AttackRange * 0.5f); // 레이저 중심점
+	float CapsuleHalfHeight = AttackRange * 0.5f;                  // 레이저 길이의 절반
+
+	bool HitDetected = GetWorld()->OverlapMultiByChannel(
+		OverlapResults,
+		CapsuleOrigin,
+		FRotationMatrix::MakeFromZ(Forward).ToQuat(),
 		AttackChannel,
-		FCollisionShape::MakeSphere(AttackRadius),
+		FCollisionShape::MakeCapsule(AttackRadius,CapsuleHalfHeight),
 		Params
 	);
-
-	UE_LOG(LogTemp, Log, TEXT("[LaserRangeDebug] 플레이어 대상 Sweep 결과 -> HitDetected: %d / 감지된 타겟 수: %d"), HitDetected, HitResults.Num());
 
 	FGameplayAbilityTargetDataHandle DataHandle;
 	TSet<TWeakObjectPtr<AActor>> HitActors;
 
 	if (HitDetected)
 	{
-		for (const FHitResult& Hit : HitResults)
+		for (FOverlapResult& Overlap : OverlapResults)
 		{
-			AActor* HitActor = Hit.GetActor();
+			AActor* HitActor = Overlap.GetActor();
+
+			// 유효성 및 중복 검사 (Pawn/Character 인지 체크)
 			if (!HitActor || !Cast<APawn>(HitActor) || HitActors.Contains(HitActor))
 			{
 				continue;
 			}
 
 			HitActors.Add(HitActor);
-			FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(Hit);
+
+			// 오버랩 데이터를 기반으로 가상의 확실한 FHitResult 구조체를 생성 및 수동 빌드합니다.
+			FHitResult FakeHit;
+			FakeHit.bBlockingHit = true;
+			FakeHit.HitObjectHandle = FActorInstanceHandle(HitActor); // 대상 액터 정보 주입
+			FakeHit.Location = HitActor->GetActorLocation();   // 대상의 현재 실시간 위치 대입
+			FakeHit.ImpactPoint = FakeHit.Location;            // 임팩트 포인트 동기화
+			FakeHit.TraceStart = Start;
+			FakeHit.TraceEnd = End;
+
+			// GAS 어빌리티가 안전하게 수신할 수 있도록 SingleTargetHit 데이터 구조로 패킹하여 보관함에 주입
+			FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(FakeHit);
 			DataHandle.Add(TargetData);
 		}
 	}
@@ -244,8 +259,8 @@ FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 			UE_LOG(LogTemp, Error, TEXT("[LaserRangeDebug] 에러: Forward가 0이라 DrawDebugCapsule 회전 행렬을 만들 수 없습니다!"));
 		}
 
-		FVector CapsuleOrigin = Start + (End - Start) * 0.5f;
-		float CapsuleHalfHeight = AttackRange * 0.5f;
+		CapsuleOrigin = Start + (End - Start) * 0.5f;
+		CapsuleHalfHeight = AttackRange * 0.5f;
 		FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
 		DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius, FRotationMatrix::MakeFromZ(Forward).ToQuat(), DrawColor, false, 2.0f);
 	}

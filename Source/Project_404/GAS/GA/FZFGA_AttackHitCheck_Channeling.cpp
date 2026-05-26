@@ -38,9 +38,6 @@ void UFZFGA_AttackHitCheck_Channeling::ActivateAbility(const FGameplayAbilitySpe
 		return;
 	}
 
-	// 중복 데미지 방지 세트 초기화
-	AlreadyHitActors.Empty();
-
 	// TargetActor 생성 및 설정
 	SpawnedTargetActor = GetWorld()->SpawnActor<AFZFTA_Base>(TargetActorClass);
 	if (SpawnedTargetActor)
@@ -120,7 +117,6 @@ void UFZFGA_AttackHitCheck_Channeling::OnTargetDataReceived(const FGameplayAbili
 {
 	UE_LOG(LogTemp, Warning, TEXT("[LaserDebug] ========================================================"));
 	UE_LOG(LogTemp, Warning, TEXT("[LaserDebug] OnTargetDataReceived 진입! 들어온 타겟 데이터 개수: %d"), DataHandle.Num());
-	AlreadyHitActors.Empty();
 
 	AActor* Avatar = GetAvatarActorFromActorInfo();
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
@@ -173,17 +169,6 @@ void UFZFGA_AttackHitCheck_Channeling::OnTargetDataReceived(const FGameplayAbili
 			UE_LOG(LogTemp, Warning, TEXT("[LaserDebug] -> [%d]번 걸림: 부딪힌 오브젝트가 배경(벽/바닥)이라 Actor가 없습니다. 데미지 스킵."), i);
 			continue;
 		}
-
-		// 중복 데미지 방지 체크 : 이미 데미지를 입힌 적이 있는 액터라면 건너뛰기
-		if (AlreadyHitActors.Contains(HitActor))
-		{
-			UE_LOG(LogTemp, Log, TEXT("[LaserDebug] -> [%d]번 스킵: 이미 이 레이저에 맞았던 액터(%s)입니다. (중복 방지 컷)"), i, *HitActor->GetName());
-			continue;
-		}
-
-		// 처음 맞은 액터라면 세트에 등록하고 데미지 GE 부여
-		AlreadyHitActors.Add(HitActor);
-		UE_LOG(LogTemp, Error, TEXT("[LaserDebug] 필터 전원 통과! 최초 피격 성공 대상: %s"), *HitActor->GetName());
 
 		// 효과 적용
 		for(const TSubclassOf<UGameplayEffect>& EffectClass : EffectsToApply)

@@ -41,7 +41,4 @@ private:
 	FTimerHandle LaserTimerHandle;
 
 	FTimerHandle LaserDurationTimerHandle;
-
-	// 일회성 데미지를 위해 이미 피격된 액터들을 기억하는 저장소
-	TSet<TWeakObjectPtr<AActor>> AlreadyHitActors;
 };
