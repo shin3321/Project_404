@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "Blueprint/UserWidget.h"
 #include "FZFGameState.generated.h"
 
 UENUM(BlueprintType)
@@ -47,6 +48,22 @@ public:
 
 	UFUNCTION()
 	void OnRep_SharedMoney();
+	
+	UFUNCTION()
+	void SetGameResult(bool Result);
+	
+	UPROPERTY(BlueprintReadOnly, Category = "GameRules")
+	bool bIsClear = false;
+
+	UPROPERTY(ReplicatedUsing=OnRep_GameOver, BlueprintReadOnly, Category = "GameRules")
+	bool bGameOver = false;
+
+	UFUNCTION()
+	void OnRep_GameOver() const;
+	
+private:	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UGameResultWidget> GameResultWidgetClass;
 	
 public:
 	UPROPERTY(Replicated, BlueprintReadOnly)

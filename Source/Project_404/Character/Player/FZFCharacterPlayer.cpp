@@ -328,7 +328,7 @@ void AFZFCharacterPlayer::Tick(float DeltaTime)
 		CurrentHoldTime = 0.0f;
 
 		// 서버 트래블로 모든 플레이어 이동 (또는 개별 이동 로직에 따라 변경 가능)
-		GetWorld()->ServerTravel(TEXT("FZFBossLevel"));
+		GetWorld()->ServerTravel(TEXT("/Game/Project404/Map/FZFBossLevel?listen"));
 	}
 }
 
