@@ -166,11 +166,11 @@ public:
 	void OnRep_RobotWorkbenchParts();
 	
 	// 선택한 아이템의 MaterialTag를 보고 맞는 로봇 부품 위치에 넣는 함수
-	bool TryInsertRobotPart(UFZFItemData* ItemData);
+	bool TryInsertRobotPart(UFZFItemData* ItemData, AFZFCharacterPlayer* Interactor);
 	
 	// 서버에게 실행해 달라고 요청하는 함수 (Server RPC)
 	UFUNCTION(Server, Reliable)
-	void Server_TryInsertRobotPart(UFZFItemData* ItemData);
+	void Server_TryInsertRobotPart(UFZFItemData* ItemData, AFZFCharacterPlayer* Interactor);
 	
 private:
 	// 맞은 컴포넌트가 제작대인지 조립 버튼인지 판별하는 함수
@@ -185,4 +185,6 @@ private:
 	// 지정한 위치에 부품 장착 이펙트를 재생한다.
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayInsertPartEffect(USceneComponent* EffectPoint);
+	
+	class UFZFSoundManager* SoundManager;
 };

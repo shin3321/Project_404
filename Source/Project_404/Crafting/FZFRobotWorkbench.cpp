@@ -18,6 +18,8 @@
 #include "Components/SceneComponent.h"
 #include "Net/UnrealNetwork.h"
 
+#include "Manager/FZFSoundManager.h"
+
 
 AFZFRobotWorkbench::AFZFRobotWorkbench()
 {
@@ -29,7 +31,7 @@ AFZFRobotWorkbench::AFZFRobotWorkbench()
 void AFZFRobotWorkbench::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
+
 	DOREPLIFETIME(AFZFRobotWorkbench, CurrentBodyPart);
 	DOREPLIFETIME(AFZFRobotWorkbench, CurrentRLegPart);
 	DOREPLIFETIME(AFZFRobotWorkbench, CurrentLLegPart);
@@ -78,21 +80,21 @@ void AFZFRobotWorkbench::BeginPlay()
 
 	// 상호작용 박스가 라인트레이스에 맞도록 충돌 설정을 맞춘다.
 	auto SetupInteractionBox = [](UBoxComponent* Box)
+	{
+		if (Box == nullptr)
 		{
-			if (Box == nullptr)
-			{
-				return;
-			}
+			return;
+		}
 
-			// 물리 충돌은 하지 않고 라인트레이스 같은 Query만 받는다.
-			Box->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		// 물리 충돌은 하지 않고 라인트레이스 같은 Query만 받는다.
+		Box->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-			// 기본적으로 모든 채널을 무시한다.
-			Box->SetCollisionResponseToAllChannels(ECR_Ignore);
+		// 기본적으로 모든 채널을 무시한다.
+		Box->SetCollisionResponseToAllChannels(ECR_Ignore);
 
-			// GA_Interact의 LineTrace가 사용하는 Visibility 채널만 Block한다.
-			Box->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
-		};
+		// GA_Interact의 LineTrace가 사용하는 Visibility 채널만 Block한다.
+		Box->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	};
 
 	SetupInteractionBox(WorkbenchInteractionBoxRef);
 
@@ -113,7 +115,11 @@ void AFZFRobotWorkbench::BeginPlay()
 	RobotLLegGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotLLegGuideMesh"));
 	RobotRLegGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotRLegGuideMesh"));
 
-
+	SoundManager = GetGameInstance()->GetSubsystem<UFZFSoundManager>();
+	if (SoundManager)
+	{
+		UE_LOG(LogTemp, Log, TEXT("SoundManager가 생성되었습니다."));
+	}
 }
 
 void AFZFRobotWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
@@ -137,7 +143,7 @@ void AFZFRobotWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveCom
 
 		// TryInsertRobotPart 내부에서 서버 요청(RPC) 또는 직접 실행을 처리함.
 		// 성공 여부와 인벤토리 제거, 조립 확인은 모두 서버에서 안전하게 수행됨.
-		TryInsertRobotPart(SelectedItemData);
+		TryInsertRobotPart(SelectedItemData, Interactor);
 	}
 }
 
@@ -159,7 +165,6 @@ FText AFZFRobotWorkbench::GetInteractableName(UPrimitiveComponent* HitComponent)
 void AFZFRobotWorkbench::OnRep_RobotWorkbenchParts()
 {
 	UpdatePreviewMeshes();
-
 }
 
 EFZFRobotWorkbenchSlot AFZFRobotWorkbench::GetSlotFromHitComponent(UPrimitiveComponent* HitComponent) const
@@ -235,34 +240,34 @@ void AFZFRobotWorkbench::PlayInsertPartEffect_Implementation(USceneComponent* Ef
 	);
 }
 
-bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData)
+bool AFZFRobotWorkbench::TryInsertRobotPart(UFZFItemData* ItemData, AFZFCharacterPlayer* Interactor)
 {
 	if (HasAuthority())
 	{
 		// 이미 서버라면 바로 실행
-		Server_TryInsertRobotPart_Implementation(ItemData);
+		Server_TryInsertRobotPart_Implementation(ItemData, Interactor);
 	}
 	else
 	{
 		// 클라이언트라면 서버에 요청을 보냄
-		Server_TryInsertRobotPart(ItemData);
+		Server_TryInsertRobotPart(ItemData, Interactor);
 	}
 	return true;
 }
 
-void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* ItemData)
+void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* ItemData, AFZFCharacterPlayer* Interactor)
 {
 	// 선택한 아이템 데이터가 없으면 실패
-	if (ItemData == nullptr)
+	if (ItemData == nullptr || Interactor == nullptr)
 	{
-		return ;
+		return;
 	}
 
 	// 선택한 아이템이 로봇 부품 데이터인지 확인
 	UFZFRobotPartItemData* RobotPartData = Cast<UFZFRobotPartItemData>(ItemData);
 	if (RobotPartData == nullptr)
 	{
-		return ;
+		return;
 	}
 
 	bool bInserted = false;
@@ -281,8 +286,6 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 
 			PlayInsertPartEffect(BodyEffectPointRef);
 			bInserted = true;
-
-			//sound : Robot_Part_Attach
 		}
 	}
 	// 왼팔 부품이면 왼팔 위치에 넣는다.
@@ -294,9 +297,6 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 			if (RobotLArmGuideMeshRef) RobotLArmGuideMeshRef->SetVisibility(false);
 			PlayInsertPartEffect(LArmEffectPointRef);
 			bInserted = true;
-
-			//sound : Robot_Part_Attach
-
 		}
 	}
 	// 오른팔 부품이면 오른팔 위치에 넣는다.
@@ -308,8 +308,6 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 			if (RobotRArmGuideMeshRef) RobotRArmGuideMeshRef->SetVisibility(false);
 			PlayInsertPartEffect(RArmEffectPointRef);
 			bInserted = true;
-
-			//sound : Robot_Part_Attach
 		}
 	}
 	// 왼다리 부품이면 왼다리 위치에 넣는다.
@@ -321,8 +319,6 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 			if (RobotLLegGuideMeshRef) RobotLLegGuideMeshRef->SetVisibility(false);
 			PlayInsertPartEffect(LLegEffectPointRef);
 			bInserted = true;
-
-			//sound : Robot_Part_Attach
 		}
 	}
 	// 오른다리 부품이면 오른다리 위치에 넣는다.
@@ -334,24 +330,22 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 			if (RobotRLegGuideMeshRef) RobotRLegGuideMeshRef->SetVisibility(false);
 			PlayInsertPartEffect(RLegEffectPointRef);
 			bInserted = true;
-
-			//sound : Robot_Part_Attach
 		}
 	}
 
+	FVector Location = GetActorLocation();
+	SoundManager->PlaySFXAtLocation("Robot_Part_Attach", Location);
+	
 	if (bInserted)
 	{
 		UpdatePreviewMeshes();
-		
+
 		// 서버 측에서 상호작용한 플레이어의 인벤토리 아이템 제거
-		if (APawn* InstigatorPawn = GetInstigator())
+		if (UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent())
 		{
-			if (UFZFInventoryComponent* Inventory = InstigatorPawn->FindComponentByClass<UFZFInventoryComponent>())
-			{
-				Inventory->RemoveSelectedItem();
-			}
+			Inventory->RemoveSelectedItem();
 		}
-		
+
 		TryCraftRobot();
 	}
 }
@@ -396,6 +390,3 @@ bool AFZFRobotWorkbench::TryCraftRobot()
 
 	return true;
 }
-
-
-

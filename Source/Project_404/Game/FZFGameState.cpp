@@ -3,13 +3,16 @@
 
 #include "Game/FZFGameState.h"
 
+#include "EditorReimportHandler.h"
+#include "Blueprint/UserWidget.h"
 #include "Manager/FZFSoundManager.h"
 #include "Net/UnrealNetwork.h"
+#include "UI/GameResultWidget.h"
 #include "Manager/FZFSoundManager.h"
 
 AFZFGameState::AFZFGameState()
 {
-
+	
 }
 
 void AFZFGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -20,11 +23,45 @@ void AFZFGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(AFZFGameState, CurrentDay);
     DOREPLIFETIME(AFZFGameState, RemainingTimeSeconds); 
     DOREPLIFETIME(AFZFGameState, SharedMoney); 
+	DOREPLIFETIME(AFZFGameState, bGameOver);
 }
 
 void AFZFGameState::OnRep_SharedMoney()
 {
 	
+}
+
+void AFZFGameState::SetGameResult(bool Result)
+{
+	bIsClear = Result;
+	bGameOver = true;
+
+	// 서버(리스닝 서버 호스트)에서도 UI를 띄우기 위해 직접 호출
+	if (HasAuthority())
+	{
+		OnRep_GameOver();
+	}
+}
+
+void AFZFGameState::OnRep_GameOver() const
+{
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC || !PC->IsLocalController()) return;
+
+	// 위젯 클래스가 블루프린트에서 잘 지정되었는지 확인
+	if (GameResultWidgetClass)
+	{
+		// 1. 위젯 생성
+		UGameResultWidget* ResultWidget = CreateWidget<UGameResultWidget>(PC, GameResultWidgetClass);
+		if (ResultWidget)
+		{
+			// 2. 결과 텍스트 변경 ("Clear" 또는 "Fail")
+			ResultWidget->UpdateGameResult(bIsClear);
+
+			// 3. 화면에 표시
+			ResultWidget->AddToViewport();
+		}
+	}
 }
 
 void AFZFGameState::BeginPlay()
@@ -48,7 +85,6 @@ void AFZFGameState::ChangeGamePhase(EGamePhase NewPhase)
 	{
 		CurrentPhase = NewPhase;
 		OnRep_CurrentPhase();
-
 	}
 }
 

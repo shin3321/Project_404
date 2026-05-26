@@ -10,11 +10,12 @@
 #include "GameFramework/PlayerStart.h"
 
 #include "Game/FZFGameState.h"
-#include "Game/FZFGameInstance.h"
+#include "Game/FZFGameState.h"
 
 AFZFGameMode::AFZFGameMode()
 {
-	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnClassRef(TEXT("/Game/Project404/Character/Player/BP_FZFPlayer.BP_FZFPlayer_C"));
+	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnClassRef(
+		TEXT("/Game/Project404/Character/Player/BP_FZFPlayer.BP_FZFPlayer_C"));
 	if (DefaultPawnClassRef.Succeeded())
 	{
 		DefaultPawnClass = DefaultPawnClassRef.Class;
@@ -52,7 +53,8 @@ void AFZFGameMode::BeginPlay()
 	GameState = Cast<AFZFGameState>(GetGameState<AFZFGameState>());
 }
 
-void AFZFGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+void AFZFGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
+                            FString& ErrorMessage)
 {
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
 
@@ -75,7 +77,7 @@ void AFZFGameMode::PostLogin(APlayerController* NewPlayer)
 
 	++CurrentPlayerCount;
 	UE_LOG(LogTemp, Log, TEXT("Player Logged In. Total: %d"),
-		CurrentPlayerCount);
+	       CurrentPlayerCount);
 }
 
 void AFZFGameMode::HandleMatchHasStarted()
@@ -106,7 +108,8 @@ AActor* AFZFGameMode::ChoosePlayerStart_Implementation(AController* Player)
 
 		if (IsValid(ChosenStart))
 		{
-			UE_LOG(LogTemp, Log, TEXT("ChoosePlayerStart: Found %d starts. Assigning Index % d to % s"), FoundActors.Num(), StartIndex, *Player->GetName());
+			UE_LOG(LogTemp, Log, TEXT("ChoosePlayerStart: Found %d starts. Assigning Index % d to % s"),
+			       FoundActors.Num(), StartIndex, *Player->GetName());
 			return ChosenStart;
 		}
 	}
@@ -187,20 +190,13 @@ void AFZFGameMode::UpdateGameCLock()
 void AFZFGameMode::BossDefeated()
 {
 	bIsGameOver = true;
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+
+	if (GameState)
 	{
-		AFZFPlayerController* PC = Cast<AFZFPlayerController>(It->Get());
-		if (PC)
-		{
-			// 승리 UI 띄우기		
-		}
-		UFZFGameInstance* GameInstance = Cast<UFZFGameInstance>(GetGameInstance());
-		if (GameInstance)
-		{
-			GameInstance->bWinGame = true;
-			GetWorld()->ServerTravel("/Game/Maps/Lobby?listen");
-		}
+		GameState->SetGameResult(true);
 	}
+	FTimerHandle TravelTimerHandle;
+	GetWorldTimerManager().SetTimer(TravelTimerHandle, this, &AFZFGameMode::MoveToLobby, TravelDelayTime, false);
 }
 
 void AFZFGameMode::PlayerDied(AController* DeadPlayer)
@@ -226,12 +222,10 @@ void AFZFGameMode::PlayerDied(AController* DeadPlayer)
 	if (!bAnyPlayerAlive)
 	{
 		// 모든 플레이어 사망 시 게임 오버 처리
-		UFZFGameInstance* GameInstance = Cast<UFZFGameInstance>(GetGameInstance());
-		if (GameInstance)
+		if (GameState)
 		{
-			GameInstance->SetGameResult(false);
+			GameState->SetGameResult(false);
 		}
-		
 		HandleGameOver();
 	}
 }
@@ -242,5 +236,11 @@ void AFZFGameMode::HandleGameOver()
 	bIsGameOver = true;
 
 	// 로비 레벨로 이동
-	GetWorld()->ServerTravel(TEXT("Lobby?listen"));
+	FTimerHandle TravelTimerHandle;
+	GetWorldTimerManager().SetTimer(TravelTimerHandle, this, &AFZFGameMode::MoveToLobby, TravelDelayTime, false);
+}
+
+void AFZFGameMode::MoveToLobby()
+{
+	GetWorld()->ServerTravel("/Game/Project404/Map/Lobby?listen");
 }

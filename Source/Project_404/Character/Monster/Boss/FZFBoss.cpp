@@ -304,6 +304,8 @@ void AFZFBoss::InitAttributesFromData() // 보스 전용을 만들면 AttributeS
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Stat_MaxHp, BossData->MaxHp);
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Move_MaxMovementSpeed, BossData->MaxMovementSpeed);
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_MaxAttack, BossData->MaxAttack);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackRange, BossData->AttackRange);
+	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackRadius, BossData->AttackRadius);
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackAreaRadius, BossData->AttackAreaRadius);
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackAreaHalfHeight, BossData->AttackAreaHalfHeight);
 	Spec->SetSetByCallerMagnitude(FZFGameplayTags::Data_Attack_AttackSpeed, BossData->AttackSpeed);

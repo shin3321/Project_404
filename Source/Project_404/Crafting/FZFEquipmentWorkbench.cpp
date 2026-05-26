@@ -197,7 +197,7 @@ EFZFWorkbenchSlot AFZFEquipmentWorkbench::GetSlotFromHitComponent(UPrimitiveComp
 	return EFZFWorkbenchSlot::None;
 }
 
-bool AFZFEquipmentWorkbench::TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData)
+bool AFZFEquipmentWorkbench::TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData, AFZFCharacterPlayer* Interactor)
 {
 	if (HasAuthority())
 	{
@@ -211,7 +211,7 @@ bool AFZFEquipmentWorkbench::TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlo
 	}
 
 	// 서버에 요청
-	Server_TryInsertMaterialToSlot(TargetSlot, ItemData);
+	Server_TryInsertMaterialToSlot(TargetSlot, ItemData, Interactor);
 	return true;
 }
 
@@ -258,12 +258,23 @@ bool AFZFEquipmentWorkbench::InsertMaterialToSlot_Internal(
 
 void AFZFEquipmentWorkbench::Server_TryInsertMaterialToSlot_Implementation(
 	EFZFWorkbenchSlot TargetSlot,
-	UFZFItemData* ItemData
+	UFZFItemData* ItemData,
+	AFZFCharacterPlayer* Interactor
 )
 {
 	const bool bInserted = InsertMaterialToSlot_Internal(TargetSlot, ItemData);
 
-	if (!bInserted)
+	if (bInserted)
+	{
+		if (IsValid(Interactor))
+		{
+			if (UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent())
+			{
+				Inventory->RemoveSelectedItem();
+			}
+		}
+	}
+	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed to insert material to workbench slot."));
 	}
@@ -433,7 +444,7 @@ void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiv
 
 			// 3. 슬롯이 비어있고 손에 든 아이템이 있으면 삽입 시도
 			// 삽입 함수 내부에 서버 RPC 호출이 포함되어 있음
-			TryInsertMaterialToSlot(HitSlot, HeldItemData);
+			TryInsertMaterialToSlot(HitSlot, HeldItemData, Interactor);
 			
 			// [중요] 인벤토리 제거는 서버 RPC 핸들러(Server_TryInsertMaterialToSlot)에서 수행하도록 변경
 			break;

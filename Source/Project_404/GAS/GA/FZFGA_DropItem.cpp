@@ -9,6 +9,9 @@ UFZFGA_DropItem::UFZFGA_DropItem()
 {
     // 인스턴싱 정책: 캐릭터마다 어빌리티 인스턴스를 가짐
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+    
+    // 네트워킹 정책: 서버에서만 실행되도록 설정하여 중복 실행(클라 RPC + 서버 예측 실행) 방지
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 }
 
 void UFZFGA_DropItem::ActivateAbility(
