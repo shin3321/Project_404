@@ -80,6 +80,15 @@ void AFZFBossLevelManager::StartMapPattern(FName PatternName)
 	if (PatternName == TEXT("MapLaser"))
 	{
 		Laser();
+
+		GetWorld()->GetTimerManager().SetTimer(
+			LaserTimerHandle,
+			this,
+			&AFZFBossLevelManager::Laser,
+			2.5f, // 반복 간격
+			true
+		);
+
 		return;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("[MapPattern] Unknown PatternName"));
@@ -178,7 +187,7 @@ void AFZFBossLevelManager::CreateTrigger()
 	{
 		for (AActor* BossTrigger : BossTriggers)
 		{
-			FVector SpawnLocation = BossTrigger->GetActorLocation() + FVector(0.0f, 0.0f, 25.0f);
+			FVector SpawnLocation = BossTrigger->GetActorLocation();
 			FRotator SpawnRotation = BossTrigger->GetActorRotation();
 			FActorSpawnParameters SpawnParams;
 
@@ -225,7 +234,7 @@ void AFZFBossLevelManager::CreateBomb(FVector SpawnLocation)
 		return;
 	}
 
-	FVector BombLocation = SpawnLocation + FVector(0.0f, 0.0f, 120.0f);
+	FVector BombLocation = SpawnLocation;
 	FActorSpawnParameters SpawnParams;
 
 	AFZFBossBombActor* Bomb = GetWorld()->SpawnActor<AFZFBossBombActor>(BombBlueprintClass, BombLocation, FRotator::ZeroRotator, SpawnParams);
