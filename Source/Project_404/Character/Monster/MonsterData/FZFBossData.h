@@ -141,10 +141,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
 	float MaxAttack;
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
-	//float AttackRange;
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
-	//float AttackRadius;
+
+	// 공격 판정 범위
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
+	float AttackRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
+	float AttackRadius;
 
 	// 장판 타격 범위
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attribute|Attack")
