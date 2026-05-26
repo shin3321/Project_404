@@ -67,7 +67,7 @@ void UFZFGA_AttackHitCheck_Channeling::ActivateAbility(const FGameplayAbilitySpe
 	UAbilityTask_WaitTargetData* WaitTargetDataTask = UAbilityTask_WaitTargetData::WaitTargetDataUsingActor(
 		this,
 		NAME_None,
-		EGameplayTargetingConfirmation::Custom, // 루프제어를 위해서 Custom으로 설정
+		EGameplayTargetingConfirmation::CustomMulti, // 루프제어를 위해서 Custom으로 설정
 		SpawnedTargetActor
 	);
 
