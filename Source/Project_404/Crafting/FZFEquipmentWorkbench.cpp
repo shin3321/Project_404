@@ -201,7 +201,8 @@ bool AFZFEquipmentWorkbench::TryInsertMaterialToSlot(EFZFWorkbenchSlot TargetSlo
 {
 	if (HasAuthority())
 	{
-		return InsertMaterialToSlot_Internal(TargetSlot, ItemData);
+		Server_TryInsertMaterialToSlot_Implementation(TargetSlot, ItemData, Interactor);
+		return true;
 	}
 
 	// 클라이언트에서도 미리 실패할 수 있는 조건은 검사 가능
