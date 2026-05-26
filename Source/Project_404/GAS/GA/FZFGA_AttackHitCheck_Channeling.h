@@ -37,7 +37,9 @@ private:
 	UPROPERTY()
 	TObjectPtr<class AFZFTA_Base> SpawnedTargetActor;
 
+	// 원래대로 복구된 레이저 틱용 주기적 타이머 핸들
 	FTimerHandle LaserTimerHandle;
+
 	FTimerHandle LaserDurationTimerHandle;
 
 	// 일회성 데미지를 위해 이미 피격된 액터들을 기억하는 저장소

@@ -17,12 +17,13 @@ UFZFGA_AttackHitCheck_Channeling::UFZFGA_AttackHitCheck_Channeling()
 
 void UFZFGA_AttackHitCheck_Channeling::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+	// 타이머 중복 실행 방지 선행 안전조치 복구
 	if (GetWorld()->GetTimerManager().IsTimerActive(LaserTimerHandle))
 	{
 		return;
 	}
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	if (!TargetActorClass)
 	{
@@ -65,7 +66,7 @@ void UFZFGA_AttackHitCheck_Channeling::ActivateAbility(const FGameplayAbilitySpe
 		}
 	}
 
-	// WaitTargetData를 Instant가 아닌 '지속성(Custom)' 느낌으로 세팅하기 위해 태스크 생성
+	// WaitTargetData 태스크 구동
 	UAbilityTask_WaitTargetData* WaitTargetDataTask = UAbilityTask_WaitTargetData::WaitTargetDataUsingActor(
 		this,
 		NAME_None,
@@ -78,22 +79,12 @@ void UFZFGA_AttackHitCheck_Channeling::ActivateAbility(const FGameplayAbilitySpe
 		WaitTargetDataTask->ValidData.AddDynamic(this, &UFZFGA_AttackHitCheck_Channeling::OnTargetDataReceived);
 		WaitTargetDataTask->ReadyForActivation();
 	}
-
-	// 타이머 시작 : 매 TraceInterval마다 PerformLaserTick 호출, LaserDuration이 끝나면 타이머 종료
+	// 0.05초 간격 반복 추적 타이머
 	GetWorld()->GetTimerManager().SetTimer(LaserTimerHandle, this, &UFZFGA_AttackHitCheck_Channeling::PerformLaserTick, TraceInterval, true);
 
 	// 지속시간 뒤에 어빌리티가 자동으로 꺼지도록 타이머 설정
 	GetWorld()->GetTimerManager().SetTimer(LaserDurationTimerHandle, FTimerDelegate::CreateUObject(this, &UFZFGA_AttackHitCheck_Channeling::EndAbility, Handle, ActorInfo, ActivationInfo, true, false), LaserDuration, false);
-	
-	//// 웅- 하는 지속형 레이저 큐 실행 (시작할 때 한 번만 호출)
-	//UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	//if (ASC && HasAuthority(&CurrentActivationInfo))
-	//{
-	//	FGameplayCueParameters CueParams;
-	//	CueParams.Instigator = Avatar;
-	//	// 이펙트 시작 큐 발동 (나이아가라 무한 루프 빔 스폰용)
-	//	ASC->ExecuteGameplayCue(FZFGameplayTags::GameplayCue_Weapon_Laser, CueParams);
-	//}
+
 }
 
 void UFZFGA_AttackHitCheck_Channeling::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -120,17 +111,16 @@ void UFZFGA_AttackHitCheck_Channeling::PerformLaserTick()
 {
 	if (SpawnedTargetActor)
 	{
-		AlreadyHitActors.Empty();
-		// 타겟 액터에게 레이저 범위안의 대상을 가져오라고 강제 요청
+		// 노티파이 틱 신호가 올때마다 즉시 타겟 액터의 실시간 판정을 갱신하라고 명령
 		SpawnedTargetActor->ConfirmTargeting();
 	}
 }
 
 void UFZFGA_AttackHitCheck_Channeling::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle)
 {
-	// 1단계
 	UE_LOG(LogTemp, Warning, TEXT("[LaserDebug] ========================================================"));
 	UE_LOG(LogTemp, Warning, TEXT("[LaserDebug] OnTargetDataReceived 진입! 들어온 타겟 데이터 개수: %d"), DataHandle.Num());
+	AlreadyHitActors.Empty();
 
 	AActor* Avatar = GetAvatarActorFromActorInfo();
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
