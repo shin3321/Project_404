@@ -104,32 +104,38 @@ void AFZFSpawnManager::BeginPlay()
 	}
 
 	// 4. 아이템 스폰 실행
-	int32 MaxItemCount = FMath::Min(ItemSlots.Num(), ItemPool.Num());
-	for (int32 i = 0; i < MaxItemCount; ++i)
+	if (ItemSlots.Num() != 0 && ItemPool.Num() != 0)
 	{
-		AActor* Slot = ItemSlots[i];
-		FVector SpawnLocation = Slot->GetActorLocation();
-		FRotator SpawnRotation = Slot->GetActorRotation();
-		FActorSpawnParameters SpawnParams;
-
-		AFZFItemBase* ItemActor = GetWorld()->SpawnActor<AFZFItemBase>(ItemPool[i], SpawnLocation, SpawnRotation, SpawnParams);
-		if (ItemActor)
+		int32 MaxItemCount = FMath::Max(ItemSlots.Num(), ItemPool.Num());
+		for (int32 i = 0; i < MaxItemCount; ++i)
 		{
-			ItemActor->ApplyGroundRotation();
-			ItemActor->PlaceOnGround();
+			AActor* Slot = ItemSlots[i];
+			FVector SpawnLocation = Slot->GetActorLocation();
+			FRotator SpawnRotation = Slot->GetActorRotation();
+			FActorSpawnParameters SpawnParams;
+
+			AFZFItemBase* ItemActor = GetWorld()->SpawnActor<AFZFItemBase>(ItemPool[i], SpawnLocation, SpawnRotation, SpawnParams);
+			if (ItemActor)
+			{
+				ItemActor->ApplyGroundRotation();
+				ItemActor->PlaceOnGround();
+			}
 		}
 	}
 
-	// 5. 몬스터 스폰 실행
-	int32 MaxMonsterCount = FMath::Min(MonsterSlots.Num(), MonsterPool.Num());
-	for (int32 i = 0; i < MaxMonsterCount; ++i)
-	{
-		AActor* Slot = MonsterSlots[i];
-		FVector SpawnLocation = Slot->GetActorLocation();
-		FRotator SpawnRotation = Slot->GetActorRotation();
-		FActorSpawnParameters SpawnParams;
 
-		GetWorld()->SpawnActor<AFZFMonster>(MonsterPool[i], SpawnLocation, SpawnRotation, SpawnParams);
+	// 5. 몬스터 스폰 실행
+	if (MonsterPool.Num() != 0)
+	{
+		for (int32 i = 0; i < MonsterPool.Num(); ++i)
+		{
+			AActor* Slot = MonsterSlots[i];
+			FVector SpawnLocation = Slot->GetActorLocation();
+			FRotator SpawnRotation = Slot->GetActorRotation();
+			FActorSpawnParameters SpawnParams;
+
+			GetWorld()->SpawnActor<AFZFMonster>(MonsterPool[i], SpawnLocation, SpawnRotation, SpawnParams);
+		}
 	}
 
 	// 6. 창고 아이템 스폰 실행 (기존 로직 유지)
@@ -146,7 +152,7 @@ void AFZFSpawnManager::BeginPlay()
 
 			FName ItemKey = GameInstance->StorageItems[StorageItemIdx];
 			FFZFItemRow* Row = ItemTable->FindRow<FFZFItemRow>(ItemKey, TEXT("AFZFSpawnManager::SpawnStorageItem"));
-			
+
 			if (Row && Row->ItemActorClass)
 			{
 				AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
