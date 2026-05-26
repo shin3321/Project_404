@@ -47,107 +47,123 @@ void AFZFSpawnManager::BeginPlay()
 	}
 
 	TArray<AActor*> SpawnPoints;
-	// 시작 위치 설정
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATargetPoint::StaticClass(), SpawnPoints);
 
-	// 창고 아이템 스폰을 위한 인덱스 관리
-	int32 StorageItemIdx = 0;
-
-	if (SpawnPoints.Num() > 0)
+	if (SpawnPoints.Num() == 0)
 	{
-		for (AActor* SpawnPoint : SpawnPoints)
+		UE_LOG(LogTemp, Warning, TEXT("스폰 가능한 지역이 없습니다"));
+		return;
+	}
+
+	// 1. 슬롯 분류
+	TArray<AActor*> ItemSlots;
+	TArray<AActor*> MonsterSlots;
+	TArray<AActor*> StorageSlots;
+
+	for (AActor* Point : SpawnPoints)
+	{
+		if (Point->ActorHasTag("ItemSpawnSlot")) ItemSlots.Add(Point);
+		else if (Point->ActorHasTag("MonsterSpawnSlot")) MonsterSlots.Add(Point);
+		else if (Point->ActorHasTag("StorageItemSlot")) StorageSlots.Add(Point);
+	}
+
+	// 2. 아이템 스폰 풀 생성 및 셔플
+	TArray<TSubclassOf<AFZFItemBase>> ItemPool;
+	for (const FFZFItemSpawnConfig& Config : ItemSpawnConfigs)
+	{
+		if (Config.ItemClass)
 		{
-			FVector SpawnLocation = SpawnPoint->GetActorLocation();
-			FRotator SpawnRotation = SpawnPoint->GetActorRotation();
+			for (int32 i = 0; i < Config.SpawnCount; ++i)
+			{
+				ItemPool.Add(Config.ItemClass);
+			}
+		}
+	}
+	for (int32 i = ItemPool.Num() - 1; i > 0; --i)
+	{
+		int32 j = FMath::RandRange(0, i);
+		ItemPool.Swap(i, j);
+	}
+
+	// 3. 몬스터 스폰 풀 생성 및 셔플
+	TArray<TSubclassOf<AFZFMonster>> MonsterPool;
+	for (const FFZFMonsterSpawnConfig& Config : MonsterSpawnConfigs)
+	{
+		if (Config.MonsterClass)
+		{
+			for (int32 i = 0; i < Config.SpawnCount; ++i)
+			{
+				MonsterPool.Add(Config.MonsterClass);
+			}
+		}
+	}
+	for (int32 i = MonsterPool.Num() - 1; i > 0; --i)
+	{
+		int32 j = FMath::RandRange(0, i);
+		MonsterPool.Swap(i, j);
+	}
+
+	// 4. 아이템 스폰 실행
+	int32 MaxItemCount = FMath::Min(ItemSlots.Num(), ItemPool.Num());
+	for (int32 i = 0; i < MaxItemCount; ++i)
+	{
+		AActor* Slot = ItemSlots[i];
+		FVector SpawnLocation = Slot->GetActorLocation();
+		FRotator SpawnRotation = Slot->GetActorRotation();
+		FActorSpawnParameters SpawnParams;
+
+		AFZFItemBase* ItemActor = GetWorld()->SpawnActor<AFZFItemBase>(ItemPool[i], SpawnLocation, SpawnRotation, SpawnParams);
+		if (ItemActor)
+		{
+			ItemActor->ApplyGroundRotation();
+			ItemActor->PlaceOnGround();
+		}
+	}
+
+	// 5. 몬스터 스폰 실행
+	int32 MaxMonsterCount = FMath::Min(MonsterSlots.Num(), MonsterPool.Num());
+	for (int32 i = 0; i < MaxMonsterCount; ++i)
+	{
+		AActor* Slot = MonsterSlots[i];
+		FVector SpawnLocation = Slot->GetActorLocation();
+		FRotator SpawnRotation = Slot->GetActorRotation();
+		FActorSpawnParameters SpawnParams;
+
+		GetWorld()->SpawnActor<AFZFMonster>(MonsterPool[i], SpawnLocation, SpawnRotation, SpawnParams);
+	}
+
+	// 6. 창고 아이템 스폰 실행 (기존 로직 유지)
+	if (GameInstance)
+	{
+		int32 StorageItemIdx = 0;
+		int32 MaxStorageCount = FMath::Min(StorageSlots.Num(), GameInstance->StorageItems.Num());
+		for (int32 i = 0; i < MaxStorageCount; ++i)
+		{
+			AActor* Slot = StorageSlots[i];
+			FVector SpawnLocation = Slot->GetActorLocation();
+			FRotator SpawnRotation = Slot->GetActorRotation();
 			FActorSpawnParameters SpawnParams;
 
-			if (SpawnPoint->ActorHasTag("ItemSpawnSlot"))
+			FName ItemKey = GameInstance->StorageItems[StorageItemIdx];
+			FFZFItemRow* Row = ItemTable->FindRow<FFZFItemRow>(ItemKey, TEXT("AFZFSpawnManager::SpawnStorageItem"));
+			
+			if (Row && Row->ItemActorClass)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("아이템 스폰 지역을 찾았습니다"));
-
-				if (ItemClasses.IsEmpty())
+				AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
+				if (AFZFItemBase* ItemBase = Cast<AFZFItemBase>(SpawnedItem))
 				{
-					UE_LOG(LogTemp, Error, TEXT("ItemClasses 배열이 비어있습니다."));
-					continue;
+					ItemBase->InitializeItem(Row->ItemData);
 				}
-
-				int32 RandomIndex = FMath::RandRange(0, ItemClasses.Num() - 1);
-				TSubclassOf<AFZFItemBase> ItemClass = ItemClasses[RandomIndex];
-
-				if (ItemClass)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("ItemClass: 스폰 위치: (%lf, %f, %lf)"), SpawnLocation.X, SpawnLocation.Y,
-					       SpawnLocation.Z);
-
-					AFZFItemBase* ItemActor = GetWorld()->SpawnActor<AFZFItemBase>(ItemClass, SpawnLocation, SpawnRotation, SpawnParams);
-					ItemActor->ApplyGroundRotation();
-					ItemActor->PlaceOnGround();
-				}
-			}
-			else if (SpawnPoint->ActorHasTag("MonsterSpawnSlot"))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("몬스터 스폰 지역을 찾았습니다"));
-
-				if (MonsterClasses.IsEmpty())
-				{
-					UE_LOG(LogTemp, Error, TEXT("MonsterClasses 배열이 비어있습니다."));
-					continue;
-				}
-
-				int32 RandomIndex = FMath::RandRange(0, MonsterClasses.Num() - 1);
-				TSubclassOf<AFZFMonster> MonsterClass = MonsterClasses[RandomIndex];
-
-				if (MonsterClass)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("MonsterClass: 스폰 위치: (%lf, %f, %lf)"), SpawnLocation.X,
-					       SpawnLocation.Y, SpawnLocation.Z);
-					GetWorld()->SpawnActor<AFZFMonster>(MonsterClass, SpawnLocation, SpawnRotation, SpawnParams);
-				}
-			}
-			else if (SpawnPoint->ActorHasTag("StorageItemSlot"))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("창고 아이템 스폰 지역을 찾았습니다"));
-				
-				// 해당 슬롯에 스폰할 아이템이 남아있는지 확인
-				if (StorageItemIdx < GameInstance->StorageItems.Num())
-				{
-					FName ItemKey = GameInstance->StorageItems[StorageItemIdx];
-					FFZFItemRow* Row = ItemTable->FindRow<FFZFItemRow>(
-						ItemKey, TEXT("AFZFSpawnManager::SpawnStorageItem"));
-					
-					if (Row && Row->ItemActorClass)
-					{
-						UE_LOG(LogTemp, Warning, TEXT("창고 아이템 스폰 (%d): %s, 위치: (%lf, %f, %lf)"), 
-							StorageItemIdx, *ItemKey.ToString(), SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z);
-						
-						AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(
-							Row->ItemActorClass, SpawnLocation, SpawnRotation, SpawnParams);
-						
-						if (AFZFItemBase* ItemBase = Cast<AFZFItemBase>(SpawnedItem))
-						{
-							ItemBase->InitializeItem(Row->ItemData);
-						}
-						
-						// 다음 아이템으로 인덱스 증가
-						StorageItemIdx++;
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("해당 키에 매핑된 아이템 클래스가 없습니다: %s"), *ItemKey.ToString());
-					}
-				}
+				StorageItemIdx++;
 			}
 		}
 
-		// 모든 아이템 스폰이 끝난 후, 중복 스폰 방지를 위해 목록 초기화
 		if (StorageItemIdx > 0)
 		{
 			GameInstance->StorageItems.Empty();
 			UE_LOG(LogTemp, Warning, TEXT("서버: 창고 아이템 스폰 완료. 목록을 비웠습니다."));
 		}
 	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("스폰 가능한 지역이 없습니다"));
 }
 
 // Called every frame

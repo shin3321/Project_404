@@ -7,6 +7,30 @@
 #include "Item/ItemTypes.h"
 #include "FZFSpawnManager.generated.h"
 
+USTRUCT(BlueprintType)
+struct FFZFItemSpawnConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AFZFItemBase> ItemClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 SpawnCount = 1;
+};
+
+USTRUCT(BlueprintType)
+struct FFZFMonsterSpawnConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AFZFMonster> MonsterClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 SpawnCount = 1;
+};
+
 UCLASS()
 class PROJECT_404_API AFZFSpawnManager : public AActor
 {
@@ -30,10 +54,10 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Item")
-	TArray<TSubclassOf<class AFZFItemBase>> ItemClasses;
+	TArray<FFZFItemSpawnConfig> ItemSpawnConfigs;
 	
 	UPROPERTY(EditAnywhere, Category = "Monster")
-	TArray<TSubclassOf<class AFZFMonster>> MonsterClasses;
+	TArray<FFZFMonsterSpawnConfig> MonsterSpawnConfigs;
 
 	UPROPERTY(EditAnywhere, Category = "ItemTable")
 	UDataTable* ItemTable;
