@@ -21,7 +21,6 @@ AFZFHeldItemActor::AFZFHeldItemActor()
 
     // 손에 들 아이템은 캐릭터랑 충돌하면 거슬릴 수 있으니까 충돌 끔
     MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    MeshComponent->SetIsReplicated(true);
 
     ReadyEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ReadyEffectComponent"));
     ReadyEffectComponent->SetupAttachment(RootComponent);
@@ -74,27 +73,37 @@ void AFZFHeldItemActor::ApplyItemData()
 
 void AFZFHeldItemActor::SetFirstPersonVisualMode()
 {
-    if (!MeshComponent)
+    if (MeshComponent)
     {
-        return;
+        // 로컬 1인칭 전용 아이템.
+        // 나(Owner)에게만 보이게 설정.
+        MeshComponent->SetOnlyOwnerSee(true);
+        MeshComponent->SetOwnerNoSee(false);
     }
 
-    // 로컬 1인칭 전용 아이템.
-    MeshComponent->SetOnlyOwnerSee(false);
-    MeshComponent->SetOwnerNoSee(false);
+    if (ReadyEffectComponent)
+    {
+        ReadyEffectComponent->SetOnlyOwnerSee(true);
+        ReadyEffectComponent->SetOwnerNoSee(false);
+    }
 }
 
 void AFZFHeldItemActor::SetThirdPersonVisualMode()
 {
-    if (!MeshComponent)
+    if (MeshComponent)
     {
-        return;
+        // 3인칭 복제 아이템.
+        // Owner(자기 자신)에게는 보이지 않게 하고, 타인에게만 보이게 함.
+        MeshComponent->SetOwnerNoSee(true);
+        MeshComponent->SetOnlyOwnerSee(false);
+        MeshComponent->SetHiddenInGame(true);
     }
 
-    // 3인칭 복제 아이템.
-    // Owner에게는 보이지 않게 해서, 자기 화면에서는 1인칭 ArmMesh용 아이템만 보이게 함.
-    MeshComponent->SetOwnerNoSee(true);
-    MeshComponent->SetOnlyOwnerSee(false);
+    if (ReadyEffectComponent)
+    {
+        ReadyEffectComponent->SetOwnerNoSee(true);
+        ReadyEffectComponent->SetOnlyOwnerSee(false);
+    }
 }
 
 void AFZFHeldItemActor::ToggleReadyEffect(bool bIsReady)
