@@ -1,6 +1,5 @@
 ﻿#include "Utils/FZFGameLevelTeleport.h"
 #include "Character/FZFCharacterBase.h"
-#include "Kismet/GameplayStatics.h"
 #include "Manager/FZFSoundManager.h"
 #include "Game/FZFGameInstance.h"
 
@@ -124,7 +123,7 @@ void AFZFGameLevelTeleport::EnterLobbyLevel()
 	}
 
 	// 로딩 화면을 띄운 뒤 레벨 이동
-	ShowLoadingAndTravel(TEXT("FZFGameLevel?listen"));
+	ShowLoadingAndTravel(TEXT("/Game/Project404/Map/FZFGameLevel?listen"));
 }
 
 void AFZFGameLevelTeleport::TravelToLobbyLevel()

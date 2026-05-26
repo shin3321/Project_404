@@ -56,6 +56,11 @@ protected:
 	FTimerHandle DayTimerHandle;
 	void UpdateGameCLock();
 
+	void MoveToLobby();
+	
+	UPROPERTY(EditDefaultsOnly, Category = "GameRules")
+	float TravelDelayTime = 3.0f;
+	
 protected:
 	// 현재 접속 중인 플레이어 수A
 	int32 CurrentPlayerCount = 0;
