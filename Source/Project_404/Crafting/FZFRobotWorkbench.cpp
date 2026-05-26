@@ -10,10 +10,14 @@
 #include "Inventory/FZFInventoryComponent.h"
 #include "Utils/FZFUtils.h"
 
+#include "Kismet/GameplayStatics.h"
+#include "Manager/FZFSoundManager.h"
+
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Components/SceneComponent.h"
 #include "Net/UnrealNetwork.h"
+
 
 AFZFRobotWorkbench::AFZFRobotWorkbench()
 {
@@ -108,6 +112,8 @@ void AFZFRobotWorkbench::BeginPlay()
 	RobotRArmGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotRArmGuideMesh"));
 	RobotLLegGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotLLegGuideMesh"));
 	RobotRLegGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotRLegGuideMesh"));
+
+
 }
 
 void AFZFRobotWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
@@ -267,9 +273,16 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 		if (CurrentBodyPart == nullptr)
 		{
 			CurrentBodyPart = RobotPartData;
-			if (RobotBodyGuideMeshRef) RobotBodyGuideMeshRef->SetVisibility(false);
+
+			if (RobotBodyGuideMeshRef)
+			{
+				RobotBodyGuideMeshRef->SetVisibility(false);
+			}
+
 			PlayInsertPartEffect(BodyEffectPointRef);
 			bInserted = true;
+
+			//sound : Robot_Part_Attach
 		}
 	}
 	// 왼팔 부품이면 왼팔 위치에 넣는다.
@@ -281,6 +294,9 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 			if (RobotLArmGuideMeshRef) RobotLArmGuideMeshRef->SetVisibility(false);
 			PlayInsertPartEffect(LArmEffectPointRef);
 			bInserted = true;
+
+			//sound : Robot_Part_Attach
+
 		}
 	}
 	// 오른팔 부품이면 오른팔 위치에 넣는다.
@@ -292,6 +308,8 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 			if (RobotRArmGuideMeshRef) RobotRArmGuideMeshRef->SetVisibility(false);
 			PlayInsertPartEffect(RArmEffectPointRef);
 			bInserted = true;
+
+			//sound : Robot_Part_Attach
 		}
 	}
 	// 왼다리 부품이면 왼다리 위치에 넣는다.
@@ -303,6 +321,8 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 			if (RobotLLegGuideMeshRef) RobotLLegGuideMeshRef->SetVisibility(false);
 			PlayInsertPartEffect(LLegEffectPointRef);
 			bInserted = true;
+
+			//sound : Robot_Part_Attach
 		}
 	}
 	// 오른다리 부품이면 오른다리 위치에 넣는다.
@@ -314,6 +334,8 @@ void AFZFRobotWorkbench::Server_TryInsertRobotPart_Implementation(UFZFItemData* 
 			if (RobotRLegGuideMeshRef) RobotRLegGuideMeshRef->SetVisibility(false);
 			PlayInsertPartEffect(RLegEffectPointRef);
 			bInserted = true;
+
+			//sound : Robot_Part_Attach
 		}
 	}
 
