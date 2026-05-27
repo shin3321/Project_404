@@ -321,14 +321,14 @@ void UFZFHeldItemComponent::AttachThirdPersonHeldItem()
 
 	CurrentHeldItem->SetThirdPersonVisualMode();
 
-	if (OwnerCharacter->IsLocallyControlled())
-	{
-		if (UStaticMeshComponent* MeshComp = CurrentHeldItem->GetItemMeshComponent())
-		{
-			MeshComp->SetOwnerNoSee(true);
-			MeshComp->SetHiddenInGame(true);
-		}
-	}
+	//if (OwnerCharacter->IsLocallyControlled())
+	//{
+	//	if (UStaticMeshComponent* MeshComp = CurrentHeldItem->GetItemMeshComponent())
+	//	{
+	//		MeshComp->SetOwnerNoSee(true);
+	//		MeshComp->SetHiddenInGame(true);
+	//	}
+	//}
 
 	CurrentHeldItem->AttachToComponent(
 		OwnerCharacter->GetMesh(),

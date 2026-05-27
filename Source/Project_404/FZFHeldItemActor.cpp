@@ -92,15 +92,14 @@ void AFZFHeldItemActor::SetThirdPersonVisualMode()
 {
     if (MeshComponent)
     {
-        // 3인칭 복제 아이템.
-        // Owner(자기 자신)에게는 보이지 않게 하고, 타인에게만 보이게 함.
+        MeshComponent->SetHiddenInGame(false);
         MeshComponent->SetOwnerNoSee(true);
         MeshComponent->SetOnlyOwnerSee(false);
-        MeshComponent->SetHiddenInGame(true);
     }
 
     if (ReadyEffectComponent)
     {
+        ReadyEffectComponent->SetHiddenInGame(false);
         ReadyEffectComponent->SetOwnerNoSee(true);
         ReadyEffectComponent->SetOnlyOwnerSee(false);
     }
