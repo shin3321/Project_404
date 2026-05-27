@@ -39,10 +39,6 @@ void ATestCameraPawn::Tick(float DeltaTime)
         Params
     );
 
-    // 라인트레이스 디버그 선 표시
-    // 맞은 액터가 있으면 초록색, 없으면 빨간색
-    DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
-
     // 매 프레임마다 현재 바라보는 아이템 초기화
     CurrentTargetItem = nullptr;
 

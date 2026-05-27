@@ -249,23 +249,5 @@ FGameplayAbilityTargetDataHandle AFZFTA_LaserSweep::MakeTargetData() const
 		FGameplayAbilityTargetData_SingleTargetHit* VisualData = new FGameplayAbilityTargetData_SingleTargetHit(DummyHit);
 		DataHandle.Add(VisualData);
 	}
-
-#if ENABLE_DRAW_DEBUG
-
-	if (bShowDebug)
-	{
-		if (Forward.IsNearlyZero())
-		{
-			UE_LOG(LogTemp, Error, TEXT("[LaserRangeDebug] 에러: Forward가 0이라 DrawDebugCapsule 회전 행렬을 만들 수 없습니다!"));
-		}
-
-		CapsuleOrigin = Start + (End - Start) * 0.5f;
-		CapsuleHalfHeight = AttackRange * 0.5f;
-		FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
-		DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius, FRotationMatrix::MakeFromZ(Forward).ToQuat(), DrawColor, false, 2.0f);
-	}
-
-#endif
-
 	return DataHandle;
 }

@@ -122,23 +122,5 @@ FGameplayAbilityTargetDataHandle AFZFTA_GroundArea::MakeTargetData() const
 		}
 	}
 
-#if ENABLE_DRAW_DEBUG
-
-	if (bShowDebug)
-	{
-		DrawDebugCapsule(
-			GetWorld(),
-			Start,
-			AttackAreaHalfHeight,
-			AttackAreaRadius,
-			FQuat::Identity,
-			HitDetected ? FColor::Yellow : FColor::Red,
-			false,
-			5.0f
-		);
-	}
-
-#endif
-
 	return DataHandle;
 }
