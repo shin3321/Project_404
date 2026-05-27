@@ -99,4 +99,6 @@ namespace FZFGameplayTags
 	// GameplayCue
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_Laser, "GameplayCue.Weapon.Laser");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_ChargeComplete, "GameplayCue.Weapon.ChargeComplete");
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Head_Impact, "GameplayCue.Head.Impact");
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Fireman_Impact, "GameplayCue.Fireman.Impact");
 	}

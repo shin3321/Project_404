@@ -105,5 +105,6 @@ namespace FZFGameplayTags
 	// GameplayCue
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Weapon_Laser);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Weapon_ChargeComplete);
-
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Head_Impact);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Fireman_Impact);
 }
