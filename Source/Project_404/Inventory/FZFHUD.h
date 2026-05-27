@@ -17,6 +17,7 @@ class PROJECT_404_API UFZFHUD : public UUserWidget
 
 protected:
     virtual void NativeConstruct() override;
+    virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 public:
     // 타겟 이름 텍스트 설정
@@ -80,6 +81,10 @@ protected:
     UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> HPText;
     
+    // 타이머 텍스트 블록
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> TimerText;
+
     // 화면 중앙 조준점 이미지
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UImage> CrosshairImage;

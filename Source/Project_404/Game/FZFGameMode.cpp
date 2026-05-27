@@ -10,7 +10,6 @@
 #include "GameFramework/PlayerStart.h"
 
 #include "Game/FZFGameState.h"
-#include "Game/FZFGameState.h"
 
 AFZFGameMode::AFZFGameMode()
 {
@@ -92,6 +91,12 @@ void AFZFGameMode::HandleMatchHasStarted()
 			UE_LOG(LogTemp, Warning, TEXT("[안전장치] 폰이 없는 컨트롤러 발견, 강제 스폰: %s"), *PC->GetName());
 			RestartPlayer(PC);
 		}
+	}
+
+	// 특정 레벨(FZFGameLevel)에서만 타이머 시작
+	if (GetWorld()->GetMapName().Contains(TEXT("FZFGameLevel")))
+	{
+		StartNewDay();
 	}
 }
 
