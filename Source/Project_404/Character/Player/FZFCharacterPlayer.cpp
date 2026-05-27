@@ -461,6 +461,12 @@ void AFZFCharacterPlayer::OnHpChanged(float NewValue, float MaxValue)
 		// 실제 데미지가 들어왔을 때만 실행
 		UE_LOG(LogTemp, Warning, TEXT("!!! DAMAGE DETECTED !!!"));
 
+		// 로컬에서 즉시 재생
+		if (IsLocallyControlled() && SoundManager)
+		{
+			SoundManager->PlaySFXAtLocation(TEXT("PlayerDamage"), GetActorLocation());
+		}
+
 		// 피격 사운드 재생
 		ServerPlaySound(TEXT("PlayerDamage"), GetActorLocation());
 
@@ -673,6 +679,12 @@ void AFZFCharacterPlayer::Move(const FInputActionValue& Value)
 		float DistanceMoved = FVector::Dist(GetActorLocation(), LastFootstepLocation);
 		if (DistanceMoved > FootstepDistance)
 		{
+			// 로컬에서 즉시 재생하여 반응성 향상
+			if (IsLocallyControlled() && SoundManager)
+			{
+				SoundManager->PlaySFXAtLocation(TEXT("PlayerFoot_Road"), GetActorLocation());
+			}
+
 			ServerPlaySound(TEXT("PlayerFoot_Road"), GetActorLocation());
 			LastFootstepLocation = GetActorLocation();
 		}
@@ -765,6 +777,12 @@ void AFZFCharacterPlayer::RunStart()
 		float DistanceMoved = FVector::Dist(GetActorLocation(), LastFootstepLocation);
 		if (DistanceMoved > FootstepDistance)
 		{
+			// 로컬에서 즉시 재생하여 반응성 향상
+			if (IsLocallyControlled() && SoundManager)
+			{
+				SoundManager->PlaySFXAtLocation(TEXT("Footstep"), GetActorLocation());
+			}
+
 			ServerPlaySound(TEXT("Footstep"), GetActorLocation());
 			LastFootstepLocation = GetActorLocation();
 		}
@@ -811,6 +829,13 @@ void AFZFCharacterPlayer::Attack()
 		if (ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(ReviveActionTag)))
 		{
 			UE_LOG(LogTemp, Log, TEXT("[Attack] 부활석 어빌리티 발동 성공!"));
+
+			// 로컬에서 즉시 재생
+			if (IsLocallyControlled() && SoundManager)
+			{
+				SoundManager->PlaySFXAtLocation(TEXT("Weapon_LaserGun"), GetActorLocation());
+			}
+
 			ServerPlaySound(TEXT("Weapon_LaserGun"), GetActorLocation());
 			return;
 		}
@@ -819,6 +844,12 @@ void AFZFCharacterPlayer::Attack()
 	{
 		// 일반 무기들은 기존처럼 작동
 		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
+	}
+
+	// 로컬에서 즉시 재생
+	if (IsLocallyControlled() && SoundManager)
+	{
+		SoundManager->PlaySFXAtLocation(TEXT("Weapon_LaserGun"), GetActorLocation());
 	}
 
 	ServerPlaySound(TEXT("Weapon_LaserGun"), GetActorLocation());
@@ -1075,24 +1106,15 @@ void AFZFCharacterPlayer::ServerPlaySound_Implementation(FName RowName, FVector 
 
 void AFZFCharacterPlayer::MulticastPlaySound_Implementation(FName RowName, FVector Location)
 {
+	// 로컬 컨트롤러는 이미 소리를 재생했으므로 중복 재생 방지
+	if (IsLocallyControlled())
+	{
+		return;
+	}
+
 	if (SoundManager)
 	{
-		if (RowName == "PlayerFoot_Road")
-		{
-			SoundManager->PlaySFXAtLocation("PlayerFoot_Road", Location);
-		}
-		else if (RowName == "Weapon_LaserGun")
-		{
-			SoundManager->PlaySFXAtLocation("Weapon_LaserGun", Location);
-		}
-		else if (RowName == "Weapon_pickaxe")
-		{
-			SoundManager->PlaySFXAtLocation("Weapon_pickaxe", Location);
-		}
-		else if (RowName == "PlayerDamage")
-		{
-			SoundManager->PlaySFXAtLocation("PlayerDamage", Location);
-		}
+		SoundManager->PlaySFXAtLocation(RowName, Location);
 	}
 }
 
