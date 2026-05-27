@@ -65,30 +65,5 @@ bool UBTDecorator_AttackInRange::CalculateRawConditionValue(
 
 	float DistanceToTarget1 = FVector::Dist2D(MonsterLoc, TargetLoc);
 
-	DrawDebugCylinder(
-		ControllingPawn->GetWorld(),
-		Bottom,
-		Top,
-		Radius,
-		32,
-		bResult ? FColor::Blue : FColor::Red,
-		false,
-		0.2f,
-		0,
-		3.f
-	);
-
-	/*DrawDebugLine(
-		ControllingPawn->GetWorld(),
-		MonsterLoc,
-		TargetLoc,
-		DistanceToTarget1 <= AttackDetectRange ? FColor::Blue : FColor::Red,
-		false,
-		5.0f,
-		0,
-		5.f
-	);*/
-	
-
 	return bResult;
 }

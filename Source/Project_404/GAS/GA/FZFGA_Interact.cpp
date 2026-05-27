@@ -88,10 +88,6 @@ void UFZFGA_Interact::PerformTraceAndPickup()
 	// Start부터 End까지 Visibility 채널로 라인트레이스 실행
 	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
 
-	// 라인트레이스 디버그 선 표시
-	// 맞은 액터가 있으면 초록색, 없으면 빨간색
-	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
-
 	if (!bHit)
 	{
 		return;
