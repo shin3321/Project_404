@@ -41,10 +41,6 @@ namespace FZFGameplayTags
 	// 보스방 디버프
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Boss_Debuff);
 	
-	// 보스방 디버프
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Boss_Debuff);
-	
-	
 	// 움직임 상태 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Idle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Movement_Walk);
