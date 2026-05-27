@@ -37,6 +37,9 @@ namespace FZFGameplayTags
 
 	// 몬스터의 공격 방식
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Aura);
+
+	// 보스방 디버프
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Boss_Debuff);
 	
 	// 보스방 디버프
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Boss_Debuff);
@@ -59,6 +62,7 @@ namespace FZFGameplayTags
 	// 디버프 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Stun);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_Fire);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Debuff_InBossRoom);
 
 	// 어트리뷰트 데이터 초기화용 태그
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Stat_MaxHp);
