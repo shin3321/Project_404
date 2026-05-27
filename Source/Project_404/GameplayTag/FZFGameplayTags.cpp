@@ -35,6 +35,9 @@ namespace FZFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Aura, "Ability.Action.Attack.Aura");
 
 
+	// 보스방 디버프
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Boss_Debuff, "Ability.Action.Boss.Debuff");
+
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Idle,"State.Movement.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Walk,"State.Movement.Walk");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Run,"State.Movement.Run");

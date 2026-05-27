@@ -2,6 +2,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Game/FZFGameState.h"
 
 void UFZFHUD::NativeConstruct()
 {
@@ -25,6 +26,36 @@ void UFZFHUD::NativeConstruct()
 
         // 시작 시 홀드 UI 숨김
         HoldProgressImage->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+
+void UFZFHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+    Super::NativeTick(MyGeometry, InDeltaTime);
+
+    // GameState에서 남은 시간을 가져와 타이머 텍스트 업데이트
+    if (TimerText)
+    {
+        // 특정 레벨(FZFGameLevel)에서만 타이머 표시
+        if (GetWorld()->GetMapName().Contains(TEXT("FZFGameLevel")))
+        {
+            TimerText->SetVisibility(ESlateVisibility::Visible);
+
+            if (AFZFGameState* GS = GetWorld()->GetGameState<AFZFGameState>())
+            {
+                int32 TotalSeconds = GS->RemainingTimeSeconds;
+                int32 Minutes = TotalSeconds / 60;
+                int32 Seconds = TotalSeconds % 60;
+
+                FString TimerString = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+                TimerText->SetText(FText::FromString(TimerString));
+            }
+        }
+        else
+        {
+            // 그 외 레벨에서는 타이머 숨김
+            TimerText->SetVisibility(ESlateVisibility::Hidden);
+        }
     }
 }
 
