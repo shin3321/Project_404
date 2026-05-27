@@ -37,7 +37,6 @@ namespace FZFGameplayTags
 	// 보스방 디버프
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Boss_Debuff, "Ability.Action.Boss.Debuff");
 
-
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Idle,"State.Movement.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Walk,"State.Movement.Walk");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Run,"State.Movement.Run");
@@ -54,7 +53,6 @@ namespace FZFGameplayTags
 	// 디버프 상태 부여 태그
 	UE_DEFINE_GAMEPLAY_TAG(State_Debuff_Stun,"State.Debuff.Stun");
 	UE_DEFINE_GAMEPLAY_TAG(State_Debuff_Fire,"State.Debuff.Fire");
-	UE_DEFINE_GAMEPLAY_TAG(State_Debuff_InBossRoom,"State.Debuff.InBossRoom");
 
 	// 내가 현재 착용하고 있는 무기에 따른 상태
 	UE_DEFINE_GAMEPLAY_TAG(State_Equip_Pickaxe,"State.Equip.Pickaxe");

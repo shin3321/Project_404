@@ -37,6 +37,9 @@ namespace FZFGameplayTags
 
 	// 몬스터의 공격 방식
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Attack_Aura);
+
+	// 보스방 디버프
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Action_Boss_Debuff);
 	
 	
 	// 움직임 상태 태그
