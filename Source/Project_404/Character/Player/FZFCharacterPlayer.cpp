@@ -428,7 +428,6 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 					AttributeSet->OnHPChanged.AddUniqueDynamic(this, &AFZFCharacterPlayer::OnHpChanged);
 					AttributeSet->OnStaminaChanged.AddUniqueDynamic(this, &AFZFCharacterPlayer::OnStaminaChanged);
 
-					// 초기 데이터 동기화
 					PreviousHP = AttributeSet->GetHP();
 					OnHpChanged(AttributeSet->GetHP(), AttributeSet->GetMaxHP());
 
@@ -436,6 +435,28 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 					{
 						OnStaminaChanged(PlayerSet->GetStamina(), PlayerSet->GetMaxStamina());
 					}
+				}
+			}
+		}
+
+		// 보스방 진입 시 디버프 부여 로직 (서버 전용)
+		if (HasAuthority() && GetWorld()->GetMapName().Contains(TEXT("FZFBossLevel")))
+		{
+			// 캐릭터가 가진 인터페이스나 게터를 통해 AbilitySystemComponent 추출
+			if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(this))
+			{
+				UAbilitySystemComponent* PlayerASC = ASI->GetAbilitySystemComponent();
+				if (PlayerASC)
+				{
+					// State.Debuff.InBossRoom 고유 태그 정의
+					FGameplayTag BossRoomTag = FZFGameplayTags::Ability_Action_Boss_Debuff;
+
+					// 플레이어 ASC에 직접 태그를 영구 추가 (보스방 탈출 전까지 유지)
+					PlayerASC->AddLooseGameplayTag(BossRoomTag);
+
+					// 태그 변화를 동력 삼아 어빌리티 명시적 즉시 실행 쿼리 발동
+					// TryActivateAbility를 수행
+					PlayerASC->TryActivateAbilitiesByTag(FGameplayTagContainer(BossRoomTag));
 				}
 			}
 		}

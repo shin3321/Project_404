@@ -34,6 +34,7 @@ namespace FZFGameplayTags
 	// 몬스터의 공격 방식
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Aura, "Ability.Action.Attack.Aura");
 
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Boss_Debuff, "Ability.Action.Boss.Debuff");
 
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Idle,"State.Movement.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(State_Movement_Walk,"State.Movement.Walk");
