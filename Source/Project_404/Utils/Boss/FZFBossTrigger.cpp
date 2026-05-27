@@ -44,6 +44,12 @@ void AFZFBossTrigger::Tick(float DeltaTime)
 void AFZFBossTrigger::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	// 서버에서만 로직 처리 (폭탄 생성 및 자신 파괴)
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	if (Cast<AFZFCharacterBase>(OtherActor))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("컴포넌트 트리거 겹침!"));
