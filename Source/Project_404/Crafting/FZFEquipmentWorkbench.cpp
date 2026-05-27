@@ -35,7 +35,6 @@ void AFZFEquipmentWorkbench::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	
 	DOREPLIFETIME(AFZFEquipmentWorkbench, CurrentBasePart);
 	DOREPLIFETIME(AFZFEquipmentWorkbench, CurrentCorePart);
-	DOREPLIFETIME(AFZFEquipmentWorkbench, TargetInteractor);
 	DOREPLIFETIME(AFZFEquipmentWorkbench, bRotateBasePartFrame);
 	DOREPLIFETIME(AFZFEquipmentWorkbench, bRotateCorePartFrame);
 }
@@ -292,8 +291,13 @@ void AFZFEquipmentWorkbench::OnRep_WorkbenchParts()
 	UpdatePreviewMeshes();
 }
 
-bool AFZFEquipmentWorkbench::TryCraft()
+bool AFZFEquipmentWorkbench::TryCraft_Internal(AFZFCharacterPlayer* Interactor)
 {
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
 	if (CurrentBasePart == nullptr || CurrentCorePart == nullptr)
 	{
 		return false;
@@ -305,51 +309,68 @@ bool AFZFEquipmentWorkbench::TryCraft()
 		return false;
 	}
 
-	if (!SpawnResultItem(MatchedRecipe))
+	if (!SpawnResultItem(MatchedRecipe, Interactor))
 	{
 		return false;
 	}
 
-	CurrentBasePart = nullptr;
-	CurrentCorePart = nullptr;
-
-	UpdatePreviewMeshes();
 	ResetWorkbench();
 
 	return true;
 }
 
-bool AFZFEquipmentWorkbench::SpawnResultItem(UFZFEquipmentRecipeData* Recipe)
-{
-	if (Recipe == nullptr)
-		return false;
+//bool AFZFEquipmentWorkbench::TryCraft()
+//{
+//	if (CurrentBasePart == nullptr || CurrentCorePart == nullptr)
+//	{
+//		return false;
+//	}
+//
+//	UFZFEquipmentRecipeData* MatchedRecipe = FindMatchedRecipe();
+//	if (MatchedRecipe == nullptr)
+//	{
+//		return false;
+//	}
+//
+//	if (!SpawnResultItem(MatchedRecipe))
+//	{
+//		return false;
+//	}
+//
+//	CurrentBasePart = nullptr;
+//	CurrentCorePart = nullptr;
+//
+//	UpdatePreviewMeshes();
+//	ResetWorkbench();
+//
+//	return true;
+//}
 
-	if (ResultItemActorClass == nullptr)
+bool AFZFEquipmentWorkbench::SpawnResultItem(UFZFEquipmentRecipeData* Recipe, AFZFCharacterPlayer* Interactor)
+{
+	if (!HasAuthority())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ResultItemActorClass is not assigned."));
 		return false;
 	}
 
-	FName ItemId = Recipe->ResultItem->GetItemId();
-
-	UWorld* World = GetWorld();
-	if (World == nullptr)
+	if (!Recipe || !Recipe->ResultItem || !Interactor)
+	{
 		return false;
+	}
 
+	AFZFPlayerController* PC = Cast<AFZFPlayerController>(Interactor->GetController());
+	if (!PC)
+	{
+		return false;
+	}
+
+	const FName ItemId = Recipe->ResultItem->GetItemId();
 	const FVector SpawnLocation = ResultMeshRef->GetComponentLocation();
 	const FRotator SpawnRotation = ResultMeshRef->GetComponentRotation();
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	if (TargetInteractor)
-	{
-		AFZFPlayerController* PC = Cast<AFZFPlayerController>(TargetInteractor->GetController());
-		if (PC)
-		{
-			PC->RequestSpawnItem(ItemId, SpawnLocation, SpawnRotation);
-			return true;
-		}
-	}
-	return false;
+
+	PC->RequestSpawnItem(ItemId, SpawnLocation, SpawnRotation);
+
+	return true;
 }
 
 // Recipe데이터에 일치하는 것이 존재한다면 해당 Recipe를 반환하는 함수.
@@ -457,16 +478,33 @@ void AFZFEquipmentWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiv
 			break;
 		}
 	case EFZFWorkbenchSlot::Crafting:
-		if (TryCraft() == false)
+		/*if (TryCraft() == false)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Failed to craft item at workbench"));
 			return;
+		}*/
+
+		if (!HasAuthority())
+		{
+			Server_TryCraft(Interactor);
+			return;
 		}
+
+		if (!TryCraft_Internal(Interactor))
+		{
+			UE_LOG(LogTemp, Log, TEXT("Failed to craft item at workbench"));
+		}
+
 		break;
 
 	default:
 		break;
 	}
+}
+
+void AFZFEquipmentWorkbench::Server_TryCraft_Implementation(AFZFCharacterPlayer* Interactor)
+{
+	TryCraft_Internal(Interactor);
 }
 
 FText AFZFEquipmentWorkbench::GetInteractableName(UPrimitiveComponent* HitComponent) const

@@ -39,7 +39,7 @@ public:
 	AFZFEquipmentWorkbench();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	bool SpawnResultItem(UFZFEquipmentRecipeData* Recipe);
+	bool SpawnResultItem(UFZFEquipmentRecipeData* Recipe, AFZFCharacterPlayer* Interactor);
 	AFZFItemBase* GetSpawnedItem() const { return SpawnedItem; }
 	void DestroySpawnedItem();
 
@@ -65,8 +65,10 @@ private:
 
 	bool InsertMaterialToSlot_Internal(EFZFWorkbenchSlot TargetSlot, UFZFItemData* ItemData);
 	
-	// 제작 버튼을 누르는 함수.
-	bool TryCraft();
+	UFUNCTION(Server, Reliable)
+	void Server_TryCraft(AFZFCharacterPlayer* Interactor);
+
+	bool TryCraft_Internal(AFZFCharacterPlayer* Interactor);
 
 	void UpdatePreviewMeshes();
 
