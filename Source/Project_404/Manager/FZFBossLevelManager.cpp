@@ -13,6 +13,10 @@
 #include "Character/Player/FZFCharacterPlayer.h"
 #include "ProfilingDebugging/StallDetector.h"
 #include "Physics/FZFCollision.h"
+#include "Engine/StaticMeshActor.h"
+#include "Components/StaticMeshComponent.h"
+#include "LevelSequenceActor.h"
+#include "LevelSequencePlayer.h"
 
 
 // Sets default values
@@ -57,6 +61,12 @@ void AFZFBossLevelManager::BeginPlay()
 				LaserPool.Add(SpawnedLaser);
 			}
 		}
+	}
+
+	if (BossIntroDummy)
+	{
+		BossIntroDummy->SetActorHiddenInGame(true);
+		BossIntroDummy->SetActorEnableCollision(false);
 	}
 }
 
@@ -247,10 +257,95 @@ void AFZFBossLevelManager::CreateBomb(FVector SpawnLocation)
 	OnBossBombCreated.Broadcast(SpawnLocation);
 }
 
+void AFZFBossLevelManager::StartBossIntro()
+{
+	if (!HasAuthority() || bIntroStarted)
+	{
+		return;
+	}
+
+	if (BossIntroDummy)
+	{
+		BossIntroDummy->SetActorHiddenInGame(false);
+		BossIntroDummy->SetActorEnableCollision(false);
+	}
+
+	bIntroStarted = true;
+
+	// 문 닫기
+	CloseBossDoor();
+
+	// 연출 재생
+	PlayBossIntro();
+}
+
 void AFZFBossLevelManager::OnBombTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (Cast<AFZFCharacterBase>(OtherActor))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("컴포넌트 트리거 겹침!"));
 	}
+}
+
+void AFZFBossLevelManager::OpenBossDoor()
+{
+	if (!BossDoor)
+	{
+		return;
+	}
+
+	BossDoor->SetActorHiddenInGame(true);
+
+	if (UStaticMeshComponent* Mesh = BossDoor->GetStaticMeshComponent())
+	{
+		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+}
+
+void AFZFBossLevelManager::CloseBossDoor()
+{
+	if (!BossDoor)
+	{
+		return;
+	}
+
+	BossDoor->SetActorHiddenInGame(false);
+
+	if (UStaticMeshComponent* Mesh = BossDoor->GetStaticMeshComponent())
+	{
+		Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+}
+
+void AFZFBossLevelManager::PlayBossIntro()
+{
+	// 일단 비워둬도 됨.
+	// 나중에 레벨 시퀀스/보스 몽타주 재생 넣기.
+	if (!IntroSequenceActor)
+	{
+		FinishBossIntro();
+		return;
+	}
+
+	ULevelSequencePlayer* Player = IntroSequenceActor->GetSequencePlayer();
+	if (!Player)
+	{
+		FinishBossIntro();
+		return;
+	}
+
+	Player->OnFinished.AddDynamic(this, &AFZFBossLevelManager::FinishBossIntro);
+	Player->Play();
+}
+
+void AFZFBossLevelManager::FinishBossIntro()
+{
+
+	if (BossIntroDummy)
+	{
+		BossIntroDummy->SetActorHiddenInGame(true);
+		BossIntroDummy->Destroy();
+	}
+
+	OnBossIntroFinished.Broadcast();
 }

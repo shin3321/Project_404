@@ -138,6 +138,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Boss|Event")
 	FBossWaitingEvent OnBossWaitingEnded;
 
+	UFUNCTION()
+	void StartBossAI();
+
 private:
 	// 초기화 순서 체크 플래그
 	bool bBeginPlayReady = false;
@@ -194,4 +197,8 @@ protected:
 
 	// 죽은 후 대기할 시간 값(단위: 초).
 	float DeadEventDelayTime = 7.0f;
+
+	// 인트로 연출 보스는 초기 설정 안하는 체크
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Intro")
+	bool bSkipRuntimeInitialize = false;
 };

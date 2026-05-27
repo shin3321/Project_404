@@ -88,6 +88,11 @@ void AFZFBoss::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (bSkipRuntimeInitialize)
+	{
+		return;
+	}
+
 	bBeginPlayReady = true;
 
 	InitializeBossVisual(); // 서버/클라 둘 다
@@ -97,6 +102,11 @@ void AFZFBoss::BeginPlay()
 void AFZFBoss::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+
+	if (bSkipRuntimeInitialize)
+	{
+		return;
+	}
 
 	bPossessedReady = true;
 	InitializeBossServer();
@@ -196,24 +206,31 @@ void AFZFBoss::InitializeBossServer()
 	// 4. 동력원 파괴 이벤트 바인딩
 	BindEnergyRelayEvents();
 
-	// 5. 보스 함정 이벤트 바인딩
+	// 5. 보스 델리게이트 구독
 	if (BossLevelManager)
 	{
+		// 5-1. 보스 함정 이벤트 바인딩
 		BossLevelManager->OnBossBombCreated.AddDynamic(
 			this,
 			&AFZFBoss::HandleBossBombCreated
+		);
+
+		// 5-2. 보스 AI 시작
+		BossLevelManager->OnBossIntroFinished.AddDynamic(
+			this,
+			&AFZFBoss::StartBossAI
 		);
 	}
 
 
 	// Fix: 나중에 Intro 연출 후 실행되게 빼야함!
 	// 6. BT 실행 
-	AFZFBossAIController* AIController = Cast<AFZFBossAIController>(GetController());
-	if (!AIController || !BossData || !BossData->BehaviorTree)
-	{
-		return;
-	}
-	AIController->RunAI();
+	//AFZFBossAIController* AIController = Cast<AFZFBossAIController>(GetController());
+	//if (!AIController || !BossData || !BossData->BehaviorTree)
+	//{
+	//	return;
+	//}
+	//AIController->RunAI();
 
 	// 처음만 초기화 설정 True
 	bMonsterInitialized = true;
@@ -683,4 +700,25 @@ void AFZFBoss::SetDead()
 	{
 		GameMode->BossDefeated();
 	}
+}
+
+void AFZFBoss::StartBossAI()
+{
+	UE_LOG(LogTemp, Display, TEXT("보스가 호출됨!!"));
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
+
+
+	AFZFBossAIController* AIController = Cast<AFZFBossAIController>(GetController());
+	if (!AIController || !BossData || !BossData->BehaviorTree)
+	{
+		return;
+	}
+
+	AIController->RunAI();
 }
