@@ -492,9 +492,12 @@ void AFZFCharacterPlayer::OnHpChanged(float NewValue, float MaxValue)
 		ServerPlaySound(TEXT("PlayerDamage"), GetActorLocation());
 
 		// 화면 피격 이펙트 (Red Flash) 실행
-		if (HUDWidget)
+		if (PreviousHP - NewValue > 2.0f)
 		{
-			HUDWidget->PlayDamageEffect();
+			if (HUDWidget)
+			{
+				HUDWidget->PlayDamageEffect();
+			}
 		}
 	}
 
