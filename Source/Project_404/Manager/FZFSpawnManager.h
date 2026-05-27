@@ -54,8 +54,11 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Item")
-	TArray<FFZFItemSpawnConfig> ItemSpawnConfigs;
-	
+	TArray<FFZFItemSpawnConfig> WeaponPartSpawnConfigs;
+
+	UPROPERTY(EditAnywhere, Category = "Item")
+	TArray<FFZFItemSpawnConfig> RobotPartSpawnConfigs;
+
 	UPROPERTY(EditAnywhere, Category = "Monster")
 	TArray<FFZFMonsterSpawnConfig> MonsterSpawnConfigs;
 

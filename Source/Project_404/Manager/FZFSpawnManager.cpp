@@ -56,33 +56,53 @@ void AFZFSpawnManager::BeginPlay()
 	}
 
 	// 1. 슬롯 분류
-	TArray<AActor*> ItemSlots;
+	TArray<AActor*> WeaponPartSlots;
+	TArray<AActor*> RobotPartSlots;
 	TArray<AActor*> MonsterSlots;
 	TArray<AActor*> StorageSlots;
 
 	for (AActor* Point : SpawnPoints)
 	{
-		if (Point->ActorHasTag("ItemSpawnSlot")) ItemSlots.Add(Point);
+		if (Point->ActorHasTag("WeaponPartSpawnSlot")) WeaponPartSlots.Add(Point);
+		else if (Point->ActorHasTag("RobotPartSpawnSlot")) RobotPartSlots.Add(Point);
 		else if (Point->ActorHasTag("MonsterSpawnSlot")) MonsterSlots.Add(Point);
 		else if (Point->ActorHasTag("StorageItemSlot")) StorageSlots.Add(Point);
 	}
 
-	// 2. 아이템 스폰 풀 생성 및 셔플
-	TArray<TSubclassOf<AFZFItemBase>> ItemPool;
-	for (const FFZFItemSpawnConfig& Config : ItemSpawnConfigs)
+	// 2. 아이템 스폰 풀 생성 (무기 부품)
+	TArray<TSubclassOf<AFZFItemBase>> WeaponPartPool;
+	for (const FFZFItemSpawnConfig& Config : WeaponPartSpawnConfigs)
 	{
 		if (Config.ItemClass)
 		{
 			for (int32 i = 0; i < Config.SpawnCount; ++i)
 			{
-				ItemPool.Add(Config.ItemClass);
+				WeaponPartPool.Add(Config.ItemClass);
 			}
 		}
 	}
-	for (int32 i = ItemPool.Num() - 1; i > 0; --i)
+	for (int32 i = WeaponPartPool.Num() - 1; i > 0; --i)
 	{
 		int32 j = FMath::RandRange(0, i);
-		ItemPool.Swap(i, j);
+		WeaponPartPool.Swap(i, j);
+	}
+
+	// 2-1. 아이템 스폰 풀 생성 (로봇 부품)
+	TArray<TSubclassOf<AFZFItemBase>> RobotPartPool;
+	for (const FFZFItemSpawnConfig& Config : RobotPartSpawnConfigs)
+	{
+		if (Config.ItemClass)
+		{
+			for (int32 i = 0; i < Config.SpawnCount; ++i)
+			{
+				RobotPartPool.Add(Config.ItemClass);
+			}
+		}
+	}
+	for (int32 i = RobotPartPool.Num() - 1; i > 0; --i)
+	{
+		int32 j = FMath::RandRange(0, i);
+		RobotPartPool.Swap(i, j);
 	}
 
 	// 3. 몬스터 스폰 풀 생성 및 셔플
@@ -103,18 +123,38 @@ void AFZFSpawnManager::BeginPlay()
 		MonsterPool.Swap(i, j);
 	}
 
-	// 4. 아이템 스폰 실행
-	if (ItemSlots.Num() != 0 && ItemPool.Num() != 0)
+	// 4. 아이템 스폰 실행 (무기 부품)
+	if (WeaponPartSlots.Num() != 0 && WeaponPartPool.Num() != 0)
 	{
-		int32 MaxItemCount = FMath::Min(ItemSlots.Num(), ItemPool.Num());
+		int32 MaxItemCount = FMath::Min(WeaponPartSlots.Num(), WeaponPartPool.Num());
 		for (int32 i = 0; i < MaxItemCount; ++i)
 		{
-			AActor* Slot = ItemSlots[i];
+			AActor* Slot = WeaponPartSlots[i];
 			FVector SpawnLocation = Slot->GetActorLocation();
 			FRotator SpawnRotation = Slot->GetActorRotation();
 			FActorSpawnParameters SpawnParams;
 
-			AFZFItemBase* ItemActor = GetWorld()->SpawnActor<AFZFItemBase>(ItemPool[i], SpawnLocation, SpawnRotation, SpawnParams);
+			AFZFItemBase* ItemActor = GetWorld()->SpawnActor<AFZFItemBase>(WeaponPartPool[i], SpawnLocation, SpawnRotation, SpawnParams);
+			if (ItemActor)
+			{
+				ItemActor->ApplyGroundRotation();
+				ItemActor->PlaceOnGround();
+			}
+		}
+	}
+
+	// 4-1. 아이템 스폰 실행 (로봇 부품)
+	if (RobotPartSlots.Num() != 0 && RobotPartPool.Num() != 0)
+	{
+		int32 MaxItemCount = FMath::Min(RobotPartSlots.Num(), RobotPartPool.Num());
+		for (int32 i = 0; i < MaxItemCount; ++i)
+		{
+			AActor* Slot = RobotPartSlots[i];
+			FVector SpawnLocation = Slot->GetActorLocation();
+			FRotator SpawnRotation = Slot->GetActorRotation();
+			FActorSpawnParameters SpawnParams;
+
+			AFZFItemBase* ItemActor = GetWorld()->SpawnActor<AFZFItemBase>(RobotPartPool[i], SpawnLocation, SpawnRotation, SpawnParams);
 			if (ItemActor)
 			{
 				ItemActor->ApplyGroundRotation();
@@ -127,8 +167,8 @@ void AFZFSpawnManager::BeginPlay()
 	// 5. 몬스터 스폰 실행
 	if (MonsterSlots.Num() != 0 && MonsterPool.Num() != 0)
 	{
-		int32 MaxItemCount = FMath::Min(MonsterSlots.Num(), MonsterPool.Num());
-		for (int32 i = 0; i < MonsterPool.Num(); ++i)
+		int32 MaxMonsterCount = FMath::Min(MonsterSlots.Num(), MonsterPool.Num());
+		for (int32 i = 0; i < MaxMonsterCount; ++i)
 		{
 			AActor* Slot = MonsterSlots[i];
 			FVector SpawnLocation = Slot->GetActorLocation();
