@@ -6,14 +6,14 @@
 
 UFZFPlayerSet::UFZFPlayerSet()
 {
-	InitMovementSpeed(300.0f);
+	InitMovementSpeed(500.0f);
 	InitMaxMovementSpeed(GetMovementSpeed());
 	InitStamina(100.0f);
 	InitMaxStamina(GetStamina());
 	InitAttackSpeed(1.0f);
 
-	// Todo : 무기 데이터
-	InitAttackRange(800);
+	// Todo : 무기 데이터로 붙임
+	InitAttackRange(500);
 	InitAttackRadius(30);
 	InitAttack(0.0f);
 }
@@ -37,6 +37,27 @@ void UFZFPlayerSet::PreAttributeChange(const FGameplayAttribute& Attribute, floa
 		// NewValue(변화하려는 값)를 0과 MaxStamina 사이로 고정
 		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxStamina());
 	}
+}
+
+bool UFZFPlayerSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
+{
+	if (!Super::PreGameplayEffectExecute(Data))
+	{
+		return false;
+	}
+
+	// 데미지가 들어오려고 할 때
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	{
+		// 무적 상태라면 GE 실행 자체를 여기서 취소(false 반환)하거나 데미지를 0으로 만듦
+		if (!CanReceiveDamage())
+		{
+			Data.EvaluatedData.Magnitude = 0.0f; // 들어오는 데미지 수치를 0으로 조작
+			return false; // 더 이상 이 GE를 진행하지 않음
+		}
+	}
+
+	return true;
 }
 
 void UFZFPlayerSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
