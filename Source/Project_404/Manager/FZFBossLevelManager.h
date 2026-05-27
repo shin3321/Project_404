@@ -4,10 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/StaticMeshActor.h"
 #include "FZFBossLevelManager.generated.h"
 class AFZFLaserActor;
+class ALevelSequenceActor;
+class ULevelSequencePlayer;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBossBombCreatedEvent, FVector, BombLocation);
+
+// 보스 연출 끝 델리게이트
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBossIntroFinishedEvent);
 
 UCLASS()
 class PROJECT_404_API AFZFBossLevelManager : public AActor
@@ -72,11 +78,33 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Gimmick|Bomb")
 	TSubclassOf<class AFZFBossBombActor> BombBlueprintClass;
 
+	// 인트로
+	UFUNCTION()
+	void StartBossIntro();
+
+	UPROPERTY(BlueprintAssignable, Category = "Boss|Intro")
+	FBossIntroFinishedEvent OnBossIntroFinished;
+
 protected:
 	UFUNCTION()
 	void OnBombTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
 						  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
 						  bool bFromSweep, const FHitResult& SweepResult);
+
+	// 보스방 문 열기.
+	UFUNCTION()
+	void OpenBossDoor();
+
+	// 보스방 문 닫기.
+	UFUNCTION()
+	void CloseBossDoor();
+
+	//  보스 인트로 재생
+	void PlayBossIntro();
+
+	// 보스 인트로 마침
+	UFUNCTION()
+	void FinishBossIntro();
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
@@ -90,4 +118,16 @@ protected:
 
 	UPROPERTY()
 	TArray<AFZFLaserActor*> AvailableLasers;
+
+	// 보스방 문
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Intro")
+	TObjectPtr<AStaticMeshActor> BossDoor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Intro")
+	TObjectPtr<class ALevelSequenceActor> IntroSequenceActor;
+
+	UPROPERTY(EditInstanceOnly, Category = "Boss|Intro")
+	TObjectPtr<AActor> BossIntroDummy;
+
+	bool bIntroStarted = false;
 };

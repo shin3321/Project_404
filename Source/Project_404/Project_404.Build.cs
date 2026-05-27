@@ -26,7 +26,9 @@ public class Project_404 : ModuleRules
             "UMG",
             "NavigationSystem",
             "AIModule",
-            "Niagara"
+            "Niagara",
+            "LevelSequence",
+            "MovieScene"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
