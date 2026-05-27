@@ -95,6 +95,12 @@ void AFZFEquipmentWorkbench::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// 최적화: 회전이 필요 없는 경우 빠른 반환
+	if (!bRotateBasePartFrame && !bRotateCorePartFrame)
+	{
+		return;
+	}
+
 	if (bRotateBasePartFrame && IsValid(BasePartFrameMeshRef))
 	{
 		const float DeltaYaw = BasePartFrameRotateSpeed * DeltaTime;
