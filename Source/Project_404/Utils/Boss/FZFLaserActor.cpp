@@ -51,8 +51,11 @@ void AFZFLaserActor::BeginPlay()
 void AFZFLaserActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (CurrentMode == ELaserMode::Inactive)
+
+	// 서버에서만 이동 및 비활성화 판정 처리
+	if (!HasAuthority() || CurrentMode == ELaserMode::Inactive)
 		return;
+
 	FVector NewLocation = GetActorLocation();
 
 	if (CurrentType == ELaserType::Horizon && CurrentMode == ELaserMode::Moving)
