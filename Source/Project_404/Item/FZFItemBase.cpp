@@ -212,8 +212,12 @@ void AFZFItemBase::DeactivateAllItemParticles()
 
 void AFZFItemBase::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
 {
-    // 오직 서버에서만 획득 판정 및 파괴를 처리합니다.
     if (!HasAuthority())
+    {
+        return;
+    }
+
+    if (!Interactor)
     {
         return;
     }
@@ -221,11 +225,14 @@ void AFZFItemBase::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent
     UFZFInventoryComponent* Inventory = Interactor->GetInventoryComponent();
     if (!Inventory)
     {
+        UE_LOG(LogTemp, Warning, TEXT("Interact: Inventory is null"));
         return;
     }
 
-    // 서버의 AddItem이 성공했을 때만 아이템 액터를 파괴합니다.
-    if (Inventory->AddItem(GetItemData()))
+    UE_LOG(LogTemp, Warning, TEXT("Interact: ItemData=%s"),
+        ItemData ? *ItemData->ItemId.ToString() : TEXT("NULL"));
+
+    if (Inventory->AddItem(ItemData))
     {
         Destroy();
     }

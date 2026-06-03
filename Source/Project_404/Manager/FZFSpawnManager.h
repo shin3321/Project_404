@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Item/ItemTypes.h"
+#include "Item/FZFItemData.h"
 #include "FZFSpawnManager.generated.h"
 
 USTRUCT(BlueprintType)
@@ -52,6 +53,13 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSpawnItem(FName ItemId, FVector SpawnLocation, FRotator SpawnRotation);
 
+public:
+	UFZFItemData* GetItemDataById(FName ItemId) const;
+
+private:
+	UPROPERTY()
+	TObjectPtr<UDataTable> ItemTable;
+
 private:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	TArray<FFZFItemSpawnConfig> WeaponPartSpawnConfigs;
@@ -61,7 +69,4 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Monster")
 	TArray<FFZFMonsterSpawnConfig> MonsterSpawnConfigs;
-
-	UPROPERTY(EditAnywhere, Category = "ItemTable")
-	UDataTable* ItemTable;
 };

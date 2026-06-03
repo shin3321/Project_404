@@ -122,32 +122,28 @@ void AFZFGameLevelTeleport::EnterLobbyLevel()
 		return;
 	}
 
-	// 로딩 화면을 띄운 뒤 레벨 이동
-	ShowLoadingAndTravel(TEXT("/Game/Project404/Map/FZFGameLevel?listen"));
+	const FString TargetLevel = TEXT("/Game/Project404/Map/FZFGameLevel?listen");
+	ShowLoadingAndTravel(TargetLevel);
 }
 
 void AFZFGameLevelTeleport::TravelToLobbyLevel()
 {
 	if (GetWorld() && HasAuthority())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("=== Traveling to: %s ==="), *PendingLevelPath);
-
-		// 저장된 레벨 경로로 이동
 		GetWorld()->ServerTravel(PendingLevelPath);
 	}
 }
-
 void AFZFGameLevelTeleport::ShowLoadingAndTravel(const FString& LevelPath)
 {
-	if (!HasAuthority()) return;
+	if (!HasAuthority()) 
+		return;
 
-	// 모든 클라이언트에게 로딩 화면을 띄우라고 알림
 	MulticastShowLoadingWidget();
 
-	// 이동할 레벨 경로 저장
 	PendingLevelPath = LevelPath;
 
-	// 로딩 화면을 잠깐 보여준 뒤 실제 레벨 이동
+	UE_LOG(LogTemp, Warning, TEXT("Saved PendingLevelPath: %s"), *PendingLevelPath);
+
 	GetWorldTimerManager().SetTimer(
 		LevelTravelTimerHandle,
 		this,

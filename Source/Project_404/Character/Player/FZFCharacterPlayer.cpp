@@ -344,6 +344,11 @@ void AFZFCharacterPlayer::PossessedBy(AController* NewController)
 	 */
 	if (HasAuthority())
 		InitAbilitySystem();
+
+	if (InventoryComponent)
+	{
+		InventoryComponent->SyncFromPlayerState();
+	}
 }
 
 void AFZFCharacterPlayer::InitAbilitySystem()
@@ -466,8 +471,8 @@ void AFZFCharacterPlayer::InitAbilitySystem()
 void AFZFCharacterPlayer::OnHpChanged(float NewValue, float MaxValue)
 {
 	// [로그] 현재 체력 변화 추적
-	UE_LOG(LogTemp, Log, TEXT("[FZFCharacterPlayer] HP Change: %.1f -> %.1f (Max: %.1f)"), PreviousHP, NewValue,
-	       MaxValue);
+	/*UE_LOG(LogTemp, Log, TEXT("[FZFCharacterPlayer] HP Change: %.1f -> %.1f (Max: %.1f)"), PreviousHP, NewValue,
+	       MaxValue);*/
 
 	// HUD 위젯 업데이트
 	if (HUDWidget)
@@ -620,6 +625,11 @@ void AFZFCharacterPlayer::PawnClientRestart()
 	UE_LOG(LogTemp, Log, TEXT("PawnClientRestart"));
 
 	ApplyMappingContext(DefaultMappingContext);
+
+	if (InventoryComponent)
+	{
+		InventoryComponent->SyncFromPlayerState();
+	}
 }
 
 void AFZFCharacterPlayer::ApplyAnimationsByItemAnimType(UAnimSequence* ThirdPersonIdle, UAnimSequence* FirstPersonIdle)
@@ -889,6 +899,11 @@ void AFZFCharacterPlayer::OnRep_PlayerState()
 	 */
 
 	InitAbilitySystem();
+
+	if (InventoryComponent)
+	{
+		InventoryComponent->SyncFromPlayerState();
+	}
 }
 
 void AFZFCharacterPlayer::OnRep_IsDead()

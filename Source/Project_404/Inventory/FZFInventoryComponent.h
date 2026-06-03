@@ -23,7 +23,7 @@ public:
     void DropSelectedItem();
 
     UFUNCTION(Server, Reliable)
-    void ServerDropItem(FName InItemId, FVector SpawnLoc, FRotator SpawnRot, int32 SlotIndex);
+    void ServerDropItem(int32 SlotIndex, FVector SpawnLoc, FRotator SpawnRot);
 
 public:
     // 생성할 인벤토리 위젯 블루프린트 클래스
@@ -49,13 +49,15 @@ public:
     void ServerRemoveSelectedItem();
 
     // 현재 인벤토리에 저장된 아이템 데이터 배열
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_InventoryItems, Category = "Inventory")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
     TArray<TObjectPtr<UFZFItemData>> InventoryItems;
 
     UFUNCTION()
     void OnRep_InventoryItems();
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+    void SyncFromPlayerState();
 
     // 인벤토리에 저장 가능한 최대 아이템 개수
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
@@ -78,9 +80,15 @@ public:
     UFUNCTION(Server, Reliable)
     void ServerSelectSlot(int32 InSlotIndex);
 
+    UFUNCTION(Server, Reliable)
+    void ServerAddItemById(FName ItemId);
+
     
     UFUNCTION()
     UFZFItemData* GetSelectedItemData() const;
+
+public:
+    void ApplyInventorySnapshot(const TArray<FName>& NewInventoryItemIds, int32 NewSelectedSlotIndex);
     
 private:
     // 현재 선택된 슬롯의 아이템을 손에 들게 하는 함수
@@ -88,4 +96,6 @@ private:
     void UpdateHeldItemBySelectedSlot();
     
     class AFZFSpawnManager* SpawnManager;
+
+    UFZFItemData* FindItemDataById(FName ItemId) const;
 };

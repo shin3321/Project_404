@@ -9,6 +9,7 @@
 #include "Item/FZFItemBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Manager/FZFSpawnManager.h"
+#include "Character/Player/FZFPlayerState.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -25,11 +26,78 @@ UFZFInventoryComponent::UFZFInventoryComponent()
 void UFZFInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-    DOREPLIFETIME(UFZFInventoryComponent, InventoryItems);
-    DOREPLIFETIME(UFZFInventoryComponent, SelectedSlotIndex);
 }
 
+void UFZFInventoryComponent::SyncFromPlayerState()
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== InventoryComponent::SyncFromPlayerState ==="));
+    UE_LOG(LogTemp, Warning, TEXT("Owner: %s Authority=%d"),
+        *GetNameSafe(GetOwner()),
+        GetOwner() ? GetOwner()->HasAuthority() : false);
+
+    AFZFCharacterPlayer* OwnerPlayer = Cast<AFZFCharacterPlayer>(GetOwner());
+    if (!OwnerPlayer)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Sync Failed: OwnerPlayer null"));
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Owner IsLocallyControlled=%d"), OwnerPlayer->IsLocallyControlled());
+
+    AFZFPlayerState* PS = OwnerPlayer->GetPlayerState<AFZFPlayerState>();
+    if (!PS)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Sync Failed: PlayerState null"));
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("PS: %s Authority=%d"), *GetNameSafe(PS), PS->HasAuthority());
+    UE_LOG(LogTemp, Warning, TEXT("PS InventoryItemIds Num=%d"), PS->InventoryItemIds.Num());
+
+    MaxItemCount = PS->MaxItemCount;
+    SelectedSlotIndex = PS->SelectedSlotIndex;
+
+    InventoryItems.Empty();
+    InventoryItems.SetNum(MaxItemCount);
+
+    for (int32 i = 0; i < PS->InventoryItemIds.Num(); ++i)
+    {
+        if (!InventoryItems.IsValidIndex(i))
+        {
+            continue;
+        }
+
+        const FName ItemId = PS->InventoryItemIds[i];
+
+        UE_LOG(LogTemp, Warning, TEXT("Sync Slot[%d] ItemId=%s"),
+            i,
+            *ItemId.ToString());
+
+        if (ItemId.IsNone())
+        {
+            InventoryItems[i] = nullptr;
+        }
+        else
+        {
+            UFZFItemData* FoundData = FindItemDataById(ItemId);
+
+            UE_LOG(LogTemp, Warning, TEXT("FindItemDataById Result Slot[%d]: %s"),
+                i,
+                *GetNameSafe(FoundData));
+
+            InventoryItems[i] = FoundData;
+        }
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("InventoryWidget: %s"), *GetNameSafe(InventoryWidget));
+
+    if (InventoryWidget)
+    {
+        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
+    }
+
+    UpdateHeldItemBySelectedSlot();
+}
 void UFZFInventoryComponent::OnRep_InventoryItems()
 {
     if (InventoryWidget)
@@ -56,83 +124,191 @@ void UFZFInventoryComponent::InitializeComponent()
     SpawnManager = Cast<AFZFSpawnManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AFZFSpawnManager::StaticClass()));
 }
 
-
 bool UFZFInventoryComponent::AddItem(UFZFItemData* InItemData)
 {
-    // 서버에서만 실제 데이터를 추가하도록 강제
-    if (!GetOwner()->HasAuthority())
-    {
-        return true; // 클라이언트에서는 일단 성공한 것처럼 리턴 (상호작용 종료를 위해)
-    }
+    UE_LOG(LogTemp, Warning, TEXT("AddItem Called. Authority=%d Item=%s"),
+        GetOwner() ? GetOwner()->HasAuthority() : false,
+        InItemData ? *InItemData->ItemId.ToString() : TEXT("NULL"));
 
     if (!InItemData)
     {
         return false;
     }
 
-    int32 EmptySlotIndex = -1;
-
-    // 빈 슬롯 찾기
-    for (int32 i = 0; i < MaxItemCount; ++i)
+    AActor* OwnerActor = GetOwner();
+    if (!OwnerActor)
     {
-        if (InventoryItems[i] == nullptr)
-        {
-            EmptySlotIndex = i;
-            break;
-        }
-    }
-
-    // 빈 슬롯 없으면 추가 실패
-    if (EmptySlotIndex == -1)
-    {
+        UE_LOG(LogTemp, Warning, TEXT("AddItem Failed: OwnerActor null"));
         return false;
     }
 
-    // 서버에서 배열 수정 -> 자동으로 클라이언트에 복제됨
-    InventoryItems[EmptySlotIndex] = InItemData;
-
-    // 서버(리스닝 서버 호스트)의 UI 갱신 및 데이터 복제 트리거를 위해 직접 호출
-    OnRep_InventoryItems();
-
-    // 현재 선택된 슬롯에 아이템이 들어왔으면 바로 손에 들기
-    if (SelectedSlotIndex == EmptySlotIndex)
+    if (!OwnerActor->HasAuthority())
     {
-        UpdateHeldItemBySelectedSlot();
+        UE_LOG(LogTemp, Warning, TEXT("AddItem Client -> ServerAddItemById"));
+        ServerAddItemById(InItemData->ItemId);
+        return true;
     }
 
-    return true;
+    AFZFCharacterPlayer* OwnerPlayer = Cast<AFZFCharacterPlayer>(OwnerActor);
+    if (!OwnerPlayer)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AddItem Failed: Owner is not AFZFCharacterPlayer"));
+        return false;
+    }
+
+    AFZFPlayerState* PS = OwnerPlayer->GetPlayerState<AFZFPlayerState>();
+    if (!PS)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AddItem Failed: PlayerState null"));
+        return false;
+    }
+
+    const bool bAdded = PS->AddItemId(InItemData->ItemId);
+
+    UE_LOG(LogTemp, Warning, TEXT("AddItem Result: %d"), bAdded);
+
+    if (bAdded)
+    {
+        SyncFromPlayerState();
+
+        AFZFPlayerController* PC = Cast<AFZFPlayerController>(OwnerPlayer->GetController());
+
+        UE_LOG(LogTemp, Warning, TEXT("AddItem OwnerPlayer=%s Controller=%s PC=%s"),
+            *GetNameSafe(OwnerPlayer),
+            *GetNameSafe(OwnerPlayer->GetController()),
+            *GetNameSafe(PC));
+
+        if (PC)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Calling ClientApplyInventorySnapshot"));
+
+            PC->ClientApplyInventorySnapshot(
+                PS->InventoryItemIds,
+                PS->SelectedSlotIndex
+            );
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("ClientApplyInventorySnapshot Failed: PC is null or not AFZFPlayerController"));
+        }
+    }
+
+    return bAdded;
+}
+
+void UFZFInventoryComponent::ServerAddItemById_Implementation(FName ItemId)
+{
+    UE_LOG(LogTemp, Warning, TEXT("ServerAddItemById Called. Authority=%d ItemId=%s"),
+        GetOwner() ? GetOwner()->HasAuthority() : false,
+        *ItemId.ToString());
+
+    AFZFCharacterPlayer* OwnerPlayer = Cast<AFZFCharacterPlayer>(GetOwner());
+    if (!OwnerPlayer)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("ServerAddItemById Failed: OwnerPlayer null"));
+        return;
+    }
+
+    AFZFPlayerState* PS = OwnerPlayer->GetPlayerState<AFZFPlayerState>();
+    if (!PS)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("ServerAddItemById Failed: PlayerState null"));
+        return;
+    }
+
+    const bool bAdded = PS->AddItemId(ItemId);
+
+    UE_LOG(LogTemp, Warning, TEXT("ServerAddItemById Add Result: %d"), bAdded);
+
+    if (bAdded)
+    {
+        // 서버 쪽 상태 갱신
+        SyncFromPlayerState();
+
+        AFZFPlayerController* PC = Cast<AFZFPlayerController>(OwnerPlayer->GetController());
+
+        UE_LOG(LogTemp, Warning, TEXT("ServerAddItemById OwnerPlayer=%s Controller=%s PC=%s"),
+            *GetNameSafe(OwnerPlayer),
+            *GetNameSafe(OwnerPlayer->GetController()),
+            *GetNameSafe(PC));
+
+        if (PC)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Calling ClientApplyInventorySnapshot"));
+
+            PC->ClientApplyInventorySnapshot(
+                PS->InventoryItemIds,
+                PS->SelectedSlotIndex
+            );
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("ClientApplyInventorySnapshot Failed: PC null"));
+        }
+    }
 }
 
 // 인벤토리 위젯을 화면에 표시하는 함수
 void UFZFInventoryComponent::ShowInventory()
 {
-    // 로컬 플레이어인 경우에만 위젯 생성 및 표시
-    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    UE_LOG(LogTemp, Warning, TEXT("=== ShowInventory ==="));
+
+    AActor* OwnerActor = GetOwner();
+    APawn* OwnerPawn = Cast<APawn>(OwnerActor);
+
+    UE_LOG(LogTemp, Warning, TEXT("Owner: %s Authority=%d"),
+        *GetNameSafe(OwnerActor),
+        OwnerActor ? OwnerActor->HasAuthority() : false);
+
+    UE_LOG(LogTemp, Warning, TEXT("OwnerPawn: %s Local=%d"),
+        *GetNameSafe(OwnerPawn),
+        OwnerPawn ? OwnerPawn->IsLocallyControlled() : false);
+
+    if (AFZFCharacterPlayer* OwnerPlayer = Cast<AFZFCharacterPlayer>(OwnerActor))
+    {
+        AFZFPlayerState* PS = OwnerPlayer->GetPlayerState<AFZFPlayerState>();
+
+        UE_LOG(LogTemp, Warning, TEXT("ShowInventory PS: %s Authority=%d"),
+            *GetNameSafe(PS),
+            PS ? PS->HasAuthority() : false);
+
+        if (PS)
+        {
+            for (int32 i = 0; i < PS->InventoryItemIds.Num(); ++i)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("ShowInventory PS Slot[%d] = %s"),
+                    i,
+                    *PS->InventoryItemIds[i].ToString());
+            }
+        }
+    }
+
     if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
     {
+        UE_LOG(LogTemp, Warning, TEXT("ShowInventory Failed: not local pawn"));
         return;
     }
 
-    // 생성할 인벤토리 위젯 클래스가 없으면 종료
     if (!InventoryWidgetClass)
     {
+        UE_LOG(LogTemp, Warning, TEXT("ShowInventory Failed: InventoryWidgetClass null"));
         return;
     }
 
-    // 인벤토리 위젯이 아직 없으면 생성
     if (!InventoryWidget)
     {
         InventoryWidget = CreateWidget<UFZFInventoryWidget>(GetWorld(), InventoryWidgetClass);
+        UE_LOG(LogTemp, Warning, TEXT("Created InventoryWidget: %s"), *GetNameSafe(InventoryWidget));
     }
 
-    // 생성된 인벤토리 위젯을 화면에 표시하고 현재 아이템 목록으로 갱신
     if (InventoryWidget)
     {
+        SyncFromPlayerState();
+
         InventoryWidget->AddToViewport();
-        InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
+        //InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
     }
 }
-
 // 인벤토리 위젯을 화면에서 제거하는 함수
 void UFZFInventoryComponent::HideInventory()
 {
@@ -146,31 +322,44 @@ void UFZFInventoryComponent::HideInventory()
 // 선택한 슬롯 인덱스를 저장하는 함수
 void UFZFInventoryComponent::SelectSlot(int32 InSlotIndex)
 {
-    if (!GetOwner()->HasAuthority())
+    AActor* OwnerActor = GetOwner();
+    if (!OwnerActor)
     {
-        ServerSelectSlot(InSlotIndex);
-        // 클라이언트에서 즉시 UI 반응을 위해 로컬 값도 변경 (예측)
-        SelectedSlotIndex = InSlotIndex;
-        OnRep_SelectedSlotIndex();
         return;
     }
 
-    // 선택한 슬롯 번호가 인벤토리 범위를 벗어나면 선택 해제
-    if (InSlotIndex < 0 || InSlotIndex >= MaxItemCount)
+    if (!OwnerActor->HasAuthority())
     {
-        SelectedSlotIndex = -1;
-    }
-    else
-    {
-        // 현재 선택 슬롯 인덱스 저장
+        ServerSelectSlot(InSlotIndex);
+
+        // 로컬 즉시 반응용
         SelectedSlotIndex = InSlotIndex;
+        if (InventoryWidget)
+        {
+            InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
+        }
+
+        UpdateHeldItemBySelectedSlot();
+        return;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Selected Slot Index: %d"), SelectedSlotIndex);
+    AFZFCharacterPlayer* OwnerPlayer = Cast<AFZFCharacterPlayer>(OwnerActor);
+    if (!OwnerPlayer)
+    {
+        return;
+    }
 
-    // 서버에서도 직접 호출 (리슨 서버 등)
-    OnRep_SelectedSlotIndex();
+    AFZFPlayerState* PS = OwnerPlayer->GetPlayerState<AFZFPlayerState>();
+    if (!PS)
+    {
+        return;
+    }
+
+    PS->SetSelectedSlotIndex(InSlotIndex);
+
+    SyncFromPlayerState();
 }
+
 
 void UFZFInventoryComponent::ServerSelectSlot_Implementation(int32 InSlotIndex)
 {
@@ -187,22 +376,40 @@ UFZFItemData* UFZFInventoryComponent::GetSelectedItemData() const
 
 void UFZFInventoryComponent::RemoveSelectedItem()
 {
-    if (!GetOwner()->HasAuthority())
+    AActor* OwnerActor = GetOwner();
+    if (!OwnerActor)
+    {
+        return;
+    }
+
+    if (!OwnerActor->HasAuthority())
     {
         ServerRemoveSelectedItem();
         return;
     }
 
-    if (SelectedSlotIndex < 0 || SelectedSlotIndex >= MaxItemCount)
+    AFZFCharacterPlayer* OwnerPlayer = Cast<AFZFCharacterPlayer>(OwnerActor);
+    if (!OwnerPlayer)
+    {
         return;
+    }
 
-    InventoryItems[SelectedSlotIndex] = nullptr;
+    AFZFPlayerState* PS = OwnerPlayer->GetPlayerState<AFZFPlayerState>();
+    if (!PS)
+    {
+        return;
+    }
 
-    // 서버 측(리스닝 서버) UI 갱신을 위해 호출
-    OnRep_InventoryItems();
+    const int32 SlotIndex = PS->SelectedSlotIndex;
 
-    // 삭제 후 현재 선택 슬롯 기준으로 손 아이템 다시 갱신
-    UpdateHeldItemBySelectedSlot();
+    if (SlotIndex < 0 || SlotIndex >= PS->MaxItemCount)
+    {
+        return;
+    }
+
+    PS->RemoveItemAt(SlotIndex);
+
+    SyncFromPlayerState();
 }
 
 void UFZFInventoryComponent::ServerRemoveSelectedItem_Implementation()
@@ -244,31 +451,64 @@ void UFZFInventoryComponent::UpdateHeldItemBySelectedSlot()
     HeldItemComponent->HoldItem(SelectedItemData);
 }
 
+UFZFItemData* UFZFInventoryComponent::FindItemDataById(FName ItemId) const
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== FindItemDataById ==="));
+    UE_LOG(LogTemp, Warning, TEXT("World: %s"), GetWorld() ? *GetWorld()->GetName() : TEXT("NULL"));
+    UE_LOG(LogTemp, Warning, TEXT("ItemId: %s"), *ItemId.ToString());
+    UE_LOG(LogTemp, Warning, TEXT("Cached SpawnManager: %s"), *GetNameSafe(SpawnManager));
+
+    if (ItemId.IsNone())
+    {
+        return nullptr;
+    }
+
+    AFZFSpawnManager* FoundSpawnManager = SpawnManager;
+
+    if (!FoundSpawnManager)
+    {
+        FoundSpawnManager = Cast<AFZFSpawnManager>(
+            UGameplayStatics::GetActorOfClass(
+                GetWorld(),
+                AFZFSpawnManager::StaticClass()
+            )
+        );
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Found SpawnManager: %s"), *GetNameSafe(FoundSpawnManager));
+
+    if (!FoundSpawnManager)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("FindItemDataById failed. SpawnManager is null."));
+        return nullptr;
+    }
+
+    UFZFItemData* Result = FoundSpawnManager->GetItemDataById(ItemId);
+
+    UE_LOG(LogTemp, Warning, TEXT("GetItemDataById Result: %s"), *GetNameSafe(Result));
+
+    return Result;
+}
+
 void UFZFInventoryComponent::DropSelectedItem()
 {
-    // 선택된 슬롯 번호가 인벤토리 배열 범위 밖이면 버릴 아이템이 없음
     if (!InventoryItems.IsValidIndex(SelectedSlotIndex))
     {
         return;
     }
 
-    // 선택된 슬롯의 ItemData 가져오기
     UFZFItemData* SelectedItemData = InventoryItems[SelectedSlotIndex];
-
-    // 선택된 슬롯에 ItemData가 없으면 종료
     if (!SelectedItemData)
     {
         return;
     }
 
-    // 이 InventoryComponent를 가지고 있는 Owner 가져오기
     AActor* OwnerActor = GetOwner();
     if (!OwnerActor)
     {
         return;
     }
 
-    // 플레이어 위치 기준으로 아이템을 버릴 위치 계산
     FVector DropLocation =
         OwnerActor->GetActorLocation() +
         OwnerActor->GetActorForwardVector() * 150.0f;
@@ -276,43 +516,122 @@ void UFZFInventoryComponent::DropSelectedItem()
     DropLocation.Z -= 50.0f;
 
     FRotator DropRotation = OwnerActor->GetActorRotation();
-    FName ItemId = SelectedItemData->ItemId;
-    int32 SlotIndexToClear = SelectedSlotIndex;
 
-    // [중요] 클라이언트에서 배열을 직접 비우지 않고 서버에게 요청합니다.
-    // 서버로부터 복제된 데이터가 도착하면 OnRep에 의해 UI가 갱신됩니다.
+    const int32 SlotIndexToClear = SelectedSlotIndex;
 
-    // 서버에게 실제 스폰 및 서버 측 인벤토리 갱신 요청
-    if (GetOwner()->HasAuthority())
+    if (OwnerActor->HasAuthority())
     {
-        ServerDropItem_Implementation(ItemId, DropLocation, DropRotation, SlotIndexToClear);
+        ServerDropItem_Implementation(SlotIndexToClear, DropLocation, DropRotation);
     }
     else
     {
-        ServerDropItem(ItemId, DropLocation, DropRotation, SlotIndexToClear);
+        ServerDropItem(SlotIndexToClear, DropLocation, DropRotation);
     }
 }
 
-void UFZFInventoryComponent::ServerDropItem_Implementation(FName InItemId, FVector SpawnLoc,
-    FRotator SpawnRot, int32 SlotIndex)
+void UFZFInventoryComponent::ServerDropItem_Implementation(
+    int32 SlotIndex,
+    FVector SpawnLoc,
+    FRotator SpawnRot)
 {
-    // 서버측 인벤토리 명시적 갱신
-    if (InventoryItems.IsValidIndex(SlotIndex))
+    AFZFCharacterPlayer* OwnerPlayer = Cast<AFZFCharacterPlayer>(GetOwner());
+    if (!OwnerPlayer)
     {
-        InventoryItems[SlotIndex] = nullptr;
-        
-        // 서버 측 UI 갱신 및 데이터 복제 트리거
-        OnRep_InventoryItems();
-        UpdateHeldItemBySelectedSlot();
+        return;
+    }
+
+    AFZFPlayerState* PS = OwnerPlayer->GetPlayerState<AFZFPlayerState>();
+    if (!PS)
+    {
+        return;
+    }
+
+    if (!PS->InventoryItemIds.IsValidIndex(SlotIndex))
+    {
+        return;
+    }
+
+    const FName ItemId = PS->InventoryItemIds[SlotIndex];
+
+    if (ItemId.IsNone())
+    {
+        return;
+    }
+
+    // 서버 인벤토리에서 제거
+    PS->RemoveItemAt(SlotIndex);
+
+    // 서버 UI / 손 아이템 갱신
+    SyncFromPlayerState();
+
+    AFZFPlayerController* PC = Cast<AFZFPlayerController>(OwnerPlayer->GetController());
+    if (PC)
+    {
+        PC->RequestSpawnItem(ItemId, SpawnLoc, SpawnRot);
+    }
+}
+
+void UFZFInventoryComponent::ApplyInventorySnapshot(
+    const TArray<FName>& NewInventoryItemIds,
+    int32 NewSelectedSlotIndex)
+{
+    UE_LOG(LogTemp, Warning, TEXT("=== ApplyInventorySnapshot ==="));
+
+    MaxItemCount = NewInventoryItemIds.Num();
+    SelectedSlotIndex = NewSelectedSlotIndex;
+
+    InventoryItems.Empty();
+    InventoryItems.SetNum(MaxItemCount);
+
+    for (int32 i = 0; i < NewInventoryItemIds.Num(); ++i)
+    {
+        const FName ItemId = NewInventoryItemIds[i];
+
+        UE_LOG(LogTemp, Warning, TEXT("Snapshot Slot[%d]=%s"),
+            i,
+            *ItemId.ToString());
+
+        if (ItemId.IsNone())
+        {
+            InventoryItems[i] = nullptr;
+        }
+        else
+        {
+            InventoryItems[i] = FindItemDataById(ItemId);
+        }
     }
 
     AFZFCharacterPlayer* OwnerPlayer = Cast<AFZFCharacterPlayer>(GetOwner());
-    if (OwnerPlayer)
+
+    UE_LOG(LogTemp, Warning, TEXT("Snapshot Owner=%s Local=%d Widget=%s WidgetClass=%s"),
+        *GetNameSafe(OwnerPlayer),
+        OwnerPlayer ? OwnerPlayer->IsLocallyControlled() : false,
+        *GetNameSafe(InventoryWidget),
+        *GetNameSafe(InventoryWidgetClass));
+
+    if (OwnerPlayer && OwnerPlayer->IsLocallyControlled())
     {
-        AFZFPlayerController* PC = Cast<AFZFPlayerController>(OwnerPlayer->GetController());
-        if (PC)
+        if (!InventoryWidget && InventoryWidgetClass)
         {
-            PC->RequestSpawnItem(InItemId, SpawnLoc, SpawnRot);
+            InventoryWidget = CreateWidget<UFZFInventoryWidget>(GetWorld(), InventoryWidgetClass);
+
+            if (InventoryWidget)
+            {
+                InventoryWidget->AddToViewport();
+                UE_LOG(LogTemp, Warning, TEXT("Snapshot Created InventoryWidget: %s"),
+                    *GetNameSafe(InventoryWidget));
+            }
+        }
+
+        if (InventoryWidget)
+        {
+            InventoryWidget->RefreshInventory(InventoryItems, MaxItemCount, SelectedSlotIndex);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Snapshot Refresh Failed: InventoryWidget null"));
         }
     }
+
+    UpdateHeldItemBySelectedSlot();
 }

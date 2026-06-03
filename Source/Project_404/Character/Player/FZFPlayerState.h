@@ -22,8 +22,6 @@ public:
 	 */
 	AFZFPlayerState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 public:
 	// ASC 인터페이스 상속 함수
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const;
@@ -48,5 +46,34 @@ protected:
 	UPROPERTY()
 	float PlayerHp;
 
+// Inventory
+public:
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UPROPERTY(ReplicatedUsing = OnRep_InventoryItemIds)
+	TArray<FName> InventoryItemIds;
+
+	UPROPERTY(ReplicatedUsing = OnRep_SelectedSlotIndex)
+	int32 SelectedSlotIndex = -1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory")
+	int32 MaxItemCount = 5;
+
+	UFUNCTION()
+	void OnRep_InventoryItemIds();
+
+	UFUNCTION()
+	void OnRep_SelectedSlotIndex();
+
+	virtual void CopyProperties(APlayerState* NewPlayerState) override;
+
+	bool AddItemId(FName InItemId);
+	void RemoveItemAt(int32 SlotIndex);
+	FName GetItemIdAt(int32 SlotIndex) const;
+	void SetSelectedSlotIndex(int32 InSlotIndex);
+
+private:
+
+	void NotifyInventoryChanged();
 };

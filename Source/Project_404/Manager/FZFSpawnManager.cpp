@@ -24,6 +24,21 @@ void AFZFSpawnManager::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ItemTable = LoadObject<UDataTable>(
+		nullptr,
+		TEXT("/Game/Project404/Item/DT_ItemTable.DT_ItemTable")
+	);
+
+	if (ItemTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemTable이 생성되었습니다"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemTable이 생성되지 않았습니다"));
+	}
+
+
 	// 서버에서만 돌게 예외처리
 	if (!HasAuthority())
 	{
@@ -34,16 +49,6 @@ void AFZFSpawnManager::BeginPlay()
 	if (!GameInstance)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GameInstance is NULL"));
-	}
-
-	ItemTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Project404/Item/DT_ItemTable"));
-	if (ItemTable)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemTable이 생성되었습니다"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemTable이 생성되지 않았습니다"));
 	}
 
 	TArray<AActor*> SpawnPoints;
@@ -211,6 +216,33 @@ void AFZFSpawnManager::BeginPlay()
 			UE_LOG(LogTemp, Warning, TEXT("서버: 창고 아이템 스폰 완료. 목록을 비웠습니다."));
 		}
 	}
+}
+
+UFZFItemData* AFZFSpawnManager::GetItemDataById(FName ItemId) const
+{
+	if (ItemId.IsNone())
+	{
+		return nullptr;
+	}
+
+	if (!ItemTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemTable is null. ItemId: %s"), *ItemId.ToString());
+		return nullptr;
+	}
+
+	FFZFItemRow* Row = ItemTable->FindRow<FFZFItemRow>(
+		ItemId,
+		TEXT("AFZFSpawnManager::GetItemDataById")
+	);
+
+	if (!Row)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Item Row not found: %s"), *ItemId.ToString());
+		return nullptr;
+	}
+
+	return Row->ItemData;
 }
 
 // Called every frame

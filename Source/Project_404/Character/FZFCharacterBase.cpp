@@ -26,10 +26,10 @@ void AFZFCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	SoundManager = GetGameInstance()->GetSubsystem<UFZFSoundManager>();
-	if (SoundManager)
-	{
-		UE_LOG(LogTemp, Log, TEXT("SoundManager가 생성되었습니다."));
-	}
+	//if (SoundManager)
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("SoundManager가 생성되었습니다."));
+	//}
 }
 
 void AFZFCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

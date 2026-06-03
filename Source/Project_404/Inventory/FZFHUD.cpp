@@ -166,7 +166,7 @@ void UFZFHUD::UpdateHoldProgress(float InProgress)
 {
     if (HoldProgressDynamicMaterial)
     {
-        UE_LOG(LogTemp, Warning, TEXT("HUD UpdateHoldProgress = %f"), InProgress);
+        //UE_LOG(LogTemp, Warning, TEXT("HUD UpdateHoldProgress = %f"), InProgress);
         HoldProgressDynamicMaterial->SetScalarParameterValue(
             TEXT("Progress"),
             FMath::Clamp(InProgress, 0.0f, 1.0f)

@@ -7,6 +7,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
+#include "Inventory/FZFInventoryComponent.h"
+
 AFZFPlayerController::AFZFPlayerController()
 {
 }
@@ -127,4 +129,29 @@ void AFZFPlayerController::ServerSpawnItem_Implementation(FName ItemId, FVector 
 	SpawnManager = Cast<AFZFSpawnManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AFZFSpawnManager::StaticClass()));
 	if (SpawnManager)
 		SpawnManager->ServerSpawnItem(ItemId, ItemSpawnLocation, SpawnRotation);
+}
+
+void AFZFPlayerController::ClientApplyInventorySnapshot_Implementation(
+	const TArray<FName>& NewInventoryItemIds,
+	int32 NewSelectedSlotIndex)
+{
+	UE_LOG(LogTemp, Warning, TEXT("=== ClientApplyInventorySnapshot ==="));
+
+	AFZFCharacterPlayer* CharacterPlayer = Cast<AFZFCharacterPlayer>(GetPawn());
+	if (!CharacterPlayer)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ClientApplyInventorySnapshot Failed: Pawn null"));
+		return;
+	}
+
+	UFZFInventoryComponent* InventoryComponent =
+		CharacterPlayer->FindComponentByClass<UFZFInventoryComponent>();
+
+	if (!InventoryComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ClientApplyInventorySnapshot Failed: InventoryComponent null"));
+		return;
+	}
+
+	InventoryComponent->ApplyInventorySnapshot(NewInventoryItemIds, NewSelectedSlotIndex);
 }

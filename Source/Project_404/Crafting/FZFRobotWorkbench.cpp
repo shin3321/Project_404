@@ -116,10 +116,10 @@ void AFZFRobotWorkbench::BeginPlay()
 	RobotRLegGuideMeshRef = FindComponentByName<UStaticMeshComponent>(this, TEXT("RobotRLegGuideMesh"));
 
 	SoundManager = GetGameInstance()->GetSubsystem<UFZFSoundManager>();
-	if (SoundManager)
-	{
-		UE_LOG(LogTemp, Log, TEXT("SoundManager가 생성되었습니다."));
-	}
+	//if (SoundManager)
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("SoundManager가 생성되었습니다."));
+	//}
 }
 
 void AFZFRobotWorkbench::Interact(AFZFCharacterPlayer* Interactor, UPrimitiveComponent* HitComponent)
