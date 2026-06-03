@@ -5,6 +5,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AI/Boss/FZFBossAI.h"
+#include "Character/Monster/Boss/FZFBoss.h"
 
 UBTTask_ChangeRotate::UBTTask_ChangeRotate()
 {
@@ -118,19 +119,36 @@ void UBTTask_ChangeRotate::TickTask(
 	ControllingPawn->SetActorRotation(NewActorRot);
 
 	// 2. Mesh는 Pitch만 회전
-	FRotator CurrentMeshRot = Mesh->GetRelativeRotation();
+	const float CurrentPitch = Mesh->GetRelativeRotation().Pitch;
 
-	FRotator TargetMeshRot = CurrentMeshRot;
-	TargetMeshRot.Pitch = CachedTargetMeshPitch;
-
-	FRotator NewMeshRot = FMath::RInterpTo(
-		CurrentMeshRot,
-		TargetMeshRot,
+	const float NewPitch = FMath::FInterpTo(
+		CurrentPitch,
+		CachedTargetMeshPitch,
 		DeltaSeconds,
 		MeshPitchInterpSpeed
 	);
 
-	Mesh->SetRelativeRotation(NewMeshRot);
+	AIPawn->Multicast_SetBossMeshPitch(NewPitch);
+
+	const float PitchDiff = FMath::Abs(FMath::FindDeltaAngleDegrees(
+		NewPitch,
+		CachedTargetMeshPitch
+	));
+	UE_LOG(LogTemp, Warning,
+		TEXT("[RotateTask] CurrentPitch=%.2f TargetPitch=%.2f NewPitch=%.2f Diff=%.2f"),
+		CurrentPitch,
+		CachedTargetMeshPitch,
+		NewPitch,
+		PitchDiff
+	);
+
+	const bool bPitchDone = PitchDiff <= PitchTolerance;
+
+	// 테스트용: Pitch 완료 전에는 절대 다음 노드로 못 감
+	if (!bPitchDone)
+	{
+		return;
+	}
 
 	const bool bYawDone =
 		FMath::Abs(FMath::FindDeltaAngleDegrees(
@@ -138,11 +156,11 @@ void UBTTask_ChangeRotate::TickTask(
 			CachedTargetYaw
 		)) <= YawTolerance;
 
-	const bool bPitchDone =
+	/*const bool bPitchDone =
 		FMath::Abs(FMath::FindDeltaAngleDegrees(
-			NewMeshRot.Pitch,
+			NewPitch,
 			CachedTargetMeshPitch
-		)) <= PitchTolerance;
+		)) <= PitchTolerance;*/
 
 	if (bYawDone && bPitchDone)
 	{
@@ -152,9 +170,9 @@ void UBTTask_ChangeRotate::TickTask(
 		FinalActorRot.Yaw = CachedTargetYaw;
 		ControllingPawn->SetActorRotation(FinalActorRot);
 
-		FRotator FinalMeshRot = Mesh->GetRelativeRotation();
-		FinalMeshRot.Pitch = CachedTargetMeshPitch;
-		Mesh->SetRelativeRotation(FinalMeshRot);
+		// 마지막 정확한 값 보정
+		AIPawn->Multicast_SetBossMeshPitchReliable(CachedTargetMeshPitch);
+
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}

@@ -91,20 +91,25 @@ protected:
 						  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
 						  bool bFromSweep, const FHitResult& SweepResult);
 
+	// 보스방으로 텔레포트
+	void TeleportPlayersToBossRoom();
+
+
 	// 보스방 문 열기.
 	UFUNCTION()
 	void OpenBossDoor();
 
 	// 보스방 문 닫기.
-	UFUNCTION()
-	void CloseBossDoor();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_CloseBossDoor();
 
 	//  보스 인트로 재생
-	void PlayBossIntro();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayBossIntro();
 
 	// 보스 인트로 마침
-	UFUNCTION()
-	void FinishBossIntro();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_FinishBossIntro();
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")

@@ -26,9 +26,6 @@ public:
 	AFZFBoss();
 
 protected:
-	// 디버깅용 임시 테스트
-	virtual void Tick(float DeltaTime) override;
-
 	/* 클래스 멤버 함수(초기화) */
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
@@ -87,6 +84,17 @@ protected:
 		return &CurrentSelectedSkill;
 	};
 
+	// Task에서 Z축 위치 동기화 함수
+	UFUNCTION(NetMulticast, Unreliable) // Tick마다 계속 보내서 Unreliable 가능
+	virtual void Multicast_SetBossMeshZ(float NewZ) override;
+
+	// Task에서 Mesh Pitch 회전 동기화 함수
+	UFUNCTION(NetMulticast, Unreliable)
+	virtual void Multicast_SetBossMeshPitch(float MeshPitch) override;
+
+	// 최종 보정용 Mesh Pitch 회전 동기화 함수
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multicast_SetBossMeshPitchReliable(float MeshPitch) override;
 
 	// Task에서 공격 처리 호출 함수
 	virtual void SetAIAttackDelegate(const FBossAICharacterAttackFinished& InOnAttackFinished) override;

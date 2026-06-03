@@ -52,7 +52,7 @@ public:
 	UFUNCTION()
 	void SetGameResult(bool Result);
 	
-	UPROPERTY(BlueprintReadOnly, Category = "GameRules")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameRules")
 	bool bIsClear = false;
 
 	UPROPERTY(ReplicatedUsing=OnRep_GameOver, BlueprintReadOnly, Category = "GameRules")
