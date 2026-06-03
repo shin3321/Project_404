@@ -3,6 +3,7 @@
 #include "GAS/Attributes/FZFPlayerSet.h"
 #include "Net/UnrealNetwork.h"
 #include "Inventory/FZFInventoryComponent.h"
+#include "TimerManager.h"
 
 
 AFZFPlayerState::AFZFPlayerState(const FObjectInitializer& ObjectInitializer)
@@ -108,8 +109,7 @@ bool AFZFPlayerState::AddItemId(FName InItemId)
 				NetUpdateFrequency);
 
 			NotifyInventoryChanged();
-			//FlushNetDormancy();
-			//ForceNetUpdate();
+			ForceNetUpdate();
 
 			return true;
 		}
@@ -181,8 +181,25 @@ void AFZFPlayerState::NotifyInventoryChanged()
 	if (!Pawn)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("NotifyInventoryChanged Failed: Pawn is null"));
+
+		if (UWorld* World = GetWorld())
+		{
+			if (PendingInventoryNotifyRetries < 30)
+			{
+				++PendingInventoryNotifyRetries;
+				World->GetTimerManager().SetTimerForNextTick(
+					FTimerDelegate::CreateUObject(this, &AFZFPlayerState::NotifyInventoryChanged));
+			}
+			else
+			{
+				PendingInventoryNotifyRetries = 0;
+			}
+		}
+
 		return;
 	}
+
+	PendingInventoryNotifyRetries = 0;
 
 	UFZFInventoryComponent* InventoryComponent = Pawn->FindComponentByClass<UFZFInventoryComponent>();
 	UE_LOG(LogTemp, Warning, TEXT("InventoryComponent: %s"), *GetNameSafe(InventoryComponent));
