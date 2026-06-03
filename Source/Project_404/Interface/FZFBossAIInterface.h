@@ -46,6 +46,13 @@ public:
 	// 선택된 스킬 전달 함수.
 	virtual const FBossSkillInfo* GetCurrentSelectedSkill() const = 0;
 
+	// Task에서 z축 위치 이동 동기화를 위한 함수.
+	virtual void Multicast_SetBossMeshZ(float NewZ) = 0;
+
+	// Task에서 Mesh pitch 회전 동기화를 위한 함수.
+	virtual void Multicast_SetBossMeshPitch(float MeshPitch) = 0;
+	virtual void Multicast_SetBossMeshPitchReliable(float MeshPitch) = 0;
+
 	// Task에서 공격 명령을 전달할 때 사용하는 함수.
 	virtual void AttackByAI() = 0;
 

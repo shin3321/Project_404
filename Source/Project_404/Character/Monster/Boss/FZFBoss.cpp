@@ -28,6 +28,11 @@ AFZFBoss::AFZFBoss()
 	GetCharacterMovement()->SetIsReplicated(true); // CharacterMovementComponent 자체의 네트워크 이동 동기화 활성화
 	SetReplicateMovement(true); // 액터 transform(Location/Rotation 등) 복제
 	GetCharacterMovement()->bUseControllerDesiredRotation = false; // Controller 회전 따라가지 않음
+	GetCharacterMovement()->NetworkSmoothingMode = ENetworkSmoothingMode::Disabled; // 클라에서 회전을 덮어쓰던 기능을 꺼줌.
+
+	bAlwaysRelevant = true;
+	NetUpdateFrequency = 60.f;
+	MinNetUpdateFrequency = 30.f;
 
 	// AI 몬스터/NPC 스타일	
 	GetCharacterMovement()->bOrientRotationToMovement = true; // 이동 방향으로 캐릭터 회전
@@ -57,30 +62,6 @@ AFZFBoss::AFZFBoss()
 	RingMeshes[0]->SetupAttachment(GetMesh());
 	RingMeshes[1]->SetupAttachment(GetMesh());
 	RingMeshes[2]->SetupAttachment(GetMesh());
-
-	// tick 설정
-	PrimaryActorTick.bCanEverTick = true;
-}
-
-// 디버깅용 임시 테스트
-void AFZFBoss::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	/*if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			-1,
-			0.f,
-			FColor::Yellow,
-			FString::Printf(
-				TEXT("ActorYaw %.1f / MeshRelYaw %.1f / MeshWorldYaw %.1f"),
-				GetActorRotation().Yaw,
-				GetMesh()->GetRelativeRotation().Yaw,
-				GetMesh()->GetComponentRotation().Yaw
-			)
-		);
-	}*/
 }
 
 /* 클래스 멤버 함수(초기화) */
@@ -92,6 +73,7 @@ void AFZFBoss::BeginPlay()
 	{
 		return;
 	}
+
 
 	bBeginPlayReady = true;
 
@@ -355,6 +337,26 @@ void AFZFBoss::BindEnergyRelayEvents()
 	}
 }
 
+void AFZFBoss::Multicast_SetBossMeshZ_Implementation(float NewZ)
+{
+	FVector Loc = GetMesh()->GetRelativeLocation();
+	Loc.Z = NewZ;
+	GetMesh()->SetRelativeLocation(Loc);
+}
+
+void AFZFBoss::Multicast_SetBossMeshPitch_Implementation(float MeshPitch)
+{
+	FRotator Rot = GetMesh()->GetRelativeRotation();
+	Rot.Pitch = MeshPitch;
+	GetMesh()->SetRelativeRotation(Rot);
+}
+
+void AFZFBoss::Multicast_SetBossMeshPitchReliable_Implementation(float MeshPitch)
+{
+	FRotator Rot = GetMesh()->GetRelativeRotation();
+	Rot.Pitch = MeshPitch;
+	GetMesh()->SetRelativeRotation(Rot);
+}
 
 // 공격 여부 델리게이트 저장
 void AFZFBoss::SetAIAttackDelegate(const FBossAICharacterAttackFinished& InOnAttackFinished)
@@ -658,6 +660,11 @@ void AFZFBoss::SetDead()
 		return;
 	}
 
+	if (bIsDead)
+	{
+		return;
+	}
+
 	// 진행 중인 공격/어빌리티/몽타주/맵패턴 정리
 	ResetBossAction();
 
@@ -680,7 +687,8 @@ void AFZFBoss::SetDead()
 	Super::SetDead();
 
 	// 사망 몽타주 재생
-	PlayDeadAnimation();
+	bIsDead = true;
+	OnRep_IsDead(); // 서버에서도 즉시 죽음 처리/애니메이션 실행
 
 	// 일정 시간 뒤 제거
 	FTimerHandle TimerHandle;

@@ -45,7 +45,7 @@ protected:
 	float YawTolerance = 2.f;
 
 	UPROPERTY(EditAnywhere, Category = "Boss Rotate")
-	float PitchTolerance = 2.f;
+	float PitchTolerance = 0.5f;
 
 private:
 	float CachedTargetYaw = 0.f;

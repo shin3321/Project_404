@@ -22,6 +22,11 @@
 // Sets default values
 AFZFBossLevelManager::AFZFBossLevelManager()
 {
+	// 서버 동기화 처리
+	bReplicates = true;
+
+
+
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -264,19 +269,16 @@ void AFZFBossLevelManager::StartBossIntro()
 		return;
 	}
 
-	if (BossIntroDummy)
-	{
-		BossIntroDummy->SetActorHiddenInGame(false);
-		BossIntroDummy->SetActorEnableCollision(false);
-	}
-
 	bIntroStarted = true;
 
+	// 보스방으로 텔레포트
+	TeleportPlayersToBossRoom();
+
 	// 문 닫기
-	CloseBossDoor();
+	Multicast_CloseBossDoor();
 
 	// 연출 재생
-	PlayBossIntro();
+	Multicast_PlayBossIntro();
 }
 
 void AFZFBossLevelManager::OnBombTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -284,6 +286,37 @@ void AFZFBossLevelManager::OnBombTriggerOverlap(UPrimitiveComponent* OverlappedC
 	if (Cast<AFZFCharacterBase>(OtherActor))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("컴포넌트 트리거 겹침!"));
+	}
+}
+
+void AFZFBossLevelManager::TeleportPlayersToBossRoom()
+{
+	TArray<AActor*> SpawnPoints;
+	UGameplayStatics::GetAllActorsWithTag(
+		GetWorld(),
+		FName("BossIntroPlayerPoint"),
+		SpawnPoints
+	);
+
+	int32 Index = 0;
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (!PC) continue;
+
+		APawn* Pawn = PC->GetPawn();
+		if (!Pawn) continue;
+
+		if (SpawnPoints.IsValidIndex(Index))
+		{
+			Pawn->TeleportTo(
+				SpawnPoints[Index]->GetActorLocation(),
+				SpawnPoints[Index]->GetActorRotation()
+			);
+		}
+
+		Index++;
 	}
 }
 
@@ -302,7 +335,7 @@ void AFZFBossLevelManager::OpenBossDoor()
 	}
 }
 
-void AFZFBossLevelManager::CloseBossDoor()
+void AFZFBossLevelManager::Multicast_CloseBossDoor_Implementation()
 {
 	if (!BossDoor)
 	{
@@ -317,28 +350,34 @@ void AFZFBossLevelManager::CloseBossDoor()
 	}
 }
 
-void AFZFBossLevelManager::PlayBossIntro()
+void AFZFBossLevelManager::Multicast_PlayBossIntro_Implementation()
 {
 	// 일단 비워둬도 됨.
 	// 나중에 레벨 시퀀스/보스 몽타주 재생 넣기.
 	if (!IntroSequenceActor)
 	{
-		FinishBossIntro();
+		Multicast_FinishBossIntro();
 		return;
 	}
 
 	ULevelSequencePlayer* Player = IntroSequenceActor->GetSequencePlayer();
 	if (!Player)
 	{
-		FinishBossIntro();
+		Multicast_FinishBossIntro();
 		return;
 	}
 
-	Player->OnFinished.AddDynamic(this, &AFZFBossLevelManager::FinishBossIntro);
+	if (BossIntroDummy)
+	{
+		BossIntroDummy->SetActorHiddenInGame(false);
+		BossIntroDummy->SetActorEnableCollision(false);
+	}
+
+	Player->OnFinished.AddDynamic(this, &AFZFBossLevelManager::Multicast_FinishBossIntro);
 	Player->Play();
 }
 
-void AFZFBossLevelManager::FinishBossIntro()
+void AFZFBossLevelManager::Multicast_FinishBossIntro_Implementation()
 {
 
 	if (BossIntroDummy)

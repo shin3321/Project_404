@@ -70,12 +70,12 @@ void UBTTask_ChangeBossMeshHeight::TickTask(UBehaviorTreeComponent& OwnerComp, u
 		InterpSpeed
 	);
 
-	Mesh->SetRelativeLocation(Loc);
+	AIPawn->Multicast_SetBossMeshZ(Loc.Z);
 
 	if (FMath::Abs(Loc.Z - FinalTargetMeshZ) <= Tolerance)
 	{
 		Loc.Z = FinalTargetMeshZ;
-		Mesh->SetRelativeLocation(Loc);
+		AIPawn->Multicast_SetBossMeshZ(Loc.Z);
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
