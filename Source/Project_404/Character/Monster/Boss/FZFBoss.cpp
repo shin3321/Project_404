@@ -690,17 +690,8 @@ void AFZFBoss::SetDead()
 	bIsDead = true;
 	OnRep_IsDead(); // 서버에서도 즉시 죽음 처리/애니메이션 실행
 
-	// 일정 시간 뒤 제거
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(
-		TimerHandle,
-		[this]()
-		{
-			Destroy();
-		},
-		DeadEventDelayTime,
-		false
-	);
+	// 월드 타이머 람다에 raw this를 남기면 레벨 이동 중 이미 제거된 보스를 다시 Destroy할 수 있다.
+	SetLifeSpan(DeadEventDelayTime);
 	
 	// 죽은 뒤 돌아가기
 	AFZFGameMode* GameMode = Cast<AFZFGameMode>(GetWorld()->GetAuthGameMode());

@@ -83,7 +83,7 @@ void AFZFGameMode::HandleMatchHasStarted()
 {
 	Super::HandleMatchHasStarted();
 
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	/*for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
 		APlayerController* PC = It->Get();
 		if (PC && PC->GetPawn() == nullptr)
@@ -91,7 +91,7 @@ void AFZFGameMode::HandleMatchHasStarted()
 			UE_LOG(LogTemp, Warning, TEXT("[안전장치] 폰이 없는 컨트롤러 발견, 강제 스폰: %s"), *PC->GetName());
 			RestartPlayer(PC);
 		}
-	}
+	}*/
 
 	// 특정 레벨(FZFGameLevel)에서만 타이머 시작
 	if (GetWorld()->GetMapName().Contains(TEXT("FZFGameLevel")))
@@ -102,24 +102,24 @@ void AFZFGameMode::HandleMatchHasStarted()
 
 AActor* AFZFGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
-	TArray<AActor*> FoundActors;
-	// 시작 위치 설정
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundActors);
+	//TArray<AActor*> FoundActors;
+	//// 시작 위치 설정
+	//UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundActors);
 
-	if (FoundActors.Num() > 0)
-	{
-		int32 StartIndex = CurrentPlayerCount % FoundActors.Num();
-		AActor* ChosenStart = FoundActors[StartIndex];
+	//if (FoundActors.Num() > 0)
+	//{
+	//	int32 StartIndex = CurrentPlayerCount % FoundActors.Num();
+	//	AActor* ChosenStart = FoundActors[StartIndex];
 
-		if (IsValid(ChosenStart))
-		{
-			UE_LOG(LogTemp, Log, TEXT("ChoosePlayerStart: Found %d starts. Assigning Index % d to % s"),
-			       FoundActors.Num(), StartIndex, *Player->GetName());
-			return ChosenStart;
-		}
-	}
+	//	if (IsValid(ChosenStart))
+	//	{
+	//		UE_LOG(LogTemp, Log, TEXT("ChoosePlayerStart: Found %d starts. Assigning Index % d to % s"),
+	//		       FoundActors.Num(), StartIndex, *Player->GetName());
+	//		return ChosenStart;
+	//	}
+	//}
 
-	UE_LOG(LogTemp, Warning, TEXT("ChoosePlayerStart: Falling back to default (Super)"));
+	//UE_LOG(LogTemp, Warning, TEXT("ChoosePlayerStart: Falling back to default (Super)"));
 
 	return Super::ChoosePlayerStart_Implementation(Player);
 }

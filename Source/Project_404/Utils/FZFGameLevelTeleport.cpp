@@ -111,7 +111,15 @@ void AFZFGameLevelTeleport::OnTeleportKeyPressed()
 			SoundManager->PlaySFX(FName("ButtonSFX"));
 		}
 	}
-	EnterLobbyLevel();
+
+	if (HasAuthority())
+	{
+		EnterLobbyLevel();
+	}
+	else
+	{
+		ServerEnterLobbyLevel();
+	}
 }
 
 void AFZFGameLevelTeleport::EnterLobbyLevel()
@@ -124,6 +132,11 @@ void AFZFGameLevelTeleport::EnterLobbyLevel()
 
 	const FString TargetLevel = TEXT("/Game/Project404/Map/FZFGameLevel?listen");
 	ShowLoadingAndTravel(TargetLevel);
+}
+
+void AFZFGameLevelTeleport::ServerEnterLobbyLevel_Implementation()
+{
+	EnterLobbyLevel();
 }
 
 void AFZFGameLevelTeleport::TravelToLobbyLevel()
