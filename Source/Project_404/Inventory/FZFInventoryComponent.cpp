@@ -7,9 +7,11 @@
 #include "Character/Player/FZFPlayerController.h"
 #include "Item/FZFItemData.h"
 #include "Item/FZFItemBase.h"
+#include "Item/FZFItemRow.h"
 #include "Kismet/GameplayStatics.h"
 #include "Manager/FZFSpawnManager.h"
 #include "Character/Player/FZFPlayerState.h"
+#include "Engine/DataTable.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -477,17 +479,43 @@ UFZFItemData* UFZFInventoryComponent::FindItemDataById(FName ItemId) const
 
     UE_LOG(LogTemp, Warning, TEXT("Found SpawnManager: %s"), *GetNameSafe(FoundSpawnManager));
 
-    if (!FoundSpawnManager)
+    if (FoundSpawnManager)
     {
-        UE_LOG(LogTemp, Warning, TEXT("FindItemDataById failed. SpawnManager is null."));
+        UFZFItemData* Result = FoundSpawnManager->GetItemDataById(ItemId);
+
+        UE_LOG(LogTemp, Warning, TEXT("GetItemDataById Result: %s"), *GetNameSafe(Result));
+
+        if (Result)
+        {
+            return Result;
+        }
+    }
+
+    UDataTable* ItemTable = LoadObject<UDataTable>(
+        nullptr,
+        TEXT("/Game/Project404/Item/DT_ItemTable.DT_ItemTable")
+    );
+
+    if (!ItemTable)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("FindItemDataById failed. ItemTable is null."));
         return nullptr;
     }
 
-    UFZFItemData* Result = FoundSpawnManager->GetItemDataById(ItemId);
+    FFZFItemRow* Row = ItemTable->FindRow<FFZFItemRow>(
+        ItemId,
+        TEXT("UFZFInventoryComponent::FindItemDataById")
+    );
 
-    UE_LOG(LogTemp, Warning, TEXT("GetItemDataById Result: %s"), *GetNameSafe(Result));
+    if (!Row)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("FindItemDataById failed. Item row not found: %s"), *ItemId.ToString());
+        return nullptr;
+    }
 
-    return Result;
+    UE_LOG(LogTemp, Warning, TEXT("FindItemDataById DataTable Result: %s"), *GetNameSafe(Row->ItemData));
+
+    return Row->ItemData;
 }
 
 void UFZFInventoryComponent::DropSelectedItem()

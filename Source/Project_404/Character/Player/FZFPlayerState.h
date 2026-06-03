@@ -76,4 +76,6 @@ public:
 private:
 
 	void NotifyInventoryChanged();
+
+	int32 PendingInventoryNotifyRetries = 0;
 };
