@@ -7,7 +7,7 @@
 | 플랫폼 | PC (Windows) |
 | 개발 인원 | 5인 |
 | 사용 엔진 | Unreal Engine 5.6.1 |
-| 프로젝트 기간 | 2026.05.01 ~ 2026.05.27 (27일)) |
+| 프로젝트 기간 | 2026.05.01 ~ 2026.05.27 (27일) |
 | 배포 | [구글 드라이브 링크](https://drive.google.com/drive/folders/1lP3xKdSbk3grjUvRlzOr-IteuKabTJOM) |
 | 개발 내용 | [노션 링크](https://www.notion.so/dalssagi/Project4-33ebf57640cf80408a2afa3b783b093d?source=copy_link) |
 
@@ -38,7 +38,7 @@
 
 - 3D 애니메이션: https://www.mixamo.com/
 - VFX, 환경, 구조물, 캐릭터, 사운드: http://fab.com/
-[구글 드라이브 링크](https://drive.google.com/drive/folders/1lP3xKdSbk3grjUvRlzOr-IteuKabTJOM)
+- [구글 드라이브 링크](https://drive.google.com/drive/folders/1lP3xKdSbk3grjUvRlzOr-IteuKabTJOM)
 
 ## 보완할 점
 
