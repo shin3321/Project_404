@@ -41,6 +41,9 @@ protected:
 	UFUNCTION()
 	void EnterLobbyLevel();
 
+	UFUNCTION(Server, Reliable)
+	void ServerEnterLobbyLevel();
+
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> TeleportWidgetClass;
 
