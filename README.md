@@ -1,5 +1,6 @@
 ### Project_404: Tomorrow Not Found
-🏹 CO-OP 루터 슈터 · 서바이벌 보스 레이드<br>
+
+🏹 **CO-OP 루터 슈터 · 서바이벌 보스 레이드**
 
 | 구분 | 내용 |
 | --- | --- |
@@ -7,20 +8,13 @@
 | 게임 장르 | CO-OP 루터 슈터 · 서바이벌 보스 레이드 |
 | 플랫폼 | PC (Windows) |
 | 개발 인원 | 5인 |
+| 팀원 및 담당 역할 | **안지성** — 게임 기획 · 적 시스템 구현<br>**권혁진** — 클라이언트 · 플레이어 GAS 및 플레이어 시스템 전반<br>**김영우** — 클라이언트 · 무기 크래프팅/인벤토리 시스템 전반<br>**김유진** — UI · 머티리얼 제작<br>**박신혜** — 서버 · 네트워크 시스템 |
 | 사용 엔진 | Unreal Engine 5.6.1 (C++) |
 | 네트워크 | Listen Server 기반 멀티플레이 |
 | 핵심 기술 | Gameplay Ability System (GAS) |
 | 프로젝트 기간 | 2026.05.01 ~ 2026.05.27 (27일) |
 | 플레이 빌드 | [Google Drive](https://drive.google.com/drive/folders/12ftKhGUnKpf9qITEDEhA8A2viajg5-pE?usp=sharing) |
 | 개발 내용 | [Notion](https://www.notion.so/dalssagi/Project4-33ebf57640cf80408a2afa3b783b093d?source=copy_link) |
-
-| 팀원 | 이메일 |
-| --- | --- |
-| 권혁진 | hyukj104030@gmail.com |
-| 김영우 | keiprogramo@gmail.com |
-| 김유진 | kimyujin2488@gmail.com |
-| 박신혜 | qkrtlsgp0996@gmail.com |
-| 안지성 | dalssagi00@gmail.com |
 
 
 ## 게임 소개
@@ -45,20 +39,93 @@
 ## 게임 영상
 
 [게임 플레이 영상(Google Drive)](https://drive.google.com/drive/folders/1rLVa4iH-lfI2jdPqP1vcwc_oQOil1DVx?usp=sharing)
-  
-<img width="2289" height="1416" alt="메인메뉴" src="https://github.com/user-attachments/assets/13dee081-b87a-4882-a794-65861ab8c472" />
-<img width="2291" height="1413" alt="로비1" src="https://github.com/user-attachments/assets/794df810-6834-4eae-bb14-626d77385b81" />
-<img width="2277" height="1423" alt="로비2" src="https://github.com/user-attachments/assets/6b8476cf-4a37-47a3-b356-49df6bff72fa" />
-<img width="2286" height="1423" alt="포탈" src="https://github.com/user-attachments/assets/7f001be5-b2d6-4ed4-a4f8-fe1f512424c1" />
 
-<img width="2094" height="1376" alt="CraftingItem1" src="https://github.com/user-attachments/assets/67556da2-a97b-4ebe-86a6-ccbd397b85f7" />
-<img width="1964" height="1420" alt="CraftingItem2" src="https://github.com/user-attachments/assets/9fc291fe-d48b-4a12-a1c7-5f401d571931" />
+## 게임 스크린샷
 
-<img width="2274" height="1418" alt="GameLevel_Sector3" src="https://github.com/user-attachments/assets/5ceecfe6-2db0-4d4e-9934-af4df06f2e60" />
-<img width="2073" height="1416" alt="GameLevel_Sector2" src="https://github.com/user-attachments/assets/950fdaae-6c20-4050-ae85-c3ddc01364ec" />
-<img width="2276" height="1411" alt="GameLevel_Sector1" src="https://github.com/user-attachments/assets/c7b2fca1-582c-44b3-b09e-474d036ced30" />
-<img width="2285" height="1420" alt="GameLevel_0utArea" src="https://github.com/user-attachments/assets/9d8dd9ac-9d93-4792-a4cb-4156440aabc7" />
-<img width="2288" height="1419" alt="GameLevel_BaseCamp" src="https://github.com/user-attachments/assets/56b65cc4-0af4-4b4f-9cce-fd5f39cecc74" />
+<table width="1000">
+  <tr>
+    <th colspan="4">게임 타이틀</th>
+  </tr>
+  <tr>
+    <td colspan="4" align="center">
+      <img src="https://github.com/user-attachments/assets/13dee081-b87a-4882-a794-65861ab8c472" width="980">
+    </td>
+  </tr>
+
+  <tr>
+    <th colspan="2">로비 및 스테이지 진입</th>
+    <th colspan="2">레벨 및 전투</th>
+  </tr>
+  <tr>
+    <td width="25%" align="center">
+      <img src="https://github.com/user-attachments/assets/6b8476cf-4a37-47a3-b356-49df6bff72fa" width="100%">
+      <br><sub>로비 화면 ①</sub>
+    </td>
+    <td width="25%" align="center">
+      <img src="https://github.com/user-attachments/assets/794df810-6834-4eae-bb14-626d77385b81" width="100%">
+      <br><sub>로비 화면 ②</sub>
+    </td>
+    <td width="25%" align="center">
+      <img src="https://github.com/user-attachments/assets/9d8dd9ac-9d93-4792-a4cb-4156440aabc7" width="100%">
+      <br><sub>레벨 환경 ①</sub>
+    </td>
+    <td width="25%" align="center">
+      <img src="https://github.com/user-attachments/assets/c7b2fca1-582c-44b3-b09e-474d036ced30" width="100%">
+      <br><sub>레벨 환경 ②</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/7f001be5-b2d6-4ed4-a4f8-fe1f512424c1" width="100%">
+      <br><sub>스테이지 입장 포탈</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/56b65cc4-0af4-4b4f-9cce-fd5f39cecc74" width="100%">
+      <br><sub>탐사 캠프 및 동료 조우</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/5ceecfe6-2db0-4d4e-9934-af4df06f2e60" width="100%">
+      <br><sub>일반 전투 ①</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/950fdaae-6c20-4050-ae85-c3ddc01364ec" width="100%">
+      <br><sub>일반 전투 ②</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <th colspan="2">무기 크래프팅 시스템</th>
+    <th colspan="2">보스 레이드</th>
+  </tr>
+  <tr>
+    <td width="25%" rowspan="2" align="center">
+      <img src="https://github.com/user-attachments/assets/67556da2-a97b-4ebe-86a6-ccbd397b85f7" width="100%">
+      <br><sub>무기 크래프팅 제작대</sub>
+    </td>
+    <td width="25%" rowspan="2" align="center">
+      <img src="https://github.com/user-attachments/assets/9fc291fe-d48b-4a12-a1c7-5f401d571931" width="100%">
+      <br><sub>크래프팅으로 생성한 무기</sub>
+    </td>
+    <td width="25%" align="center">
+      <img src="https://github.com/user-attachments/assets/3ba6c82a-a6f4-4249-b5b5-805ff6ed118a" width="100%">
+      <br><sub>보스전 전투 ①</sub>
+    </td>
+    <td width="25%" align="center">
+      <img src="https://github.com/user-attachments/assets/9e912feb-4007-4575-97e3-13c91ceff5b1" width="100%">
+      <br><sub>보스전 전투 ②</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/0d9b36c9-4a27-4848-8203-a69733760038" width="100%">
+      <br><sub>보스 코어 파괴</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/d373bc91-f123-4fb1-a63f-89c3a401c0bc" width="100%">
+      <br><sub>보스 클리어</sub>
+    </td>
+  </tr>
+</table>
 
 ## 개발 내용
 
