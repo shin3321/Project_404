@@ -1,4 +1,4 @@
-### Project_404: Tomorrow Not Found
+# Project_404: Tomorrow Not Found
 
 🏹 **CO-OP 루터 슈터 · 서바이벌 보스 레이드**
 
@@ -16,6 +16,9 @@
 | 플레이 빌드 | [Google Drive](https://drive.google.com/drive/folders/12ftKhGUnKpf9qITEDEhA8A2viajg5-pE?usp=sharing) |
 | 개발 내용 | [Notion](https://www.notion.so/dalssagi/Project4-33ebf57640cf80408a2afa3b783b093d?source=copy_link) |
 
+## 게임 영상
+
+[게임 플레이 영상(Google Drive)](https://drive.google.com/drive/folders/1rLVa4iH-lfI2jdPqP1vcwc_oQOil1DVx?usp=sharing)
 
 ## 게임 소개
 
@@ -35,10 +38,6 @@
 > **핵심 게임플레이 구조**
 >
 > 로비 → 일반 필드 전투 및 무기 부품 파밍 → 무기 크래프팅 → 협동 보스 레이드 → 스테이지 클리어
-
-## 게임 영상
-
-[게임 플레이 영상(Google Drive)](https://drive.google.com/drive/folders/1rLVa4iH-lfI2jdPqP1vcwc_oQOil1DVx?usp=sharing)
 
 ## 게임 스크린샷
 
